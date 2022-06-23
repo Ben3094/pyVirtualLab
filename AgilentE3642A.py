@@ -1,9 +1,12 @@
-from VISAInstrument import VISAInstrument
+from VISAInstrument import Source
 
-class AgilentE3642A(VISAInstrument):
+class AgilentE3642A(Source):
     def __init__(self, address):
         super(AgilentE3642A, self).__init__(address)
         self.MaxVoltage = self.DEFAULT_MAX_VOLTAGE
+
+    def _abort(self):
+        self.IsEnabled = False
 
     DEFAULT_FORMAT = "{:2.6f}"
     DEFAULT_MAX_VOLTAGE = 8
