@@ -71,7 +71,6 @@ class AgilentN5183B(Source):
         frequenciesLength = len(frequencies)
         if (frequenciesLength != len(gains)):
             raise Exception('Arrays must be of the same length')
-        self._instr.write("SOUR:CORR:FLAT:LOAD TMP")
         self._instr.write("SOUR:CORR:FLAT:PRES")
         for index in range(0, frequenciesLength):
             self._instr.write("SOUR:CORR:FLAT:PAIR " + str(frequencies[index]) + ',' + str(gains[index]))
