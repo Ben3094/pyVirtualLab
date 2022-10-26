@@ -9,14 +9,14 @@ class KeysightN1913A(VISAInstrument):
 
     @property
     def Power(self):
-        return float(self._instr.query("MEAS?"))
+        return float(self.Query("MEAS"))
 
     DEFAULT_FREQUENCY_FORMAT = "{:11.0f}"
     @property
     def Frequency(self):
-        return float(self._instr.query("SENS:FREQ?"))
+        return float(self.Query("SENS:FREQ"))
     @Frequency.setter
     def Frequency(self, value):
-        self._instr.write("SENS:FREQ " + str(value))
+        self.Write("SENS:FREQ " + str(value))
         if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
             raise Exception("Error while setting the frequency")

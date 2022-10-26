@@ -5,6 +5,15 @@ class VISAInstrument:
         self._rm = pyvisa.ResourceManager('@py')
         self._instr = self._rm.open_resource(address)
 
+    def Write(self, arg):
+        return self._instr.write(arg)
+
+    def Query(self, arg, args=''):
+        return str(self._instr.query(arg + '?' + args)).strip('\n').strip('\r').removeprefix(arg).strip()
+
+    def Read(self):
+        return str(self._instr.read()).strip('\n')
+
     def Id(self):
         return self._instr.query('*IDN?')
 
