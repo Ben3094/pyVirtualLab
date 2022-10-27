@@ -3,8 +3,26 @@ import pyvisa
 class VISAInstrument:
     def __init__(self, address):
         self._rm = pyvisa.ResourceManager('@py')
-        self._instr = self._rm.open_resource(address)
+        self._address = address
+        self._isConnected = False
 
+    @property
+    def Address(self) -> str:
+        return self._address
+
+    @property
+    def IsConnected(self) -> bool:
+        return self._isConnected
+        
+    def Connect(self):
+        self._isConnected = True
+        try:
+            self._instr = self._rm.open_resource(self.Address)
+            self.Id
+        except Exception as e:
+            self._isConnected = False
+            raise e
+            
     def Write(self, command, args=None):
         return self._instr.write(command + ((' ' + args) if args is not None else ''))
 
