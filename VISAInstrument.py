@@ -5,11 +5,11 @@ class VISAInstrument:
         self._rm = pyvisa.ResourceManager('@py')
         self._instr = self._rm.open_resource(address)
 
-    def Write(self, arg):
-        return self._instr.write(arg)
+    def Write(self, command, args=None):
+        return self._instr.write(command + ((' ' + args) if args is not None else ''))
 
-    def Query(self, arg, args=''):
-        return str(self._instr.query(arg + '?' + args)).strip('\n').strip('\r').removeprefix(arg).strip()
+    def Query(self, command, args=''):
+        return str(self._instr.query(command + '?' + args)).strip('\n').strip('\r').lstrip(':').removeprefix(command).strip()
 
     def Read(self):
         return str(self._instr.read()).strip('\n')

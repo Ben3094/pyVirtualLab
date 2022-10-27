@@ -1,5 +1,6 @@
 from enum import Enum, unique
 from VISAInstrument import VISAInstrument
+import re
 
 @unique
 class RunState(Enum):
@@ -21,43 +22,46 @@ class ChannelUnit(Enum):
     Unknown = 3
 
 class Channel():
+    TYPE_COMMAND_HEADER = 'CHAN'
+
     def __init__(self, parentKeysightMSOS804A, address):
         self._parent = parentKeysightMSOS804A
         self._address = address
+        self._commandAddress = f"{self.TYPE_COMMAND_HEADER}{self._address}"
 
     @property
-    def Address(self):
+    def Address(self) -> float:
         return self._address
 
 class AnalogChannel(Channel):
     @property
     def Label(self):
-        return self._parent.Query(f"CHAN{self._address}:LAB?")
+        return self._parent.Query(f"{self._commandAddress}:LAB?")
     @Label.setter
     def Label(self, value):
         value = str(value)
         if value.isascii() & len(value) <= 16:
-            return self._parent.Write(f"CHAN{self._address}:LAB {value}")
+            return self._parent.Write(f"{self._commandAddress}:LAB {value}")
         else:
             raise Exception("Label must be ASCII and less or equal 16 characters long")
 
     @property
     def IsEnabled(self):
-        return bool(self._parent.Query(f"CHAN{self._address}:DISP?"))
+        return bool(self._parent.Query(f"{self._commandAddress}:DISP?"))
     @IsEnabled.setter
     def IsEnabled(self, value):
-        return self._parent.Query(f"CHAN{self._address}:DISP {int(bool(value))}")
+        return self._parent.Query(f"{self._commandAddress}:DISP {int(bool(value))}")
 
     @property
     def IsInverted(self):
-        return bool(self._parent.Query(f"CHAN{self._address}:INV"))
+        return bool(self._parent.Query(f"{self._commandAddress}:INV"))
     @IsInverted.setter
     def IsInverted(self, value):
-        return self._parent.Query(f"CHAN{self._address}:INV {int(bool(value))}")
+        return self._parent.Query(f"{self._commandAddress}:INV {int(bool(value))}")
     
     @property
     def Unit(self):
-        match self._parent.Query(f"CHAN{self._address}:UNIT"):
+        match self._parent.Query(f"{self._commandAddress}:UNIT"):
             case "VOLT":
                 return ChannelUnit.Volt
             case "AMP":
@@ -70,42 +74,112 @@ class AnalogChannel(Channel):
     def Unit(self, value):
         match value:
             case ChannelUnit.Volt:
-                self._parent.Write(f"CHAN{self._address}:UNIT VOLT")
+                self._parent.Write(f"{self._commandAddress}:UNIT VOLT")
             case ChannelUnit.Ampere:
-                self._parent.Write(f"CHAN{self._address}:UNIT AMP")
+                self._parent.Write(f"{self._commandAddress}:UNIT AMP")
             case ChannelUnit.Watt:
-                self._parent.Write(f"CHAN{self._address}:UNIT WATT")
+                self._parent.Write(f"{self._commandAddress}:UNIT WATT")
             case ChannelUnit.Unknown:
-                self._parent.Write(f"CHAN{self._address}:UNIT UNKN")
+                self._parent.Write(f"{self._commandAddress}:UNIT UNKN")
     
     # Measurements
     def GetMaximum(self):
-        return float(self._parent.Query(f"MEAS:VMAX", f"CHAN{self._address}"))
+        return float(self._parent.Query(f"MEAS:VMAX", f"{self._commandAddress}"))
     def GetMinimum(self):
-        return float(self._parent.Query(f"MEAS:VMIN", f"CHAN{self._address}"))
+        return float(self._parent.Query(f"MEAS:VMIN", f"{self._commandAddress}"))
     def GetAverage(self):
-        return float(self._parent.Query(f"MEAS:VAV", f"DISP,CHAN{self._address}"))
+        return float(self._parent.Query(f"MEAS:VAV", f"DISP,{self._commandAddress}"))
     def GetRange(self):
-        return float(self._parent.Query(f"MEAS:VPP", f"CHAN{self._address}"))
+        return float(self._parent.Query(f"MEAS:VPP", f"{self._commandAddress}"))
     def GetFrequency(self):
-        return float(self._parent.Query(f"MEAS:FREQ", f"CHAN{self._address}"))
+        return float(self._parent.Query(f"MEAS:FREQ", f"{self._commandAddress}"))
     def GetPeriod(self):
-        return float(self._parent.Query(f"MEAS:PER", f"CHAN{self._address}"))
+        return float(self._parent.Query(f"MEAS:PER", f"{self._commandAddress}"))
     def GetRiseTime(self):
-        return float(self._parent.Query(f"MEAS:RIS", f"CHAN{self._address}"))
+        return float(self._parent.Query(f"MEAS:RIS", f"{self._commandAddress}"))
     def GetFallTime(self):
-        return float(self._parent.Query(f"MEAS:FALL", f"CHAN{self._address}"))
-    def GetFFTPeaksMagnitudes(self):
-        return [float(peakMagnitude) for peakMagnitude in self._parent.Query(f"FUNC1:FFT:PEAK:MAGN").strip('"').split(',')]
+        return float(self._parent.Query(f"MEAS:FALL", f"{self._commandAddress}"))
 
 class DigitalChannel(Channel):
-    pass
+    TYPE_COMMAND_HEADER = 'DIG'
+
+class Function(Channel):
+    TYPE_COMMAND_HEADER = 'FUNC'
+    NAME = None
+
+    def __init__(self, parentKeysightMSOS804A, address, involvedChannels):
+        super().__init__(parentKeysightMSOS804A, address)
+        self._involvedChannels = involvedChannels
+
+    def ChangeFunction(self, targetedFunction, targetedInvolvedChannels):
+        self._parent.Write(f"{self._commandAddress}:{targetedFunction.NAME} {','.join([targetedInvolvedChannel._commandAddress for targetedInvolvedChannel in targetedInvolvedChannels])}")
+        self._parent.Functions[self._parent.Functions.index(self)] = targetedFunction(self._parent, self.Address, targetedInvolvedChannels)
+
+class AddFunction(Function):
+	NAME = 'ADD'
+class AverageFunction(Function):
+	NAME = 'AVER'
+class CommonModeFunction(Function):
+	NAME = 'COMM'
+class DifferentiateFunction(Function):
+	NAME = 'DIFF'
+class DivideFunction(Function):
+	NAME = 'DIV'
+class FFTMagnitudeFunction(Function):
+    NAME = 'FFTM'
+
+    @property
+    def PeaksAnnotations(self) -> bool:
+        return bool(self._parent.Query(f"{self._commandAddress}:FFT:PEAK:STAT"))
+    @PeaksAnnotations.setter
+    def PeaksAnnotations(self, value):
+        self._parent.Write(f"{self._commandAddress}:FFT:PEAK:STAT", str(int(bool(value))))
+
+    def GetFFTPeaks(self) -> dict:
+        savedPeaksAnnotations = self.PeaksAnnotations
+        self.PeaksAnnotations = True
+            
+        magnitudes = [float(peakMagnitude) for peakMagnitude in self._parent.Query(f"{self._commandAddress}:FFT:PEAK:MAGN").strip('"').split(',')]
+        frequencies = [float(peakFrequency) for peakFrequency in self._parent.Query(f"{self._commandAddress}:FFT:PEAK:FREQ").strip('"').split(',')]
+        
+        self.PeaksAnnotations = savedPeaksAnnotations
+
+        return dict(zip(frequencies, magnitudes))
+        
+class FFTPhaseFunction(Function):
+    NAME = 'FFTP'
+class HighPassFunction(Function):
+	NAME = 'HIGH'
+class IntegrateFunction(Function):
+	NAME = 'INT'
+class InvertFunction(Function):
+	NAME = 'INV'
+class LowPassFunction(Function):
+	NAME = 'LOW'
+class MagnifyFunction(Function):
+	NAME = 'MAGN'
+class MaximumFunction(Function):
+	NAME = 'MAX'
+class MinimumFunction(Function):
+	NAME = 'MIN'
+class MultiplyFunction(Function):
+	NAME = 'MULT'
+class SmoothFunction(Function):
+	NAME = 'SMO'
+class SubtractFunction(Function):
+	NAME = 'SUB'
+class VersusFunction(Function):
+	NAME = 'VERS'
+
+FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in Function.__subclasses__()])
 
 class KeysightMSOS804A(VISAInstrument):
     def __init__(self, address):
         super(KeysightMSOS804A, self).__init__(address)
         self.Channels = list()
         self._indexChannels()
+        self.Functions = list()
+        self._indexFunctions()
 
     def GetAnalogData(self):
         self.Write("WAV:BYT LSBF")
@@ -160,11 +234,44 @@ class KeysightMSOS804A(VISAInstrument):
     def AutoScale(self):
         self.Write("AUT")
 
+    @property
+    def ReturnHeader(self) -> bool:
+        return bool(int(self.Query('SYST:HEAD')))
+    @ReturnHeader.setter
+    def ReturnHeader(self, value):
+        self.Write('SYST:HEAD', str(int(bool(value))))
+
+    ANALOG_CHANNELS = 4
+    DIGITAL_CHANNELS = 16
     def _indexChannels(self):
         # Add analog channels
-        for address in range(1, 4+1):
+        for address in range(1, self.ANALOG_CHANNELS+1):
             self.Channels.append(AnalogChannel(self, address))
 
         # Add digital channels
-        for address in range(0, 16):
+        for address in range(0, self.DIGITAL_CHANNELS):
             self.Channels.append(DigitalChannel(self, address))
+
+    FUNCTIONS = 16
+    def _indexFunctions(self):
+        savedReturnHeader = self.ReturnHeader
+        self.ReturnHeader = True
+
+        for address in range(1, self.FUNCTIONS+1):
+            query = f"{Function.TYPE_COMMAND_HEADER}{address}"
+            response = self.Query(query).lstrip(':').split()
+            self.Functions.append(FUNCTIONS_NAMES[response[0]](self, address, list([self.StringToChannel(channelString) for channelString in response[1].split(',')])))
+
+        self.ReturnHeader = savedReturnHeader
+
+    def StringToChannel(self, value) -> Channel:
+        match = re.match('([A-Z]+)(\d+)', value)
+        match match.groups(0)[0]:
+            case AnalogChannel.TYPE_COMMAND_HEADER:
+                return next((channel for channel in self.Channels if channel.Address == int(match.groups(0)[1]) and isinstance(channel, AnalogChannel)), None)
+
+            case DigitalChannel.TYPE_COMMAND_HEADER:
+                return next((channel for channel in self.Channels if channel.Address == int(match.groups(0)[1]) and isinstance(channel, DigitalChannel)), None)
+
+            case Function.TYPE_COMMAND_HEADER:
+                return next((channel for channel in self.Channels if channel.Address == int(match.groups(0)[1])), None)
