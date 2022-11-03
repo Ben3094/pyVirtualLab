@@ -113,7 +113,6 @@ class Function(Channel):
 
     def ChangeFunction(self, targetedFunction, targetedInvolvedChannels):
         self._parent.Write(f"{self._commandAddress}:{targetedFunction.NAME} {','.join([targetedInvolvedChannel._commandAddress for targetedInvolvedChannel in targetedInvolvedChannels])}")
-        self._parent.Functions[self._parent.Functions.index(self)] = targetedFunction(self._parent, self.Address, targetedInvolvedChannels)
 
 class AddFunction(Function):
 	NAME = 'ADD'
@@ -176,10 +175,6 @@ FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in Function.__sub
 class KeysightMSOS804A(VISAInstrument):
     def __init__(self, address):
         super(KeysightMSOS804A, self).__init__(address)
-        self.Channels = list()
-        self._indexChannels()
-        self.Functions = list()
-        self._indexFunctions()
 
     def GetAnalogData(self):
         self.Write("WAV:BYT LSBF")
@@ -243,26 +238,34 @@ class KeysightMSOS804A(VISAInstrument):
 
     ANALOG_CHANNELS = 4
     DIGITAL_CHANNELS = 16
-    def _indexChannels(self):
+    @property
+    def Channels(self):
+        result = list()
+
         # Add analog channels
         for address in range(1, self.ANALOG_CHANNELS+1):
-            self.Channels.append(AnalogChannel(self, address))
+            result.append(AnalogChannel(self, address))
 
         # Add digital channels
         for address in range(0, self.DIGITAL_CHANNELS):
-            self.Channels.append(DigitalChannel(self, address))
+            result.append(DigitalChannel(self, address))
+
+        return result
 
     FUNCTIONS = 16
-    def _indexFunctions(self):
+    @property
+    def Functions(self):
+        result = list()
         savedReturnHeader = self.ReturnHeader
         self.ReturnHeader = True
 
         for address in range(1, self.FUNCTIONS+1):
             query = f"{Function.TYPE_COMMAND_HEADER}{address}"
             response = self.Query(query).lstrip(':').split()
-            self.Functions.append(FUNCTIONS_NAMES[response[0]](self, address, list([self.StringToChannel(channelString) for channelString in response[1].split(',')])))
+            result.append(FUNCTIONS_NAMES[response[0]](self, address, list([self.StringToChannel(channelString) for channelString in response[1].split(',')])))
 
         self.ReturnHeader = savedReturnHeader
+        return result
 
     def StringToChannel(self, value) -> Channel:
         match = re.match('([A-Z]+)(\d+)', value)

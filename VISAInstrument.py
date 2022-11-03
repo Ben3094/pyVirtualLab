@@ -1,4 +1,5 @@
 import pyvisa
+import inspect
 
 class VISAInstrument:
     def __init__(self, address):
@@ -9,6 +10,13 @@ class VISAInstrument:
     @property
     def Address(self) -> str:
         return self._address
+    @Address.setter
+    def Address(self, value):
+        if value != self.Address:
+            self._address = value
+            if self.IsConnected:
+                self.Disconnect()
+                self.Connect()
 
     @property
     def IsConnected(self) -> bool:
@@ -22,6 +30,10 @@ class VISAInstrument:
         except Exception as e:
             self._isConnected = False
             raise e
+
+    def Disconnect(self):
+        self._instr.close()
+        self._isConnected = False
             
     def Write(self, command, args=None):
         return self._instr.write(command + ((' ' + args) if args is not None else ''))
@@ -41,6 +53,12 @@ class VISAInstrument:
     
     def Reset(self):
         self._instr.write('*RST')
+
+    def __repr__(self) -> str:
+        result = ''
+        for name, value in inspect.getmembers(self):
+            result += f"{name}:{value}\n"
+        return result
 
 class Source(VISAInstrument):
     def _abort(self):

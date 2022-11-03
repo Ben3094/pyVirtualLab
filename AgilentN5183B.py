@@ -4,7 +4,6 @@ from VISAInstrument import Source
 class AgilentN5183B(Source):
     def __init__(self, address):
         super(AgilentN5183B, self).__init__(address)
-        self.MaxPower = self.DEFAULT_MAX_POWER
 
     def _abort(self):
         self.IsEnabled = False
