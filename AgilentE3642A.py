@@ -5,10 +5,7 @@ class AgilentE3642A(Source):
     DEFAULT_TIMEOUT = 2000
 
     def __init__(self, address):
-        super(AgilentE3642A, self).__init__(address)
-        self.MaxVoltage = self.DEFAULT_MAX_VOLTAGE
-        self._automaticVoltageRange = False
-        self._instr.timeout = self.DEFAULT_TIMEOUT
+        super(AgilentE3642A, self).__init__(address, self.DEFAULT_TIMEOUT)
 
     def _abort(self):
         self.IsEnabled = False
@@ -51,11 +48,18 @@ class AgilentE3642A(Source):
         self.Write("SOUR:VOLT:PROT:CLE")
         if (bool(int(self.Query("SOUR:VOLT:PROT:TRIP")))):
             raise Exception("Voltage set is superior or equal to maximum voltage")
-
+    
+    @property
+    def MeasuredVoltage(self):
+        return float(self.Query('MEAS:SCAL:VOLT:DC'))
 
     @property
     def Current(self):
         return float(self.Query("SOUR:CURR:LEV:IMM:AMPL"))
+    
+    @property
+    def MeasuredCurrent(self):
+        return float(self.Query('MEAS:SCAL:CURR:DC'))
 
     @property
     def IsEnabled(self):

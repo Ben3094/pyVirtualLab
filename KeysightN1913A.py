@@ -4,8 +4,7 @@ class KeysightN1913A(VISAInstrument):
     DEFAULT_TIMEOUT = 20000
 
     def __init__(self, address):
-        super(KeysightN1913A, self).__init__(address)
-        self._instr.timeout = self.DEFAULT_TIMEOUT
+        super(KeysightN1913A, self).__init__(address, self.DEFAULT_TIMEOUT)
 
     @property
     def Power(self):

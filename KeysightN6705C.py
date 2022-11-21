@@ -21,78 +21,86 @@ class Condition(Flag):
 
 class Output():
     def __init__(self, parentKeysightN6705C, address):
-        self._parent = parentKeysightN6705C
-        self._address = address
-        self._model = str(self._parent.Query(f"SYST:CHAN:MOD? (@{self.Address})"))
-        self._options = str(self._parent.Query(f"SYST:CHAN:OPT? (@{self.Address})"))
-        self._serialNumber = str(self._parent.Query(f"SYST:CHAN:SER? (@{self.Address})"))
+        self.__parent__ = parentKeysightN6705C
+        self.__address__ = address
+        self.__model__ = str(self.__parent__.Query("SYST:CHAN:MOD", f"(@{self.Address})"))
+        self.__options__ = str(self.__parent__.Query("SYST:CHAN:OPT", f"(@{self.Address})"))
+        self.__serialNumber__ = str(self.__parent__.Query("SYST:CHAN:SER", f"(@{self.Address})"))
 
     @property
     def Address(self) -> int:
-        return self._address
+        return self.__address__
 
     @property
     def Model(self) -> str:
-        return self._model
+        return self.__model__
 
     @property
     def Options(self) -> str:
-        return self._options
+        return self.__options__
 
     @property
     def SerialNumber(self) -> str:
-        return self._serialNumber
+        return self.__serialNumber__
 
     @property
     def Conditions(self) -> Condition:
-        return Condition(int(self._parent.Query(f"STAT:QUES:COND? (@{self.Address})")))
+        return Condition(int(self.__parent__.Query("STAT:QUES:COND", f"(@{self.Address})")))
 
     DEFAULT_FORMAT = "{:2.6f}"
     @property
     def MaxVoltage(self) -> float:
-        return float(self._parent.Query(f"SOUR:VOLT:PROT:LEV? (@{self.Address})"))
+        return float(self.__parent__.Query("SOUR:VOLT:PROT:LEV", f"(@{self.Address})"))
     @MaxVoltage.setter
     def MaxVoltage(self, value):
         value = float(value)
-        self._parent.Write(f"SOUR:VOLT:PROT:LEV {str(value)},(@{self.Address})")
-        self._parent.Write(f"SOUR:VOLT:PROT:STAT ON,(@{self.Address})")
+        self.__parent__.Write(f"SOUR:VOLT:PROT:LEV {str(value)},(@{self.Address})")
+        self.__parent__.Write(f"SOUR:VOLT:PROT:STAT ON,(@{self.Address})")
         if self.MaxVoltage != float(self.DEFAULT_FORMAT.format(value)):
             raise Exception("Error while setting the voltage protection value")
 
     @property
     def Voltage(self) -> float:
-        return float(self._parent.Query(f"SOUR:VOLT:LEV:IMM:AMPL? (@{self.Address})"))
+        return float(self.__parent__.Query("SOUR:VOLT:LEV:IMM:AMPL", f"(@{self.Address})"))
     @Voltage.setter
     def Voltage(self, value):
         value = float(value)
-        self._parent.Write(f"SOUR:VOLT:LEV:IMM:AMPL {str(value)},(@{self.Address})")
+        self.__parent__.Write(f"SOUR:VOLT:LEV:IMM:AMPL {str(value)},(@{self.Address})")
         if self.Voltage != float(self.DEFAULT_FORMAT.format(value)):
             raise Exception("Error while setting the voltage")
-        self._parent.Write(f"OUTP:PROT:CLE (@{self.Address})")
+        self.__parent__.Write(f"OUTP:PROT:CLE (@{self.Address})")
         if self.Conditions == Condition.OverVoltage:
             raise Exception("Voltage set is superior or equal to maximum voltage")
 
     @property
+    def MeasuredVoltage(self):
+        return float(self.__parent__.Query('MEAS:SCAL:VOLT:DC', f"(@{self.Address})").lstrip('[').rstrip(']'))
+
+    @property
+    def MeasuredCurrent(self):
+        return float(self.__parent__.Query('MEAS:SCAL:CURR:DC', f"(@{self.Address})").lstrip('[').rstrip(']'))
+
+    @property
     def MaxCurrent(self) -> float:
-        return float(self._parent.Query(f"SOUR:CURR:LEV:IMM:AMPL? (@{self.Address})"))
+        return float(self.__parent__.Query("SOUR:CURR:LEV:IMM:AMPL", f"(@{self.Address})"))
     @MaxCurrent.setter
     def MaxCurrent(self, value):
         value = float(value)
-        self._parent.Write(f"SOUR:CURR:LEV:IMM:AMPL {str(value)},(@{self.Address})")
+        self.__parent__.Write(f"SOUR:CURR:LEV:IMM:AMPL {str(value)},(@{self.Address})")
         if self.MaxCurrent != float(self.DEFAULT_FORMAT.format(value)):
             raise Exception("Error while setting the maximum current")
-        self._parent.Write(f"SOUR:CURR:PROT:STAT ON,(@{self.Address})")
-        self._parent.Write(f"OUTP:PROT:CLE (@{self.Address})")
+        self.__parent__.Write(f"SOUR:CURR:PROT:STAT ON,(@{self.Address})")
+        self.__parent__.Write(f"OUTP:PROT:CLE (@{self.Address})")
         if self.Conditions == Condition.OverCurrent:
             raise Exception("Current set is superior or equal to maximum current")
 
     @property
     def IsEnabled(self) -> bool:
-        return bool(int(self._parent.Query(f":OUTP:STAT? (@{self.Address})")))
+        return bool(int(self.__parent__.Query(":OUTP:STAT", f"(@{self.Address})")))
     @IsEnabled.setter
     def IsEnabled(self, value):
         value = bool(value)
-        self._parent.Write(f"OUTP:STAT {str(int(value))},(@{self.Address})")
+        self.__parent__.Write(f"OUTP:STAT {str(int(value))}", f",(@{self.Address})")
         if self.IsEnabled != value:
             raise Exception("Error while en/dis-abling source")
 
@@ -103,19 +111,22 @@ class N6734B(Output):
 class KeysightN6705C(Source):
     def __init__(self, address):
         super(KeysightN6705C, self).__init__(address)
-        self.Outputs = list()
-        self._indexOutputs()
+        self.__outputs__ = None
 
     MAX_OUTPUTS = 4
 
-    def _indexOutputs(self):
-        address = 0
-        connectedOutputs = int(self.Query('SYST:CHAN:COUN?'))
-        while address <= KeysightN6705C.MAX_OUTPUTS and len(self.Outputs) < connectedOutputs:
-            address += 1
-            try:
-                output = globals()[str(self.Query(f'SYST:CHAN:MOD? (@{address})')).replace('\n','')]
-                if output == None:
-                    output = Output
-                self.Outputs.append(output(self, address))
-            except: pass
+    @property
+    def Outputs(self):
+        if self.__outputs__ == None:
+            self.__outputs__ = dict()
+            address = 0
+            connectedOutputs = int(self.Query('SYST:CHAN:COUN'))
+            while address <= KeysightN6705C.MAX_OUTPUTS and len(self.Outputs) < connectedOutputs:
+                address += 1
+                try:
+                    output = globals()[str(self.Query('SYST:CHAN:MOD', f"(@{address})")).replace('\n','')]
+                    if output == None:
+                        output = Output
+                    self.Outputs[address] = output(self, address)
+                except: pass
+        return self.__outputs__

@@ -2,68 +2,96 @@ import pyvisa
 import inspect
 
 class VISAInstrument:
-    def __init__(self, address):
-        self._rm = pyvisa.ResourceManager('@py')
-        self._address = address
-        self._isConnected = False
+    DEFAULT_VISA_TIMEOUT = 2000
+
+    def __init__(self, address, visaTimeout=DEFAULT_VISA_TIMEOUT):
+        self.__rm__ = pyvisa.ResourceManager('@py')
+        self.__address__ = address
+        self.__isConnected__ = False
+        self.__visaTimeout__ = visaTimeout
 
     @property
     def Address(self) -> str:
-        return self._address
+        return self.__address__
     @Address.setter
-    def Address(self, value):
+    def Address(self, value) -> str:
         if value != self.Address:
-            self._address = value
+            self.__address__ = str(value)
+            if self.IsConnected:
+                self.Disconnect()
+                self.Connect()
+        return self.__address__
+
+    @property
+    def VISATimeout(self) -> int:
+        return self.__visaTimeout__
+    @VISATimeout.setter
+    def VISATimeout(self, value):
+        if value != self.__visaTimeout__:
+            self.__visaTimeout__ = int(value)
             if self.IsConnected:
                 self.Disconnect()
                 self.Connect()
 
     @property
     def IsConnected(self) -> bool:
-        return self._isConnected
+        return self.__isConnected__
         
     def Connect(self):
-        self._isConnected = True
+        self.__isConnected__ = True
         try:
-            self._instr = self._rm.open_resource(self.Address)
+            self.__instr__ = self.__rm__.open_resource(self.Address)
+            self.__instr__.timeout = self.VISATimeout
             self.Id
         except Exception as e:
-            self._isConnected = False
+            self.__isConnected__ = False
             raise e
 
     def Disconnect(self):
-        self._instr.close()
-        self._isConnected = False
+        self.__instr__.close()
+        self.__isConnected__ = False
             
     def Write(self, command, args=None):
-        return self._instr.write(command + ((' ' + args) if args is not None else ''))
+        if self.IsConnected:
+            return self.__instr__.write(command + ((' ' + args) if args is not None else ''))
+        else:
+            raise Exception("The instrument is not connected")
 
     def Query(self, command, args=''):
-        return str(self._instr.query(command + '?' + args)).strip('\n').strip('\r').lstrip(':').removeprefix(command).strip()
+        if self.IsConnected:
+            return str(self.__instr__.query(command + '? ' + args)).strip('\n').strip('\r').strip('"').lstrip(':').removeprefix(command).strip()
+        else:
+            raise Exception("The instrument is not connected")
 
     def Read(self):
-        return str(self._instr.read()).strip('\n')
+        if self.IsConnected:
+            return str(self.__instr__.read()).strip('\n')
+        else:
+            raise Exception("The instrument is not connected")
 
     def Id(self):
-        return self._instr.query('*IDN?')
+        if self.IsConnected:
+            return self.__instr__.query('*IDN?')
+        else:
+            raise Exception("The instrument is not connected")
 
     def SelfTest(self):
-        if not bool(int(self._instr.query('*TST?'))):
-            raise Exception('Error in the self test')
+        if self.IsConnected:
+            if not bool(int(self.__instr__.query('*TST?'))):
+                raise Exception('Error in the self test')
+        else:
+            raise Exception("The instrument is not connected")
     
     def Reset(self):
-        self._instr.write('*RST')
-
-    def __repr__(self) -> str:
-        result = ''
-        for name, value in inspect.getmembers(self):
-            result += f"{name}:{value}\n"
-        return result
+        if self.IsConnected:
+            self.__instr__.write('*RST')
+        else:
+            raise Exception("The instrument is not connected")
 
 class Source(VISAInstrument):
     def _abort(self):
         self.Reset()
 
-    def __init__(self, address):
-        VISAInstrument.__init__(self, address)
+    def __init__(self, address, visaTimeout=VISAInstrument.DEFAULT_VISA_TIMEOUT):
+        VISAInstrument.__init__(self, address, visaTimeout)
         self.Abort = self._abort
