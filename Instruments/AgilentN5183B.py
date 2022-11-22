@@ -1,5 +1,5 @@
 import math
-from VISAInstrument import Source
+from VISAInstrument.VISAInstrument import Source
 
 class AgilentN5183B(Source):
     def __init__(self, address):

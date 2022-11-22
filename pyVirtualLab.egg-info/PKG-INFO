@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: pyVirtualLab
+Version: 0.0.1
+Summary: An abstraction library for laboratory instruments
+Home-page: https://github.com/Ben3094/pyNewportController
+Author: Benjamin SAGGIN
+License: MIT
+Project-URL: Bug Tracker, https://github.com/Ben3094/pyNewportController/issues
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# VirtualLab
+
+An abstraction library to abstract laboratory instruments

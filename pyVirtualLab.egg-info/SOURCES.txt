@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+pyVirtualLab.egg-info/PKG-INFO
+pyVirtualLab.egg-info/SOURCES.txt
+pyVirtualLab.egg-info/dependency_links.txt
+pyVirtualLab.egg-info/requires.txt
+pyVirtualLab.egg-info/top_level.txt

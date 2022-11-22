@@ -1,7 +1,6 @@
 import pyvisa
-import inspect
 
-class VISAInstrument:
+class Instrument:
     DEFAULT_VISA_TIMEOUT = 2000
 
     def __init__(self, address, visaTimeout=DEFAULT_VISA_TIMEOUT):
@@ -88,10 +87,10 @@ class VISAInstrument:
         else:
             raise Exception("The instrument is not connected")
 
-class Source(VISAInstrument):
+class Source(Instrument):
     def _abort(self):
         self.Reset()
 
-    def __init__(self, address, visaTimeout=VISAInstrument.DEFAULT_VISA_TIMEOUT):
-        VISAInstrument.__init__(self, address, visaTimeout)
+    def __init__(self, address, visaTimeout=Instrument.DEFAULT_VISA_TIMEOUT):
+        Instrument.__init__(self, address, visaTimeout)
         self.Abort = self._abort

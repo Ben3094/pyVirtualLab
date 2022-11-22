@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from VISAInstrument import VISAInstrument
+from VISAInstrument.VISAInstrument import Instrument
 import re
 
 @unique
@@ -179,7 +179,7 @@ class VersusFunction(Function):
 
 FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in Function.__subclasses__()])
 
-class KeysightMSOS804A(VISAInstrument):
+class KeysightMSOS804A(Instrument):
     def __init__(self, address:int):
         super(KeysightMSOS804A, self).__init__(address)
 

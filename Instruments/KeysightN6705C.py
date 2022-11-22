@@ -1,5 +1,5 @@
 from enum import Flag, unique
-from VISAInstrument import Source
+from VISAInstrument.VISAInstrument import Source
 
 @unique
 class Condition(Flag):

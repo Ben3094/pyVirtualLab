@@ -1,6 +1,6 @@
-from VISAInstrument import VISAInstrument
+from VISAInstrument.VISAInstrument import Instrument
 
-class KeysightN1913A(VISAInstrument):
+class KeysightN1913A(Instrument):
     DEFAULT_TIMEOUT = 20000
 
     def __init__(self, address):
