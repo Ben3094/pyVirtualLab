@@ -18,6 +18,6 @@ setup(
         "Bug Tracker": "https://github.com/Ben3094/pyNewportController/issues"
     },
     license='MIT',
-    py_modules=["pyVirtualLab.VISAInstrument", "pyVirtualLab.Instruments"],
+    py_modules=["pyVirtualLab", "pyVirtualLab.Instruments"],
     install_requires=install_requires,
 )
