@@ -1,4 +1,4 @@
-from VISAInstrument.VISAInstrument import Source
+from pyVirtualLab.VISAInstrument import Source
 import re as regex
 
 class AgilentE3642A(Source):

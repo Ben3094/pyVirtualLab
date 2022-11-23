@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from VISAInstrument.VISAInstrument import Instrument
+from pyVirtualLab.VISAInstrument import Instrument
 import re
 
 @unique

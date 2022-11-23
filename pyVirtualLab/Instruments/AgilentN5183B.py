@@ -1,5 +1,5 @@
 import math
-from VISAInstrument.VISAInstrument import Source
+from pyVirtualLab.VISAInstrument import Source
 
 class AgilentN5183B(Source):
     def __init__(self, address):

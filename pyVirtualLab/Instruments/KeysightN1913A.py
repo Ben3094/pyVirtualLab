@@ -1,4 +1,4 @@
-from VISAInstrument.VISAInstrument import Instrument
+from pyVirtualLab.VISAInstrument import Instrument
 
 class KeysightN1913A(Instrument):
     DEFAULT_TIMEOUT = 20000

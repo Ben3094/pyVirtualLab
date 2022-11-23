@@ -1,5 +1,5 @@
 from enum import Flag, unique
-from VISAInstrument.VISAInstrument import Source
+from pyVirtualLab.VISAInstrument import Source
 
 @unique
 class Condition(Flag):
