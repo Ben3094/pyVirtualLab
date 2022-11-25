@@ -123,10 +123,11 @@ class KeysightN6705C(Source):
             connectedOutputs = int(self.Query('SYST:CHAN:COUN'))
             while address <= KeysightN6705C.MAX_OUTPUTS and len(self.Outputs) < connectedOutputs:
                 address += 1
+                output = None
                 try:
                     output = globals()[str(self.Query('SYST:CHAN:MOD', f"(@{address})")).replace('\n','')]
-                    if output == None:
-                        output = Output
-                    self.Outputs[address] = output(self, address)
                 except: pass
+                if output == None:
+                    output = Output
+                self.Outputs[address] = output(self, address)
         return self.__outputs__
