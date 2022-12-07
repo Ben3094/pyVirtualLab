@@ -123,6 +123,8 @@ class Function(Channel):
 
 class AddFunction(Function):
 	NAME = 'ADD'
+class EnvelopeFunction(Function):
+    NAME = 'ADEM'
 class AverageFunction(Function):
 	NAME = 'AVER'
 class CommonModeFunction(Function):
