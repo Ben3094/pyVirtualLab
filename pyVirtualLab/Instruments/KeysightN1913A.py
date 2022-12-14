@@ -10,6 +10,29 @@ class KeysightN1913A(Instrument):
     def Power(self):
         return float(self.Query("MEAS"))
 
+    @property
+    def IsAutoRangeEnabled(self) -> bool:
+        return bool(self.Query('SENS:POW:AC:RANG:AUTO'))
+    @IsAutoRangeEnabled.setter
+    def IsAutoRangeEnabled(self, value: bool):
+        value = bool(value)
+        self.Write('SENS:POW:AC:RANG:AUTO', value)
+        if self.IsAutoRangeEnabled != value:
+            raise Exception("Error while setting auto range")
+
+    @property
+    def IsUpperRange(self) -> bool:
+        return bool(self.Query('SENS:POW:AC:RANG'))
+    @IsUpperRange.setter
+    def IsUpperRange(self, value: bool):
+        if self.IsAutoRangeEnabled:
+            raise Exception("Auto range is enabled")
+        else:
+            value = bool(value)
+            self.Write('SENS:POW:AC:RANG', value)
+            if self.IsUpperRange != value:
+                raise Exception("Error while setting range")
+
     DEFAULT_FREQUENCY_FORMAT = "{:11.0f}"
     @property
     def Frequency(self):
