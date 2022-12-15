@@ -3,7 +3,7 @@ import pyvisa
 class Instrument:
     DEFAULT_VISA_TIMEOUT = 2000
 
-    def __init__(self, address, visaTimeout=DEFAULT_VISA_TIMEOUT):
+    def __init__(self, address: str, visaTimeout:int=DEFAULT_VISA_TIMEOUT):
         self.__rm__ = pyvisa.ResourceManager('@py')
         self.__address__ = address
         self.__isConnected__ = False
@@ -13,7 +13,7 @@ class Instrument:
     def Address(self) -> str:
         return self.__address__
     @Address.setter
-    def Address(self, value) -> str:
+    def Address(self, value: str) -> str:
         if value != self.Address:
             self.__address__ = str(value)
             if self.IsConnected:
@@ -25,7 +25,7 @@ class Instrument:
     def VISATimeout(self) -> int:
         return self.__visaTimeout__
     @VISATimeout.setter
-    def VISATimeout(self, value):
+    def VISATimeout(self, value: int):
         if value != self.__visaTimeout__:
             self.__visaTimeout__ = int(value)
             if self.IsConnected:
@@ -36,7 +36,7 @@ class Instrument:
     def IsConnected(self) -> bool:
         return self.__isConnected__
         
-    def Connect(self):
+    def Connect(self) -> bool:
         self.__isConnected__ = True
         try:
             self.__instr__ = self.__rm__.open_resource(self.Address)
@@ -45,30 +45,32 @@ class Instrument:
         except Exception as e:
             self.__isConnected__ = False
             raise e
+        return self.__isConnected__
 
-    def Disconnect(self):
+    def Disconnect(self) -> bool:
         self.__instr__.close()
         self.__isConnected__ = False
+        return self.__isConnected__
             
-    def Write(self, command, args=None):
+    def Write(self, command: str, args:str=''):
         if self.IsConnected:
-            return self.__instr__.write(command + ((' ' + args) if args is not None else ''))
+            return self.__instr__.write(command + ((' ' + args) if args is not '' else ''))
         else:
             raise Exception("The instrument is not connected")
 
-    def Query(self, command, args=''):
+    def Query(self, command: str, args:str=''):
         if self.IsConnected:
             return str(self.__instr__.query(command + '? ' + args)).strip('\n').strip('\r').strip('"').lstrip(':').removeprefix(command).strip()
         else:
             raise Exception("The instrument is not connected")
 
-    def Read(self):
+    def Read(self) -> str:
         if self.IsConnected:
             return str(self.__instr__.read()).strip('\n')
         else:
             raise Exception("The instrument is not connected")
 
-    def Id(self):
+    def Id(self) -> str:
         if self.IsConnected:
             return self.__instr__.query('*IDN?')
         else:

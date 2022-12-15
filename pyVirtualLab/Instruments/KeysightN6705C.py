@@ -51,7 +51,7 @@ class Output():
     def MaxVoltage(self) -> float:
         return float(self.__parent__.Query("SOUR:VOLT:PROT:LEV", f"(@{self.Address})"))
     @MaxVoltage.setter
-    def MaxVoltage(self, value):
+    def MaxVoltage(self, value: float):
         value = float(value)
         self.__parent__.Write(f"SOUR:VOLT:PROT:LEV {str(value)},(@{self.Address})")
         self.__parent__.Write(f"SOUR:VOLT:PROT:STAT ON,(@{self.Address})")
@@ -62,7 +62,7 @@ class Output():
     def Voltage(self) -> float:
         return float(self.__parent__.Query("SOUR:VOLT:LEV:IMM:AMPL", f"(@{self.Address})"))
     @Voltage.setter
-    def Voltage(self, value):
+    def Voltage(self, value: float):
         value = float(value)
         self.__parent__.Write(f"SOUR:VOLT:LEV:IMM:AMPL {str(value)},(@{self.Address})")
         if self.Voltage != float(self.DEFAULT_FORMAT.format(value)):
@@ -72,11 +72,11 @@ class Output():
             raise Exception("Voltage set is superior or equal to maximum voltage")
 
     @property
-    def MeasuredVoltage(self):
+    def MeasuredVoltage(self) -> float:
         return float(self.__parent__.Query('MEAS:SCAL:VOLT:DC', f"(@{self.Address})").lstrip('[').rstrip(']'))
 
     @property
-    def MeasuredCurrent(self):
+    def MeasuredCurrent(self) -> float:
         return float(self.__parent__.Query('MEAS:SCAL:CURR:DC', f"(@{self.Address})").lstrip('[').rstrip(']'))
 
     @property

@@ -7,7 +7,7 @@ class KeysightN1913A(Instrument):
         super(KeysightN1913A, self).__init__(address, self.DEFAULT_TIMEOUT)
 
     @property
-    def Power(self):
+    def Power(self) -> float:
         return float(self.Query("MEAS"))
 
     @property
@@ -16,7 +16,7 @@ class KeysightN1913A(Instrument):
     @IsAutoRangeEnabled.setter
     def IsAutoRangeEnabled(self, value: bool):
         value = bool(value)
-        self.Write('SENS:POW:AC:RANG:AUTO', value)
+        self.Write('SENS:POW:AC:RANG:AUTO', str(value))
         if self.IsAutoRangeEnabled != value:
             raise Exception("Error while setting auto range")
 
@@ -29,7 +29,7 @@ class KeysightN1913A(Instrument):
             raise Exception("Auto range is enabled")
         else:
             value = bool(value)
-            self.Write('SENS:POW:AC:RANG', value)
+            self.Write('SENS:POW:AC:RANG', str(value))
             if self.IsUpperRange != value:
                 raise Exception("Error while setting range")
 
@@ -38,7 +38,7 @@ class KeysightN1913A(Instrument):
     def Frequency(self) -> float:
         return float(self.Query("SENS:FREQ"))
     @Frequency.setter
-    def Frequency(self, value):
+    def Frequency(self, value: float):
         self.Write("SENS:FREQ " + str(value))
         if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
             raise Exception("Error while setting the frequency")

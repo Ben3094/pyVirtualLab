@@ -35,10 +35,10 @@ class Channel():
 
 class AnalogChannel(Channel):
     @property
-    def Label(self):
+    def Label(self) -> str:
         return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
     @Label.setter
-    def Label(self, value):
+    def Label(self, value: str):
         value = str(value)
         if value.isascii() & len(value) <= 16:
             return self.__parent__.Write(f"{self.__commandAddress__}:LAB {value}")
@@ -49,14 +49,14 @@ class AnalogChannel(Channel):
     def IsEnabled(self) -> bool:
         return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP?"))
     @IsEnabled.setter
-    def IsEnabled(self, value):
+    def IsEnabled(self, value: bool):
         return self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(bool(value))}")
 
     @property
     def IsInverted(self) -> bool:
         return bool(self.__parent__.Query(f"{self.__commandAddress__}:INV"))
     @IsInverted.setter
-    def IsInverted(self, value):
+    def IsInverted(self, value: bool):
         return self.__parent__.Write(f"{self.__commandAddress__}:INV {int(bool(value))}")
     
     @property
@@ -71,7 +71,7 @@ class AnalogChannel(Channel):
             case "UNKN":
                 return ChannelUnit.Unknown
     @Unit.setter
-    def Unit(self, value):
+    def Unit(self, value: ChannelUnit):
         match value:
             case ChannelUnit.Volt:
                 self.__parent__.Write(f"{self.__commandAddress__}:UNIT VOLT")
@@ -107,7 +107,7 @@ class Function(Channel):
     TYPE_COMMAND_HEADER = 'FUNC'
     NAME = None
 
-    def __init__(self, parentKeysightMSOS804A, address, involvedChannels):
+    def __init__(self, parentKeysightMSOS804A, address: str, involvedChannels: list[Channel]):
         super().__init__(parentKeysightMSOS804A, address)
         self._involvedChannels = involvedChannels
 
@@ -115,7 +115,7 @@ class Function(Channel):
     def IsEnabled(self) -> bool:
         return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP?"))
     @IsEnabled.setter
-    def IsEnabled(self, value):
+    def IsEnabled(self, value: bool):
         return self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(bool(value))}")
 
     def ChangeFunction(self, targetedFunction, targetedInvolvedChannels: list):
@@ -140,7 +140,7 @@ class FFTMagnitudeFunction(Function):
     def PeaksAnnotations(self) -> bool:
         return bool(self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:STAT"))
     @PeaksAnnotations.setter
-    def PeaksAnnotations(self, value):
+    def PeaksAnnotations(self, value: bool):
         self.__parent__.Write(f"{self.__commandAddress__}:FFT:PEAK:STAT", str(int(bool(value))))
 
     def GetFFTPeaks(self) -> dict:
@@ -182,10 +182,10 @@ class VersusFunction(Function):
 FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in Function.__subclasses__()])
 
 class KeysightMSOS804A(Instrument):
-    def __init__(self, address:int):
+    def __init__(self, address: str):
         super(KeysightMSOS804A, self).__init__(address)
 
-    def GetAnalogData(self):
+    def GetAnalogData(self) -> list:
         self.Write("WAV:BYT LSBF")
         self.Write("WAV:FORM WORD")
         yIncrement = float(self.Query("WAV:YINC"))
@@ -199,7 +199,7 @@ class KeysightMSOS804A(Instrument):
         else:
             return int(self.Query("ACQ:AVER:COUN"))
     @Average.setter
-    def Average(self, count:int):
+    def Average(self, count: int):
         if count < 2:
             self.Write("ACQ:AVER OFF")
         else:
@@ -216,7 +216,7 @@ class KeysightMSOS804A(Instrument):
             case 'SING':
                 return RunState.Single
     @RunState.setter
-    def RunState(self, runState):
+    def RunState(self, runState: RunState):
         match runState:
             case RunState.Run:
                 self.Write("RUN")
@@ -242,12 +242,12 @@ class KeysightMSOS804A(Instrument):
     def ReturnHeader(self) -> bool:
         return bool(int(self.Query('SYST:HEAD')))
     @ReturnHeader.setter
-    def ReturnHeader(self, value):
+    def ReturnHeader(self, value: bool):
         self.Write('SYST:HEAD', str(int(bool(value))))
 
     ANALOG_CHANNELS = 4
     @property
-    def AnalogChannels(self) -> dict:
+    def AnalogChannels(self) -> dict[int, AnalogChannel]:
         result = dict()
         for address in range(1, self.ANALOG_CHANNELS+1):
             result[address] = AnalogChannel(self, address)
@@ -255,7 +255,7 @@ class KeysightMSOS804A(Instrument):
 
     DIGITAL_CHANNELS = 16
     @property
-    def DigitalChannels(self) -> dict:
+    def DigitalChannels(self) -> dict[int, DigitalChannel]:
         result = dict()
         for address in range(0, self.DIGITAL_CHANNELS):
             result[address] = DigitalChannel(self, address)
@@ -263,7 +263,7 @@ class KeysightMSOS804A(Instrument):
 
     FUNCTIONS = 16
     @property
-    def Functions(self) -> dict:
+    def Functions(self) -> dict[int, Function]:
         result = dict()
         savedReturnHeader = self.ReturnHeader
         self.ReturnHeader = True

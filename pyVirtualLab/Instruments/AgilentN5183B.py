@@ -17,7 +17,7 @@ class OutSignal(Enum):
     Disconnected = 'NONE'
 
 class AgilentN5183B(Source):
-    def __init__(self, address):
+    def __init__(self, address: str):
         super(AgilentN5183B, self).__init__(address, 20000)
 
     def _abort(self):
@@ -26,10 +26,10 @@ class AgilentN5183B(Source):
     DEFAULT_POWER_FORMAT = "{:2.2f}"
     DEFAULT_MAX_POWER = 30
     @property
-    def MaxPower(self):
+    def MaxPower(self) -> float:
         return float(self.Query("SOUR:POW:USER:MAX"))
     @MaxPower.setter
-    def MaxPower(self, value):
+    def MaxPower(self, value: float):
         if value == +math.inf:
             self.Write("SOUR:POW:USER:ENAB OFF")
         else:
@@ -41,45 +41,45 @@ class AgilentN5183B(Source):
                 raise Exception("Error while setting the power protection feature")
 
     @property
-    def Power(self):
+    def Power(self) -> float:
         return float(self.Query("SOUR:POW:LEV:IMM:AMPL"))
     @Power.setter
-    def Power(self, value):
+    def Power(self, value: float):
         self.Write("SOUR:POW:LEV:IMM:AMPL " + str(value))
         if self.Power != float(self.DEFAULT_POWER_FORMAT.format(value)):
             raise Exception("Error while setting the power")
 
     DEFAULT_FREQUENCY_FORMAT = "{:11.0f}"
     @property
-    def Frequency(self):
+    def Frequency(self) -> float:
         return float(self.Query("SOUR:FREQ:FIX"))
     @Frequency.setter
-    def Frequency(self, value):
+    def Frequency(self, value: float):
         self.Write("SOUR:FREQ:FIX " + str(value))
         if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
             raise Exception("Error while setting the frequency")
 
     @property
-    def IsModulationEnabled(self):
+    def IsModulationEnabled(self) -> bool:
         return bool(int(self.Query("OUTP:MOD:STAT")))
     @IsModulationEnabled.setter
-    def IsModulationEnabled(self, value):
+    def IsModulationEnabled(self, value: bool):
         value = int(bool(value))
         self.Write("OUTP:MOD:STAT " + str(value))
         if self.IsEnabled != value:
             raise Exception("Error while en/dis-abling source")
 
     @property
-    def IsEnabled(self):
+    def IsEnabled(self) -> bool:
         return bool(int(self.Query("OUTP:STAT")))
     @IsEnabled.setter
-    def IsEnabled(self, value):
+    def IsEnabled(self, value: bool):
         value = int(bool(value))
         self.Write("OUTP:STAT " + str(value))
         if self.IsEnabled != value:
             raise Exception("Error while en/dis-abling source")
 
-    def LoadCorrection(self, frequencies, gains):
+    def LoadCorrection(self, frequencies: list, gains: list):
         frequencies = list(frequencies)
         gains = list(gains)
         frequenciesLength = len(frequencies)
