@@ -35,7 +35,7 @@ class KeysightN1913A(Instrument):
 
     DEFAULT_FREQUENCY_FORMAT = "{:11.0f}"
     @property
-    def Frequency(self):
+    def Frequency(self) -> float:
         return float(self.Query("SENS:FREQ"))
     @Frequency.setter
     def Frequency(self, value):
