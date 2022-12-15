@@ -18,7 +18,6 @@ class Condition(Flag):
     CoupledProtection = 2048
     DetectedOscillation = 4096
 
-
 class Output():
     def __init__(self, parentKeysightN6705C, address):
         self.__parent__ = parentKeysightN6705C
@@ -116,7 +115,7 @@ class KeysightN6705C(Source):
     MAX_OUTPUTS = 4
 
     @property
-    def Outputs(self):
+    def Outputs(self) -> dict[int, Output]:
         if self.__outputs__ == None:
             self.__outputs__ = dict()
             address = 0
