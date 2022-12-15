@@ -12,24 +12,24 @@ class KeysightN1913A(Instrument):
 
     @property
     def IsAutoRangeEnabled(self) -> bool:
-        return bool(self.Query('SENS:POW:AC:RANG:AUTO'))
+        return bool(int(self.Query('SENS:POW:AC:RANG:AUTO')))
     @IsAutoRangeEnabled.setter
     def IsAutoRangeEnabled(self, value: bool):
         value = bool(value)
-        self.Write('SENS:POW:AC:RANG:AUTO', str(value))
+        self.Write('SENS:POW:AC:RANG:AUTO', str(int(value)))
         if self.IsAutoRangeEnabled != value:
             raise Exception("Error while setting auto range")
 
     @property
     def IsUpperRange(self) -> bool:
-        return bool(self.Query('SENS:POW:AC:RANG'))
+        return bool(int(self.Query('SENS:POW:AC:RANG')))
     @IsUpperRange.setter
     def IsUpperRange(self, value: bool):
         if self.IsAutoRangeEnabled:
             raise Exception("Auto range is enabled")
         else:
             value = bool(value)
-            self.Write('SENS:POW:AC:RANG', str(value))
+            self.Write('SENS:POW:AC:RANG', str(int(value)))
             if self.IsUpperRange != value:
                 raise Exception("Error while setting range")
 
