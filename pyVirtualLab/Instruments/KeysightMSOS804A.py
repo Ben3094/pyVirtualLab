@@ -119,12 +119,12 @@ class Function(Channel):
         return self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(bool(value))}")
 
     def ChangeFunction(self, targetedFunction, targetedInvolvedChannels: list):
-        self.__parent__.Write(f"{self.__commandAddress__}:{targetedFunction.NAME} {','.join([targetedInvolvedChannel._commandAddress for targetedInvolvedChannel in targetedInvolvedChannels])}")
+        self.__parent__.Write(f"{self.__commandAddress__}:{targetedFunction.NAME} {','.join([targetedInvolvedChannel.__commandAddress__ for targetedInvolvedChannel in targetedInvolvedChannels])}")
 
 class AddFunction(Function):
 	NAME = 'ADD'
 class EnvelopeFunction(Function):
-    NAME = 'ADEM'
+    NAME = 'ENV'
 class AverageFunction(Function):
 	NAME = 'AVER'
 class CommonModeFunction(Function):
@@ -184,6 +184,9 @@ FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in Function.__sub
 class KeysightMSOS804A(Instrument):
     def __init__(self, address: str):
         super(KeysightMSOS804A, self).__init__(address)
+        self.__analogChannels__ = dict()
+        self.__digitalChannels__ = dict()
+        self.__functions__ = dict()
 
     def GetAnalogData(self) -> list:
         self.Write("WAV:BYT LSBF")
@@ -248,33 +251,34 @@ class KeysightMSOS804A(Instrument):
     ANALOG_CHANNELS = 4
     @property
     def AnalogChannels(self) -> dict[int, AnalogChannel]:
-        result = dict()
-        for address in range(1, self.ANALOG_CHANNELS+1):
-            result[address] = AnalogChannel(self, address)
-        return result
+        if len(self.__analogChannels__) < 1:
+            for address in range(1, self.ANALOG_CHANNELS+1):
+                self.__analogChannels__[address] = AnalogChannel(self, address)
+        return self.__analogChannels__
 
     DIGITAL_CHANNELS = 16
     @property
     def DigitalChannels(self) -> dict[int, DigitalChannel]:
-        result = dict()
-        for address in range(0, self.DIGITAL_CHANNELS):
-            result[address] = DigitalChannel(self, address)
-        return result
+        if len(self.__digitalChannels__) < 1:
+            for address in range(0, self.DIGITAL_CHANNELS):
+                self.__digitalChannels__[address] = DigitalChannel(self, address)
+        return self.__digitalChannels__
 
     FUNCTIONS = 16
     @property
     def Functions(self) -> dict[int, Function]:
-        result = dict()
         savedReturnHeader = self.ReturnHeader
         self.ReturnHeader = True
 
         for address in range(1, self.FUNCTIONS+1):
             query = f"{Function.TYPE_COMMAND_HEADER}{address}"
             response = self.Query(query).lstrip(':').split()
-            result[address] = FUNCTIONS_NAMES[response[0]](self, address, list([self.StringToChannel(channelString) for channelString in response[1].split(',')]))
+            params = response[1].split(',')
+            channelsInvolved = [channelInvolved for channelInvolved in params if channelInvolved.startswith(AnalogChannel.TYPE_COMMAND_HEADER) or channelInvolved.startswith(DigitalChannel.TYPE_COMMAND_HEADER) or channelInvolved.startswith(Function.TYPE_COMMAND_HEADER)]
+            self.__functions__[address] = FUNCTIONS_NAMES[response[0]](self, address, channelsInvolved)
 
         self.ReturnHeader = savedReturnHeader
-        return result
+        return self.__functions__
 
     def StringToChannel(self, value) -> Channel:
         match = re.match('([A-Z]+)(\d+)', value)
@@ -286,4 +290,4 @@ class KeysightMSOS804A(Instrument):
                 return self.DigitalChannels[int(match.groups(0)[1])]
 
             case Function.TYPE_COMMAND_HEADER:
-                return next((channel for channel in self.Channels if channel.Address == int(match.groups(0)[1])), None)
+                return self.__functions__[int(match.groups(0)[1])]
