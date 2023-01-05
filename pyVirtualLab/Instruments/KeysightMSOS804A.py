@@ -137,20 +137,45 @@ class FFTMagnitudeFunction(Function):
     NAME = 'FFTM'
 
     @property
-    def PeaksAnnotations(self) -> bool:
+    def PeaksAnnotation(self) -> bool:
         return bool(self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:STAT"))
-    @PeaksAnnotations.setter
-    def PeaksAnnotations(self, value: bool):
-        self.__parent__.Write(f"{self.__commandAddress__}:FFT:PEAK:STAT", str(int(bool(value))))
+    @PeaksAnnotation.setter
+    def PeaksAnnotation(self, value: bool):
+        value = bool(value)
+        self.__parent__.Write(f"{self.__commandAddress__}:FFT:PEAK:STAT", str(int(value)))
+        if self.PeaksMinLevel != value:
+            raise Exception("Error while setting peaks annotation")
+
+    @property
+    def PeaksMinLevel(self) -> float:
+        return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:LEV"))
+    @PeaksMinLevel.setter
+    def PeaksMinLevel(self, value: float):
+        value = float(value)
+        self.__parent__.Write(f"{self.__commandAddress__}:FFT:PEAK:LEV", str(value))
+        if self.PeaksMinLevel != value:
+            raise Exception("Error while setting peaks minimum level")
+
+    @property
+    def PeaksCount(self) -> int:
+        return int(self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:COUN"))
+    @PeaksCount.setter
+    def PeaksCount(self, value: int):
+        value = int(value)
+        self.__parent__.Write(f"{self.__commandAddress__}:FFT:PEAK:COUN", str(value))
+        if self.PeaksCount != value:
+            raise Exception("Error while setting peaks count")
 
     def GetFFTPeaks(self) -> dict:
-        savedPeaksAnnotations = self.PeaksAnnotations
-        self.PeaksAnnotations = True
-            
-        magnitudes = [float(peakMagnitude) for peakMagnitude in self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:MAGN").strip('"').split(',')]
-        frequencies = [float(peakFrequency) for peakFrequency in self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:FREQ").strip('"').split(',')]
+        savedPeaksAnnotation = self.PeaksAnnotation
+        self.PeaksAnnotation = True
         
-        self.PeaksAnnotations = savedPeaksAnnotations
+        frequencies = self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:FREQ").strip('"').split(',')
+        frequencies = [float(peakFrequency) for peakFrequency in frequencies]
+        magnitudes = self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:MAGN").strip('"').split(',')
+        magnitudes = [float(peakMagnitude) for peakMagnitude in magnitudes]
+        
+        self.PeaksAnnotation = savedPeaksAnnotation
 
         return dict(zip(frequencies, magnitudes))
         
