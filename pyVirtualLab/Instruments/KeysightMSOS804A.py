@@ -120,25 +120,54 @@ class Function(Channel):
 	def IsEnabled(self, value: bool):
 		return self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(bool(value))}")
 
-	def ChangeFunction(self, targetedFunction, params: list[str]=list()):
-		self.__parent__.Write(f"{self.__commandAddress__}:{targetedFunction.NAME} {','.join([targetedInvolvedChannel.__commandAddress__ for targetedInvolvedChannel in params])}")
+	def ChangeFunction(self, targetedFunction):
+		self.__parent__.Write(f"{self.__commandAddress__}:{targetedFunction.NAME}", targetedFunction.INIT_PARAMS)
 
 	def GetParams(self) -> dict[str, object]:
+		savedReturnHeader = self.__parent__.ReturnHeader
+		self.__parent__.ReturnHeader = True
 		response = self.__parent__.Query(self.__commandAddress__)
+		self.__parent__.ReturnHeader = savedReturnHeader
 		match = re.match(self.PARAMS_STRING_FORMAT, response)
 		return match.groupdict()
 
 	def SetParam(self, name: str, value: str) -> str:
+		savedReturnHeader = self.__parent__.ReturnHeader
+		self.__parent__.ReturnHeader = True
 		response = self.__parent__.Query(self.__commandAddress__)
+		self.__parent__.ReturnHeader = savedReturnHeader
 		match = re.match(self.PARAMS_STRING_FORMAT, response)
 		currentValue = match.group(name)
 		response = str(response).replace(currentValue, value)
 		self.__parent__.Write(self.__commandAddress__, response)
-		
+
 class AddFunction(Function):
 	NAME = 'ADD'
+	INIT_PARAMS = 'CHAN1,CHAN2'
+	PARAMS_STRING_FORMAT = "(?P<Operand1>[A-Z]\d+)\s*,*\s*(?P<Operand1>[A-Z]\d+)"
+
+	@property
+	def Operand1(self) -> Channel:
+		params = self.ParseParams()
+		return self.__parent__.StringToChannel(params['Operand1'])
+	@Operand1.setter
+	def Operand1(self, value: Channel):
+		self.SetParam(self.Operand1.__name__, value.__commandAddress__)
+		if self.Operand1 != value:
+			raise Exception("Error while setting operand 1 channel")
+			
+	@property
+	def Operand2(self) -> Channel:
+		params = self.ParseParams()
+		return self.__parent__.StringToChannel(params['Operand2'])
+	@Operand1.setter
+	def Operand2(self, value: Channel):
+		self.SetParam(self.Operand2.__name__, value.__commandAddress__)
+		if self.Operand2 != value:
+			raise Exception("Error while setting operand 1 channel")
 class EnvelopeFunction(Function):
-	NAME = 'ENV'
+	NAME = 'ADEM'
+	INIT_PARAMS = 'CHAN1'
 	PARAMS_STRING_FORMAT = "(?P<Source>[A-Z]\d+)"
 
 	@property
@@ -153,7 +182,18 @@ class EnvelopeFunction(Function):
 
 class AverageFunction(Function):
 	NAME = 'AVER'
+	INIT_PARAMS = 'CHAN1,2'
 	PARAMS_STRING_FORMAT = "(?P<Operand>[A-Z]\d+)\s*,*\s*(?<Averages>\d+)"
+
+	@property
+	def Operand(self) -> Channel:
+		params = self.ParseParams()
+		return self.__parent__.StringToChannel(params['Operand'])
+	@Operand.setter
+	def Operand(self, value: Channel):
+		self.SetParam(self.Operand.__name__, value.__commandAddress__)
+		if self.Operand != value:
+			raise Exception("Error while setting operand channel")
 
 	@property
 	def Averages(self) -> int:
@@ -173,6 +213,18 @@ class DivideFunction(Function):
 	NAME = 'DIV'
 class FFTMagnitudeFunction(Function):
 	NAME = 'FFTM'
+	INIT_PARAMS = 'CHAN1'
+	PARAMS_STRING_FORMAT = "(?P<Operand>[A-Z]\d+)"
+
+	@property
+	def Operand(self) -> Channel:
+		params = self.ParseParams()
+		return self.__parent__.StringToChannel(params['Operand'])
+	@Operand.setter
+	def Operand(self, value: Channel):
+		self.SetParam(self.Operand.__name__, value.__commandAddress__)
+		if self.Operand != value:
+			raise Exception("Error while setting operand channel")
 
 	@property
 	def PeaksAnnotation(self) -> bool:
