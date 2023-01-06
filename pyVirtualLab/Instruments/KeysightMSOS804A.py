@@ -128,7 +128,7 @@ class Function(Channel):
 		self.__parent__.ReturnHeader = True
 		response = self.__parent__.Query(self.__commandAddress__)
 		self.__parent__.ReturnHeader = savedReturnHeader
-		match = re.match(self.PARAMS_STRING_FORMAT, response)
+		match = re.match(f":{self.NAME} {self.PARAMS_STRING_FORMAT}", response)
 		return match.groupdict()
 
 	def SetParam(self, name: str, value: str) -> str:
@@ -136,15 +136,15 @@ class Function(Channel):
 		self.__parent__.ReturnHeader = True
 		response = self.__parent__.Query(self.__commandAddress__)
 		self.__parent__.ReturnHeader = savedReturnHeader
-		match = re.match(self.PARAMS_STRING_FORMAT, response)
+		match = re.match(f":{self.NAME} {self.PARAMS_STRING_FORMAT}", response)
 		currentValue = match.group(name)
 		response = str(response).replace(currentValue, value)
-		self.__parent__.Write(self.__commandAddress__, response)
+		self.__parent__.Write(self.__commandAddress__ + response)
 
 class AddFunction(Function):
 	NAME = 'ADD'
 	INIT_PARAMS = 'CHAN1,CHAN2'
-	PARAMS_STRING_FORMAT = "(?P<Operand1>[A-Z]\d+)\s*,*\s*(?P<Operand2>[A-Z]\d+)"
+	PARAMS_STRING_FORMAT = "(?P<Operand1>[A-Z]+\d+)\s*,*\s*(?P<Operand2>[A-Z]+\d+)"
 
 	@property
 	def Operand1(self) -> Channel:
@@ -152,8 +152,8 @@ class AddFunction(Function):
 		return self.__parent__.StringToChannel(params['Operand1'])
 	@Operand1.setter
 	def Operand1(self, value: Channel):
-		self.SetParam(self.Operand1.__name__, value.__commandAddress__)
-		if self.Operand1 != value:
+		self.SetParam('Operand1', value.__commandAddress__)
+		if self.Operand1.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting operand 1 channel")
 			
 	@property
@@ -162,8 +162,8 @@ class AddFunction(Function):
 		return self.__parent__.StringToChannel(params['Operand2'])
 	@Operand1.setter
 	def Operand2(self, value: Channel):
-		self.SetParam(self.Operand2.__name__, value.__commandAddress__)
-		if self.Operand2 != value:
+		self.SetParam('Operand2', value.__commandAddress__)
+		if self.Operand2.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting operand 2 channel")
 class EnvelopeFunction(Function):
 	NAME = 'ADEM'
@@ -176,8 +176,8 @@ class EnvelopeFunction(Function):
 		return self.__parent__.StringToChannel(params['Source'])
 	@Source.setter
 	def Source(self, value: Channel):
-		self.SetParam(self.Source.__name__, value.__commandAddress__)
-		if self.Source != value:
+		self.SetParam('Source', value.__commandAddress__)
+		if self.Source.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting source channel")
 
 class AverageFunction(Function):
@@ -191,8 +191,8 @@ class AverageFunction(Function):
 		return self.__parent__.StringToChannel(params['Operand'])
 	@Operand.setter
 	def Operand(self, value: Channel):
-		self.SetParam(self.Operand.__name__, value.__commandAddress__)
-		if self.Operand != value:
+		self.SetParam('Operand', value.__commandAddress__)
+		if self.Operand.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting operand channel")
 
 	@property
@@ -201,7 +201,7 @@ class AverageFunction(Function):
 		return int(params['Averages'])
 	@Averages.setter
 	def Averages(self, value: int):
-		self.SetParam(self.Averages.__name__, str(value))
+		self.SetParam('Averages', str(value))
 		if self.Averages != value:
 			raise Exception("Error while setting averages")
 
