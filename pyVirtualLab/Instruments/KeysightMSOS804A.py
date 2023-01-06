@@ -1,6 +1,5 @@
 from enum import Enum, unique
 from pyVirtualLab.VISAInstrument import Instrument
-from numpy import arange
 import re
 
 @unique
@@ -46,7 +45,7 @@ class Channel():
 		self.__parent__.VISATimeout = 10000
 		data = self.__instr__.query_binary_values("WAV:DATA", datatype='h', is_big_endian=False)
 		data = [yIncrement * float(result) + yOrigin for result in data]
-		abscissae = arange(0, len(data))
+		abscissae = range(0, len(data))
 		abscissae = [xIncrement * float(abscissa) + xOrigin for abscissa in abscissae]
 		data = dict(zip(abscissae, data))
 		self.__parent__.VISATimeout = savedTimeout
