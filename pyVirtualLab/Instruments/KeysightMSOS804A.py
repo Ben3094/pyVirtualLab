@@ -303,7 +303,8 @@ class KeysightMSOS804A(Instrument):
 		self.__digitalChannels__ = dict()
 		self.__functions__ = dict()
 
-	def GetAnalogData(self) -> list:
+	def GetAnalogData(self, source: Channel) -> list:
+		self.Write("WAV:SOUR", source.__commandAddress__)
 		self.Write("WAV:BYT LSBF")
 		self.Write("WAV:FORM WORD")
 		yIncrement = float(self.Query("WAV:YINC"))
