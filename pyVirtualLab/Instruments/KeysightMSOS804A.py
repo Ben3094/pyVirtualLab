@@ -1,5 +1,6 @@
 from enum import Enum, unique
 from pyVirtualLab.VISAInstrument import Instrument
+from numpy import arange
 import re
 
 @unique
@@ -32,6 +33,24 @@ class Channel():
 	@property
 	def Address(self) -> float:
 		return self.__address__
+
+	def GetWaveform(self) -> dict[float, float]:
+		self.__parent__.Write("WAV:SOUR", self.__commandAddress__)
+		self.__parent__.Write("WAV:BYT LSBF")
+		self.__parent__.Write("WAV:FORM WORD")
+		yIncrement = float(self.__parent__.Query("WAV:YINC"))
+		yOrigin = float(self.__parent__.Query("WAV:YOR"))
+		xIncrement = float(self.__parent__.Query("WAV:XINC"))
+		xOrigin = float(self.__parent__.Query("WAV:XOR"))
+		savedTimeout = self.__parent__.VISATimeout
+		self.__parent__.VISATimeout = 10000
+		data = self.__instr__.query_binary_values("WAV:DATA", datatype='h', is_big_endian=False)
+		data = [yIncrement * float(result) + yOrigin for result in data]
+		abscissae = arange(0, len(data))
+		abscissae = [xIncrement * float(abscissa) + xOrigin for abscissa in abscissae]
+		data = dict(zip(abscissae, data))
+		self.__parent__.VISATimeout = savedTimeout
+		return data
 
 class AnalogChannel(Channel):
 	@property
@@ -183,7 +202,7 @@ class EnvelopeFunction(Function):
 class AverageFunction(Function):
 	NAME = 'AVER'
 	INIT_PARAMS = 'CHAN1,2'
-	PARAMS_STRING_FORMAT = "(?P<Operand>[A-Z]\d+)\s*,*\s*(?<Averages>\d+)"
+	PARAMS_STRING_FORMAT = "(?P<Operand>[A-Z]+\d+)\s*,*\s*(?P<Averages>\d+)"
 
 	@property
 	def Operand(self) -> Channel:
@@ -302,14 +321,6 @@ class KeysightMSOS804A(Instrument):
 		self.__analogChannels__ = dict()
 		self.__digitalChannels__ = dict()
 		self.__functions__ = dict()
-
-	def GetAnalogData(self, source: Channel) -> list:
-		self.Write("WAV:SOUR", source.__commandAddress__)
-		self.Write("WAV:BYT LSBF")
-		self.Write("WAV:FORM WORD")
-		yIncrement = float(self.Query("WAV:YINC"))
-		yOrigin = float(self.Query("WAV:YOR"))
-		return [yIncrement * float(result) + yOrigin for result in self._instr.query_binary_values("WAV:DATA?", datatype='h', is_big_endian=False)]
 	
 	@property
 	def Average(self) -> int:
