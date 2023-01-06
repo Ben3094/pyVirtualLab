@@ -144,7 +144,7 @@ class Function(Channel):
 class AddFunction(Function):
 	NAME = 'ADD'
 	INIT_PARAMS = 'CHAN1,CHAN2'
-	PARAMS_STRING_FORMAT = "(?P<Operand1>[A-Z]\d+)\s*,*\s*(?P<Operand1>[A-Z]\d+)"
+	PARAMS_STRING_FORMAT = "(?P<Operand1>[A-Z]\d+)\s*,*\s*(?P<Operand2>[A-Z]\d+)"
 
 	@property
 	def Operand1(self) -> Channel:
@@ -164,7 +164,7 @@ class AddFunction(Function):
 	def Operand2(self, value: Channel):
 		self.SetParam(self.Operand2.__name__, value.__commandAddress__)
 		if self.Operand2 != value:
-			raise Exception("Error while setting operand 1 channel")
+			raise Exception("Error while setting operand 2 channel")
 class EnvelopeFunction(Function):
 	NAME = 'ADEM'
 	INIT_PARAMS = 'CHAN1'
