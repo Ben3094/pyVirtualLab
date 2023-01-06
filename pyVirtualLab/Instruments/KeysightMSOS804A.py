@@ -148,7 +148,7 @@ class AddFunction(Function):
 
 	@property
 	def Operand1(self) -> Channel:
-		params = self.ParseParams()
+		params = self.GetParams()
 		return self.__parent__.StringToChannel(params['Operand1'])
 	@Operand1.setter
 	def Operand1(self, value: Channel):
@@ -158,7 +158,7 @@ class AddFunction(Function):
 			
 	@property
 	def Operand2(self) -> Channel:
-		params = self.ParseParams()
+		params = self.GetParams()
 		return self.__parent__.StringToChannel(params['Operand2'])
 	@Operand1.setter
 	def Operand2(self, value: Channel):
@@ -172,7 +172,7 @@ class EnvelopeFunction(Function):
 
 	@property
 	def Source(self) -> Channel:
-		params = self.ParseParams()
+		params = self.GetParams()
 		return self.__parent__.StringToChannel(params['Source'])
 	@Source.setter
 	def Source(self, value: Channel):
@@ -187,7 +187,7 @@ class AverageFunction(Function):
 
 	@property
 	def Operand(self) -> Channel:
-		params = self.ParseParams()
+		params = self.GetParams()
 		return self.__parent__.StringToChannel(params['Operand'])
 	@Operand.setter
 	def Operand(self, value: Channel):
@@ -197,7 +197,7 @@ class AverageFunction(Function):
 
 	@property
 	def Averages(self) -> int:
-		params = self.ParseParams()
+		params = self.GetParams()
 		return int(params['Averages'])
 	@Averages.setter
 	def Averages(self, value: int):
