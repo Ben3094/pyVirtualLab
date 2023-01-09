@@ -251,7 +251,7 @@ class FFTMagnitudeFunction(Function):
 	def PeaksAnnotation(self, value: bool):
 		value = bool(value)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:PEAK:STAT", str(int(value)))
-		if self.PeaksMinLevel != value:
+		if self.PeaksAnnotation != value:
 			raise Exception("Error while setting peaks annotation")
 
 	@property
