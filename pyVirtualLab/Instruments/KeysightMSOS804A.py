@@ -1,20 +1,18 @@
-from enum import Enum, unique
 from pyVirtualLab.VISAInstrument import Instrument
 import re
+from aenum import Enum
 
-@unique
 class RunState(Enum):
 	Stop = 0
 	Single = 1
 	Run = 2
    
-@unique
+
 class AcquisitionState(Enum):
 	Armed = 0
 	Triggered = 1
 	Done = 3
 
-@unique
 class ChannelUnit(Enum):
 	Volt = 0
 	Ampere = 1
@@ -229,6 +227,20 @@ class DifferentiateFunction(Function):
 	NAME = 'DIFF'
 class DivideFunction(Function):
 	NAME = 'DIV'
+
+class PowerUnit(Enum):
+	dB='DB'
+	dBmV = 'DBMV'
+	dBuV = 'DBUV'
+	Watt = 'WATT'
+	VRMS = 'VRMS'
+
+class FFTWindow(Enum):
+	Rectangular = 'RECT'
+	Hanning = 'HANN'
+	FlatTop = 'FLAT'
+	BlackmanHarris = 'BHAR'
+	Hamming = 'HAMM'
 class FFTMagnitudeFunction(Function):
 	NAME = 'FFTM'
 	INIT_PARAMS = 'CHAN1'
@@ -286,6 +298,65 @@ class FFTMagnitudeFunction(Function):
 		self.PeaksAnnotation = savedPeaksAnnotation
 
 		return dict(zip(frequencies, magnitudes))
+		
+	@property
+	def Resolution(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:RES"))
+	@Resolution.setter
+	def Resolution(self, value: float) -> float:
+		# if self.__parent__.SampledPoints == 0 and  self.__parent__.AcquiredPoints == 0:
+		# 	raise Exception("Sampled points and sampling rate are both fixed to a value")
+		# else:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:RES", str(value))
+		if self.Resolution != value:
+			raise Exception("Error while setting frequency resolution")
+		return self.Resolution
+		
+	@property
+	def Span(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:SPAN"))
+	@Span.setter
+	def Span(self, value: float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:SPAN", str(value))
+		if self.Span != value:
+			raise Exception("Error while setting frequency span")
+		return self.Span
+		
+	@property
+	def StopFrequency(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:STOP"))
+	@StopFrequency.setter
+	def StopFrequency(self, value: float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:STOP", str(value))
+		if self.StopFrequency != value:
+			raise Exception("Error while setting stop frequency")
+		return self.StopFrequency
+
+	@property
+	def Unit(self) -> PowerUnit:
+		return PowerUnit(self.__parent__.Query(f"{self.__commandAddress__}:FFT:VUN"))
+	@Unit.setter
+	def Unit(self, value: PowerUnit) -> PowerUnit:
+		value = PowerUnit(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:VUN", str(value.value))
+		if self.Unit != value:
+			raise Exception("Error while setting unit")
+		return self.Unit
+
+	@property
+	def WindowType(self) -> FFTWindow:
+		return FFTWindow(self.__parent__.Query(f"{self.__commandAddress__}:FFT:WIND"))
+	@WindowType.setter
+	def WindowType(self, value: FFTWindow) -> FFTWindow:
+		value = FFTWindow(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:WIND", str(value.value))
+		if self.WindowType != value:
+			raise Exception("Error while setting window type")
+		return self.WindowType
+	
 		
 class FFTPhaseFunction(Function):
 	NAME = 'FFTP'
