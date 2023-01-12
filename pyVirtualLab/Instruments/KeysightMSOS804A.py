@@ -298,6 +298,17 @@ class FFTMagnitudeFunction(Function):
 		self.PeaksAnnotation = savedPeaksAnnotation
 
 		return dict(zip(frequencies, magnitudes))
+
+	@property
+	def IsHorizontalScaleLogarithmic(self) -> bool:
+		return True if self.__parent__.Query(f"{self.__commandAddress__}:FFT:HSC") != 'LOG' else False
+	@IsHorizontalScaleLogarithmic.setter
+	def IsHorizontalScaleLogarithmic(self, value: bool) -> bool:
+		value = bool(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:HSC", 'LOG' if value else 'LIN')
+		if self.IsHorizontalScaleLogarithmic != value:
+			raise Exception("Error while setting horizontal scale")
+		return self.Span
 		
 	@property
 	def Resolution(self) -> float:

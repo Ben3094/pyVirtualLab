@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name='pyVirtualLab',
-    version='0.0.88',
+    version='0.0.89',
     author='Benjamin SAGGIN',
     description='An abstraction library for laboratory instruments',
     long_description=long_description,
