@@ -325,6 +325,28 @@ class FFTMagnitudeFunction(Function):
 		return self.Span
 		
 	@property
+	def CenterFrequency(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:FREQ"))
+	@CenterFrequency.setter
+	def CenterFrequency(self, value: float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:FREQ", str(value))
+		if self.CenterFrequency != value:
+			raise Exception("Error while setting center frequency")
+		return self.CenterFrequency
+		
+	@property
+	def StopFrequency(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:STOP"))
+	@StopFrequency.setter
+	def StopFrequency(self, value: float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:FFT:STOP", str(value))
+		if self.StopFrequency != value:
+			raise Exception("Error while setting stop frequency")
+		return self.StopFrequency
+		
+	@property
 	def StopFrequency(self) -> float:
 		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:STOP"))
 	@StopFrequency.setter
