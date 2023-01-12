@@ -1,12 +1,12 @@
 from pyVirtualLab.VISAInstrument import Instrument
 import re
 from aenum import Enum
+from math import log10, floor
 
 class RunState(Enum):
 	Stop = 0
 	Single = 1
 	Run = 2
-   
 
 class AcquisitionState(Enum):
 	Armed = 0
@@ -310,6 +310,8 @@ class FFTMagnitudeFunction(Function):
 			raise Exception("Error while setting horizontal scale")
 		return self.Span
 		
+	FREQUENCY_FORMAT = '{:1.3f}'
+
 	@property
 	def Resolution(self) -> float:
 		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:RES"))
@@ -319,6 +321,8 @@ class FFTMagnitudeFunction(Function):
 		# 	raise Exception("Sampled points and sampling rate are both fixed to a value")
 		# else:
 		value = float(value)
+		digits = floor(log10(value))
+		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:RES", str(value))
 		if self.Resolution != value:
 			raise Exception("Error while setting frequency resolution")
@@ -331,6 +335,8 @@ class FFTMagnitudeFunction(Function):
 	def Span(self, value: float) -> float:
 		"""Set span will change start and stop frequency"""
 		value = float(value)
+		digits = floor(log10(value))
+		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:SPAN", str(value))
 		if self.Span != value:
 			raise Exception("Error while setting frequency span")
@@ -343,6 +349,8 @@ class FFTMagnitudeFunction(Function):
 	def CenterFrequency(self, value: float) -> float:
 		"""Set center frequency will change start and stop frequency"""
 		value = float(value)
+		digits = floor(log10(value))
+		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:FREQ", str(value))
 		if self.CenterFrequency != value:
 			raise Exception("Error while setting center frequency")
@@ -355,6 +363,8 @@ class FFTMagnitudeFunction(Function):
 	def StopFrequency(self, value: float) -> float:
 		"""Set stop frequency will change span and center frequency"""
 		value = float(value)
+		digits = floor(log10(value))
+		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:STOP", str(value))
 		if self.StopFrequency != value:
 			raise Exception("Error while setting stop frequency")
@@ -367,6 +377,8 @@ class FFTMagnitudeFunction(Function):
 	def StartFrequency(self, value: float) -> float:
 		"""Set start frequency will change span and center frequency"""
 		value = float(value)
+		digits = floor(log10(value))
+		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
 		self.Span = self.StopFrequency - value
 		self.CenterFrequency = self.StopFrequency - (self.Span/2)
 		if self.StartFrequency != value:

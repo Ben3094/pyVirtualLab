@@ -38,7 +38,8 @@ class KeysightN1913A(Instrument):
     def Frequency(self) -> float:
         return float(self.Query("SENS:FREQ"))
     @Frequency.setter
-    def Frequency(self, value: float):
+    def Frequency(self, value: float) -> float:
         self.Write("SENS:FREQ " + str(value))
         if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
             raise Exception("Error while setting the frequency")
+        return self.Frequency
