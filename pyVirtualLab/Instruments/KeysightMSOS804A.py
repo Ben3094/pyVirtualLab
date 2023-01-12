@@ -318,6 +318,7 @@ class FFTMagnitudeFunction(Function):
 		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:SPAN"))
 	@Span.setter
 	def Span(self, value: float) -> float:
+		"""Set span will change start and stop frequency"""
 		value = float(value)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:SPAN", str(value))
 		if self.Span != value:
@@ -329,6 +330,7 @@ class FFTMagnitudeFunction(Function):
 		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:FREQ"))
 	@CenterFrequency.setter
 	def CenterFrequency(self, value: float) -> float:
+		"""Set center frequency will change start and stop frequency"""
 		value = float(value)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:FREQ", str(value))
 		if self.CenterFrequency != value:
@@ -340,6 +342,7 @@ class FFTMagnitudeFunction(Function):
 		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:STOP"))
 	@StopFrequency.setter
 	def StopFrequency(self, value: float) -> float:
+		"""Set stop frequency will change span and center frequency"""
 		value = float(value)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:STOP", str(value))
 		if self.StopFrequency != value:
@@ -347,15 +350,17 @@ class FFTMagnitudeFunction(Function):
 		return self.StopFrequency
 		
 	@property
-	def StopFrequency(self) -> float:
-		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:STOP"))
-	@StopFrequency.setter
-	def StopFrequency(self, value: float) -> float:
+	def StartFrequency(self) -> float:
+		return self.StopFrequency - self.Span
+	@StartFrequency.setter
+	def StartFrequency(self, value: float) -> float:
+		"""Set start frequency will change span and center frequency"""
 		value = float(value)
-		self.__parent__.Write(f"{self.__commandAddress__}:FFT:STOP", str(value))
-		if self.StopFrequency != value:
-			raise Exception("Error while setting stop frequency")
-		return self.StopFrequency
+		self.Span = self.StopFrequency - value
+		self.CenterFrequency = self.StopFrequency - (self.Span/2)
+		if self.StartFrequency != value:
+			raise Exception("Error while setting start frequency")
+		return self.StartFrequency
 
 	@property
 	def Unit(self) -> PowerUnit:
