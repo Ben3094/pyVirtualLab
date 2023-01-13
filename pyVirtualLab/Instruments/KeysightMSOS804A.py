@@ -244,15 +244,15 @@ class FFTWindow(Enum):
 class FFTMagnitudeFunction(Function):
 	NAME = 'FFTM'
 	INIT_PARAMS = 'CHAN1'
-	PARAMS_STRING_FORMAT = "(?P<Operand>[A-Z]\d+)"
+	PARAMS_STRING_FORMAT = "(?P<Operand>[A-Z]+\d+)"
 
 	@property
 	def Operand(self) -> Channel:
-		params = self.ParseParams()
+		params = self.GetParams()
 		return self.__parent__.StringToChannel(params['Operand'])
 	@Operand.setter
 	def Operand(self, value: Channel):
-		self.SetParam(self.Operand.__name__, value.__commandAddress__)
+		self.SetParam('Operand', value.__commandAddress__)
 		if self.Operand != value:
 			raise Exception("Error while setting operand channel")
 
