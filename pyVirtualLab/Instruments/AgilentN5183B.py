@@ -66,8 +66,8 @@ class AgilentN5183B(Source):
     def IsModulationEnabled(self, value: bool):
         value = int(bool(value))
         self.Write("OUTP:MOD:STAT " + str(value))
-        if self.IsEnabled != value:
-            raise Exception("Error while en/dis-abling source")
+        if self.IsModulationEnabled != value:
+            raise Exception("Error while en/dis-abling modulation")
 
     @property
     def IsEnabled(self) -> bool:
