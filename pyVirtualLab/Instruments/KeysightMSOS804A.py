@@ -322,7 +322,7 @@ class FFTMagnitudeFunction(Function):
 		# else:
 		value = float(value)
 		digits = floor(log10(value))
-		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
+		value = float(self.FREQUENCY_FORMAT.format(value/(10**digits)))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:RES", str(value))
 		if self.Resolution != value:
 			raise Exception("Error while setting frequency resolution")
@@ -336,7 +336,7 @@ class FFTMagnitudeFunction(Function):
 		"""Set span will change start and stop frequency"""
 		value = float(value)
 		digits = floor(log10(value))
-		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
+		value = float(self.FREQUENCY_FORMAT.format(value/(10**digits)))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:SPAN", str(value))
 		if self.Span != value:
 			raise Exception("Error while setting frequency span")
@@ -350,7 +350,7 @@ class FFTMagnitudeFunction(Function):
 		"""Set center frequency will change start and stop frequency"""
 		value = float(value)
 		digits = floor(log10(value))
-		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
+		value = float(self.FREQUENCY_FORMAT.format(value/(10**digits)))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:FREQ", str(value))
 		if self.CenterFrequency != value:
 			raise Exception("Error while setting center frequency")
@@ -364,7 +364,7 @@ class FFTMagnitudeFunction(Function):
 		"""Set stop frequency will change span and center frequency"""
 		value = float(value)
 		digits = floor(log10(value))
-		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
+		value = float(self.FREQUENCY_FORMAT.format(value/(10**digits)))*(10**digits)
 		self.__parent__.Write(f"{self.__commandAddress__}:FFT:STOP", str(value))
 		if self.StopFrequency != value:
 			raise Exception("Error while setting stop frequency")
@@ -378,7 +378,7 @@ class FFTMagnitudeFunction(Function):
 		"""Set start frequency will change span and center frequency"""
 		value = float(value)
 		digits = floor(log10(value))
-		value = float(self.FREQUENCY_FORMAT.format(str(value/(10**digits))))*(10**digits)
+		value = float(self.FREQUENCY_FORMAT.format(value/(10**digits)))*(10**digits)
 		self.Span = self.StopFrequency - value
 		self.CenterFrequency = self.StopFrequency - (self.Span/2)
 		if self.StartFrequency != value:
