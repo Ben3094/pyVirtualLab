@@ -372,7 +372,8 @@ class FFTMagnitudeFunction(Function):
 		"""Set start frequency will change span and center frequency"""
 		value = float(value)
 		value = round(value/10)*10
-		self.Span = self.StopFrequency - value
+		if value < self.StopFrequency: # Keep the same stop frequency by changing the span
+			self.Span = self.StopFrequency - value
 		self.CenterFrequency = value + (self.Span/2)
 		if self.StartFrequency != value:
 			raise Exception("Error while setting start frequency")
