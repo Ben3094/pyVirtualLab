@@ -1,6 +1,6 @@
 from pyVirtualLab.VISAInstrument import Instrument
 from aenum import Enum
-from numpy import nan
+from math import nan
 
 class KeysightN1913ASensor:
     __parentKeysightN1913A__ = None
