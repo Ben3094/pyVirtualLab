@@ -55,8 +55,9 @@ class AgilentN5183B(Source):
         return float(self.Query("SOUR:FREQ:FIX"))
     @Frequency.setter
     def Frequency(self, value: float):
+        value = round(value, 2)
         self.Write("SOUR:FREQ:FIX " + str(value))
-        if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
+        if self.Frequency != value:
             raise Exception("Error while setting the frequency")
 
     @property
