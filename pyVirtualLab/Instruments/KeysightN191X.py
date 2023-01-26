@@ -2,6 +2,43 @@ from pyVirtualLab.VISAInstrument import Instrument
 from aenum import Enum
 from math import nan
 
+
+class CalibrationFactorsSet:
+    def __init__(self, parentKeysightN191X, name: str) -> None:
+        self.__parentKeysightN191X__ = parentKeysightN191X
+        self.__name__ = name
+
+    @property
+    def Address(self) -> int:
+        return int(self.Query("MEM:STAT:DEF", self.Name))
+
+    @property
+    def Name(self) -> str:
+        return self.__name__
+    @Name.setter
+    def Name(self, value: str) -> str:
+        value = str(value)
+        self.__parentKeysightN191X__.Write('MEM:TABL:MOVE', self.Name, value)
+        self.__name__ = value
+
+    def Clear(self):
+        self.__parentKeysightN191X__.Write("MEM:CLE", self.Name)
+
+    @property
+    def CalibrationFactors(self) -> dict[float, float]:
+        self.__parentKeysightN191X__.Write("MEM:TABL:SEL", self.Name)
+        frequencies = self.__parentKeysightN1913A__.Query("MEM:TABL:FREQ")
+        gains = self.__parentKeysightN1913A__.Query("MEM:TABL:GAIN")
+        return dict(zip(frequencies, gains))
+    @CalibrationFactors.setter
+    def CalibrationFactors(self, value: dict[float, float]) -> dict[float, float]:
+        self.Clear()
+        self.__parentKeysightN191X__.Write("MEM:TABL:SEL", self.Name)
+        self.__parentKeysightN1913A__.Write("MEM:TABL:FREQ", value.keys())
+        self.__parentKeysightN1913A__.Write("MEM:TABL:GAIN", value.values())
+        if value != self.CalibrationFactors:
+            raise Exception(f"Error while setting {self.Name} calibration factors")
+
 class KeysightN191XSensor:
     __parentKeysightN1913A__ = None
     __address__ = None
@@ -15,7 +52,7 @@ class KeysightN191XSensor:
 
     @property
     def CalibrationFactor(self) -> float:
-        return float(self.__parentKeysightN1913A__.Query(f"CAL{self.__address__}:RCF"))
+        return float(self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:CORR:GAIN1"))
 
     @property
     def Power(self) -> float:
@@ -40,19 +77,36 @@ class SensorWithoutEEPROM(KeysightN191XSensor):
         super().__init__(parentKeysightN1913A, address)
         self.CalibrationFactors = dict()
 
+    @property
+    def AssociatedCalibrationFactorsSet(self) -> CalibrationFactorsSet:
+        return self.__parentKeysightN1913A__.CalibrationFactorsSets[self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:CORR:CSET1:SEL")]
+    @AssociatedCalibrationFactorsSet.setter
+    def AssociatedCalibrationFactorsSet(self, calibrationFactorsSet: CalibrationFactorsSet=None):
+        if calibrationFactorsSet == None:
+            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", False)
+        else:
+            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", calibrationFactorsSet.Name)
+            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", True)
+
     __frequency__ = nan
     @property
     def Frequency(self) -> float:
+        if self.AssociatedCalibrationFactorsSet != None:
+            self.__frequency__ = float(self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:FREQ"))
         return self.__frequency__
     @Frequency.setter
     def Frequency(self, value: float) -> float:
+        if self.AssociatedCalibrationFactorsSet != None:
+            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:FREQ " + str(value))
+            if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
+                raise Exception("Error while setting the frequency")
         self.__frequency__ = value
         return self.Frequency
 
     @KeysightN191XSensor.CalibrationFactor.setter
     def CalibrationFactor(self, value) -> float:
         value = float(value)
-        self.__parentKeysightN1913A__.Write(f"CAL{self.__address__}:RCF", str(value))
+        self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:GAIN1", str(value))
         setValue = self.CalibrationFactor
         if value != setValue:
             raise Exception("Error while setting calibration factor")
@@ -154,8 +208,8 @@ class KeysightN191X(Instrument):
     def __init__(self, address):
         super(KeysightN191X, self).__init__(address)
         self.__sensors__ = dict()
+        self.__calibrationFactorsSets__ = list()
 
-    __sensors__ = dict()
     MAX_SENSORS = 4
     @property
     def Sensors(self) -> dict[int, KeysightN191XSensor]:
@@ -174,3 +228,34 @@ class KeysightN191X(Instrument):
                     del self.__sensors__[address]
         self.VISATimeout = savedTimeout
         return self.__sensors__
+
+    MAX_CALIBRATION_FACTORS_SETS = 20
+    @property
+    def CalibrationFactorsSets(self) -> dict[str, CalibrationFactorsSet]:
+        self.__calibrationFactorsSets__.clear()
+        setsNames = self.Query("MEM:STAT:CAT").split(',')
+        for setName in setsNames:
+            set = CalibrationFactorsSet(self, setName)
+            self.__calibrationFactorsSets__[set.Name] = set
+        return self.__calibrationFactorsSets__
+    @CalibrationFactorsSets.setter
+    def CalibrationFactorsSets(self, value: dict[str, CalibrationFactorsSet]):
+        if len(value > KeysightN191X.MAX_CALIBRATION_FACTORS_SETS):
+            raise Exception(f"More than {KeysightN191X.MAX_CALIBRATION_FACTORS_SETS} calibration factors sets")
+
+        oldNames = [name for name in value if name in self.CalibrationFactorsSets]
+        for alreadyPresentName in oldNames:
+            oldVersion = self.CalibrationFactorsSets[alreadyPresentName]
+            newVersion = value[alreadyPresentName]
+            if oldVersion.CalibrationFactors != newVersion.CalibrationFactors:
+                oldVersion.CalibrationFactors = newVersion.CalibrationFactors
+
+        deletedNames = [name for name in self.CalibrationFactorsSets if name not in value]
+        newNames = [name for name in value if name not in self.CalibrationFactorsSets]
+        for deletedName in deletedNames:
+            newName = newNames.pop()
+            self.CalibrationFactorsSets[deletedName].Name = newName
+            self.CalibrationFactorsSets[newName].CalibrationFactors = value[newName].CalibrationFactors
+        for newName in newNames:
+            self.Write('MEM:TABL:SEL', newName)
+            self.CalibrationFactorsSets[newName].CalibrationFactors = value[newName].CalibrationFactors
