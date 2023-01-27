@@ -10,7 +10,7 @@ class CalibrationFactorsSet:
 
     @property
     def Address(self) -> int:
-        return int(self.Query("MEM:STAT:DEF", self.Name))
+        return int(self.Query("MEM:STAT:DEF", f"\"{self.Name}\""))
 
     @property
     def Name(self) -> str:
@@ -18,33 +18,33 @@ class CalibrationFactorsSet:
     @Name.setter
     def Name(self, value: str) -> str:
         value = str(value)
-        self.__parentKeysightN191X__.Write('MEM:TABL:MOVE', self.Name, value)
+        self.__parentKeysightN191X__.Write('MEM:TABL:MOVE', f"\"{self.Name}\",\"{value}\"")
         self.__name__ = value
 
     def Clear(self):
-        self.__parentKeysightN191X__.Write("MEM:CLE", self.Name)
+        self.__parentKeysightN191X__.Write("MEM:CLE", f"\"{self.Name}\"")
 
     @property
     def CalibrationFactors(self) -> dict[float, float]:
-        self.__parentKeysightN191X__.Write("MEM:TABL:SEL", self.Name)
-        frequencies = self.__parentKeysightN1913A__.Query("MEM:TABL:FREQ")
-        gains = self.__parentKeysightN1913A__.Query("MEM:TABL:GAIN")
+        self.__parentKeysightN191X__.Write("MEM:TABL:SEL", f"\"{self.Name}\"")
+        frequencies = [float(frequency) for frequency in self.__parentKeysightN191X__.Query("MEM:TABL:FREQ").split(',')]
+        gains = [float(gain) for gain in self.__parentKeysightN191X__.Query("MEM:TABL:GAIN").split(',')]
         return dict(zip(frequencies, gains))
     @CalibrationFactors.setter
     def CalibrationFactors(self, value: dict[float, float]) -> dict[float, float]:
         self.Clear()
-        self.__parentKeysightN191X__.Write("MEM:TABL:SEL", self.Name)
-        self.__parentKeysightN1913A__.Write("MEM:TABL:FREQ", value.keys())
-        self.__parentKeysightN1913A__.Write("MEM:TABL:GAIN", value.values())
+        self.__parentKeysightN191X__.Write("MEM:TABL:SEL", f"\"{self.Name}\"")
+        self.__parentKeysightN191X__.Write("MEM:TABL:FREQ", ','.join([str(key)+'hz' for key in value.keys()]))
+        self.__parentKeysightN191X__.Write("MEM:TABL:GAIN", ','.join([str(val) for val in value.values()]))
         if value != self.CalibrationFactors:
-            raise Exception(f"Error while setting {self.Name} calibration factors")
+            raise Exception(f"Error while setting \"{self.Name}\" calibration factors")
 
 class KeysightN191XSensor:
-    __parentKeysightN1913A__ = None
+    __parentKeysightN191X__ = None
     __address__ = None
 
     def __init__(self, parentKeysightN191X, address: int):
-        self.__parentKeysightN1913A__ = parentKeysightN191X
+        self.__parentKeysightN191X__ = parentKeysightN191X
         self.__address__ = address
 
     def __isType__(self, type: str):
@@ -52,16 +52,16 @@ class KeysightN191XSensor:
 
     @property
     def CalibrationFactor(self) -> float:
-        return float(self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:CORR:GAIN1"))
+        return float(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:CORR:GAIN1"))
 
     @property
     def Power(self) -> float:
         pass
     def __measurePower__(self) -> float:
-        savedTimeout = self.__parentKeysightN1913A__.VISATimeout
-        self.__parentKeysightN1913A__.VISATimeout = KeysightN191X.MEASURE_TIMEOUT
-        measuredPower = float(self.__parentKeysightN1913A__.Query(f"MEAS{self.__address__}"))
-        self.__parentKeysightN1913A__.VISATimeout = savedTimeout
+        savedTimeout = self.__parentKeysightN191X__.VISATimeout
+        self.__parentKeysightN191X__.VISATimeout = KeysightN191X.MEASURE_TIMEOUT
+        measuredPower = float(self.__parentKeysightN191X__.Query(f"MEAS{self.__address__}"))
+        self.__parentKeysightN191X__.VISATimeout = savedTimeout
         return measuredPower
 
     DEFAULT_FREQUENCY_FORMAT = "{:11.0f}"
@@ -73,31 +73,31 @@ class KeysightN191XSensor:
         pass
 
 class SensorWithoutEEPROM(KeysightN191XSensor):
-    def __init__(self, parentKeysightN1913A, address: int):
-        super().__init__(parentKeysightN1913A, address)
+    def __init__(self, parentKeysightN191X, address: int):
+        super().__init__(parentKeysightN191X, address)
         self.CalibrationFactors = dict()
 
     @property
     def AssociatedCalibrationFactorsSet(self) -> CalibrationFactorsSet:
-        return self.__parentKeysightN1913A__.CalibrationFactorsSets[self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:CORR:CSET1:SEL")]
+        return self.__parentKeysightN191X__.CalibrationFactorsSets[self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:CORR:CSET1:SEL")]
     @AssociatedCalibrationFactorsSet.setter
     def AssociatedCalibrationFactorsSet(self, calibrationFactorsSet: CalibrationFactorsSet=None):
         if calibrationFactorsSet == None:
-            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", False)
+            self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", False)
         else:
-            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", calibrationFactorsSet.Name)
-            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", True)
+            self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", calibrationFactorsSet.Name)
+            self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", True)
 
     __frequency__ = nan
     @property
     def Frequency(self) -> float:
         if self.AssociatedCalibrationFactorsSet != None:
-            self.__frequency__ = float(self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:FREQ"))
+            self.__frequency__ = float(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:FREQ"))
         return self.__frequency__
     @Frequency.setter
     def Frequency(self, value: float) -> float:
         if self.AssociatedCalibrationFactorsSet != None:
-            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:FREQ " + str(value))
+            self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:FREQ " + str(value))
             if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
                 raise Exception("Error while setting the frequency")
         self.__frequency__ = value
@@ -106,7 +106,7 @@ class SensorWithoutEEPROM(KeysightN191XSensor):
     @KeysightN191XSensor.CalibrationFactor.setter
     def CalibrationFactor(self, value) -> float:
         value = float(value)
-        self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:CORR:GAIN1", str(value))
+        self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:GAIN1", str(value))
         setValue = self.CalibrationFactor
         if value != setValue:
             raise Exception("Error while setting calibration factor")
@@ -134,8 +134,8 @@ class HSensor(SensorWithoutEEPROM):
         super().__init__(parentKeysightN1913A, address)
 
 class SensorWithEEPROM(KeysightN191XSensor):
-    def __init__(self, parentKeysightN1913A, address: int):
-        super().__init__(parentKeysightN1913A, address)
+    def __init__(self, parentKeysightN191X, address: int):
+        super().__init__(parentKeysightN191X, address)
 
     @property
     def Power(self) -> float:
@@ -143,34 +143,34 @@ class SensorWithEEPROM(KeysightN191XSensor):
 
     @property
     def Frequency(self) -> float:
-        return float(self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:FREQ"))
+        return float(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:FREQ"))
     @Frequency.setter
     def Frequency(self, value: float) -> float:
-        self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:FREQ " + str(value))
+        self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:FREQ " + str(value))
         if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
             raise Exception("Error while setting the frequency")
         return self.Frequency
 
     @property
     def IsAutoRangeEnabled(self) -> bool:
-        return bool(int(self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:POW:AC:RANG:AUTO")))
+        return bool(int(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:POW:AC:RANG:AUTO")))
     @IsAutoRangeEnabled.setter
     def IsAutoRangeEnabled(self, value: bool):
         value = bool(value)
-        self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:POW:AC:RANG:AUTO", str(int(value)))
+        self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:POW:AC:RANG:AUTO", str(int(value)))
         if self.IsAutoRangeEnabled != value:
             raise Exception("Error while setting auto range")
 
     @property
     def IsUpperRange(self) -> bool:
-        return bool(int(self.__parentKeysightN1913A__.Query(f"SENS{self.__address__}:POW:AC:RANG")))
+        return bool(int(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:POW:AC:RANG")))
     @IsUpperRange.setter
     def IsUpperRange(self, value: bool):
         if self.IsAutoRangeEnabled:
             raise Exception("Auto range is enabled")
         else:
             value = bool(value)
-            self.__parentKeysightN1913A__.Write(f"SENS{self.__address__}:POW:AC:RANG", str(int(value)))
+            self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:POW:AC:RANG", str(int(value)))
             if self.IsUpperRange != value:
                 raise Exception("Error while setting range")
 
@@ -208,7 +208,7 @@ class KeysightN191X(Instrument):
     def __init__(self, address):
         super(KeysightN191X, self).__init__(address)
         self.__sensors__ = dict()
-        self.__calibrationFactorsSets__ = list()
+        self.__calibrationFactorsSets__ = dict()
 
     MAX_SENSORS = 4
     @property
@@ -233,14 +233,17 @@ class KeysightN191X(Instrument):
     @property
     def CalibrationFactorsSets(self) -> dict[str, CalibrationFactorsSet]:
         self.__calibrationFactorsSets__.clear()
-        setsNames = self.Query("MEM:STAT:CAT").split(',')
+        setsNames = self.Query("MEM:CAT:TABL").split('","')
         for setName in setsNames:
+            if '"' in setName:
+                setName = setName.split('"')[1]
+            setName = setName.split(',')[0]
             set = CalibrationFactorsSet(self, setName)
             self.__calibrationFactorsSets__[set.Name] = set
         return self.__calibrationFactorsSets__
     @CalibrationFactorsSets.setter
     def CalibrationFactorsSets(self, value: dict[str, CalibrationFactorsSet]):
-        if len(value > KeysightN191X.MAX_CALIBRATION_FACTORS_SETS):
+        if len(value) > KeysightN191X.MAX_CALIBRATION_FACTORS_SETS:
             raise Exception(f"More than {KeysightN191X.MAX_CALIBRATION_FACTORS_SETS} calibration factors sets")
 
         oldNames = [name for name in value if name in self.CalibrationFactorsSets]
