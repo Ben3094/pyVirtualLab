@@ -128,6 +128,29 @@ class AgilentN5183B(Source):
             raise Exception("Error while en/dis-abling flatness correction")
         raise value
 
+    SWEEP_ON_MODE = 'LIST'
+    SWEEP_OFF_MODE = 'FIX'
+    @property
+    def IsFrequencySweepEnabled(self) -> bool:
+        return self.Query('SOUR:FREQ:MODE') == AgilentN5183B.SWEEP_ON_MODE
+    @IsFrequencySweepEnabled.setter
+    def IsFrequencySweepEnabled(self, value: bool) -> bool:
+        value = bool(value)
+        self.Write('SOUR:FREQ:MODE', AgilentN5183B.SWEEP_ON_MODE if value else AgilentN5183B.SWEEP_OFF_MODE)
+        if self.IsFrequencySweepEnabled != value:
+            raise Exception('Error while en/dis-abling frequency sweep')
+        return value
+    @property
+    def IsPowerSweepEnabled(self) -> bool:
+        return self.Query('SOUR:POW:MODE') == AgilentN5183B.SWEEP_ON_MODE
+    @IsPowerSweepEnabled.setter
+    def IsPowerSweepEnabled(self, value: bool) -> bool:
+        value = bool(value)
+        self.Write('SOUR:POW:MODE', AgilentN5183B.SWEEP_ON_MODE if value else AgilentN5183B.SWEEP_OFF_MODE)
+        if self.IsPowerSweepEnabled != value:
+            raise Exception('Error while en/dis-abling power sweep')
+        return value
+
     LINEAR_SPACE_FORMAT_NAME = 'LIN'
     LOGARITHMIC_SPACE_FORMAT_NAME = 'LOG'
     LIST_SWEEP_TYPE = 'LIST'
