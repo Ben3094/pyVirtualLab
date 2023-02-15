@@ -126,7 +126,7 @@ class AgilentN5183B(Source):
         self.Write('SOUR:CORR:STAT', str(value))
         if self.IsCorrectionEnabled != value:
             raise Exception("Error while en/dis-abling flatness correction")
-        raise value
+        return value
 
     SWEEP_ON_MODE = 'LIST'
     SWEEP_OFF_MODE = 'FIX'
