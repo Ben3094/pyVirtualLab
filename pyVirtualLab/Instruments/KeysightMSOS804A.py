@@ -227,6 +227,8 @@ class DifferentiateFunction(Function):
 	NAME = 'DIFF'
 class DivideFunction(Function):
 	NAME = 'DIV'
+class GateFunction(Function):
+	NAME = 'GAT'
 
 class PowerUnit(Enum):
 	dB='DB'
