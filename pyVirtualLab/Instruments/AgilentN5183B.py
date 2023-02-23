@@ -29,6 +29,16 @@ class TriggerSource(Enum):
     Timer = 'TIM'
     Off = 'MAN'
 
+class PulseType(Enum):
+    Square = 'SQU'
+    FreeRun = 'FRUN'
+    Triggered = 'TRIG'
+    AdjustableDoublet = 'ADO'
+    Doublet = 'DOUB'
+    Gated = 'GATE'
+    PulseTrain = 'PTR'
+    External = 'EXT'
+
 class AgilentN5183B(Source):
     def __init__(self, address: str):
         super(AgilentN5183B, self).__init__(address, 20000)
@@ -127,6 +137,66 @@ class AgilentN5183B(Source):
         if self.IsCorrectionEnabled != value:
             raise Exception("Error while en/dis-abling flatness correction")
         return value
+
+    @property
+    def IsPulseEnabled(self) -> bool:
+        return bool(int(self.Query('SOUR:PULM:STAT')))
+    @IsPulseEnabled.setter
+    def IsPulseEnabled(self, value: bool) -> bool:
+        value = int(bool(value))
+        self.Write('SOUR:PULM:STAT', str(value))
+        if self.IsPulseEnabled != value:
+            raise Exception("Error while en/dis-abling pulse modulation")
+        return value
+
+    @property
+    def PulseDelay(self) -> float:
+        return float(self.Query('SOUR:PULM:INT:DEL'))
+    @PulseDelay.setter
+    def PulseDelay(self, value: float):
+        value = float(value)
+        self.Write('SOUR:PULM:INT:DEL', str(value))
+        if self.PulseDelay != value:
+            raise Exception("Error while setting the pulse delay")
+
+    @property
+    def PulsePeriod(self) -> float:
+        return float(self.Query('SOUR:PULM:INT:PER'))
+    @PulsePeriod.setter
+    def PulsePeriod(self, value: float):
+        value = float(value)
+        self.Write('SOUR:PULM:INT:PER', str(value))
+        if self.PulsePeriod != value:
+            raise Exception("Error while setting the pulse period")
+
+    @property
+    def PulseWidth(self) -> float:
+        return float(self.Query('SOUR:PULM:INT:PWID'))
+    @PulseWidth.setter
+    def PulseWidth(self, value: float):
+        value = float(value)
+        self.Write('SOUR:PULM:INT:PWID', str(value))
+        if self.PulseWidth != value:
+            raise Exception("Error while setting the pulse width")
+    
+    EXTERNAL_PULSE_SOURCE = str(PulseType.External.value)
+    INTERNAL_PULSE_SOURCE = 'INT'
+    @property
+    def SetPulseType(self) -> PulseType:
+        if self.Query('SOUR:PULM:SOU') == AgilentN5183B.EXTERNAL_PULSE_SOURCE:
+            return PulseType.External
+        else:
+            return PulseType(self.Query('SOUR:PULM:SOUR:INT'))
+    @SetPulseType.setter
+    def SetPulseType(self, value: PulseType):
+        value = PulseType(value)
+        if value == PulseType.External:
+            self.Write('SOUR:PULM:SOU', AgilentN5183B.EXTERNAL_PULSE_SOURCE)
+        else:
+            self.Write('SOUR:PULM:SOU', AgilentN5183B.INTERNAL_PULSE_SOURCE)
+            self.Write('SOUR:PULM:SOUR:INT', str(value.value))
+        if self.SetPulseType != value:
+            raise Exception("Error while setting pulse type")
 
     SWEEP_ON_MODE = 'LIST'
     SWEEP_OFF_MODE = 'FIX'
