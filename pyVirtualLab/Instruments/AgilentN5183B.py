@@ -36,7 +36,6 @@ class PulseType(Enum):
     AdjustableDoublet = 'ADO'
     Doublet = 'DOUB'
     Gated = 'GATE'
-    PulseTrain = 'PTR'
     External = 'EXT'
 
 class AgilentN5183B(Source):
@@ -149,11 +148,17 @@ class AgilentN5183B(Source):
             raise Exception("Error while en/dis-abling pulse modulation")
         return value
 
+    AVOID_DELAY_SET_PULSE_TYPES = [PulseType.Square,
+                                   PulseType.FreeRun,
+                                   PulseType.Gated,
+                                   PulseType.External]
     @property
     def PulseDelay(self) -> float:
         return float(self.Query('SOUR:PULM:INT:DEL'))
     @PulseDelay.setter
     def PulseDelay(self, value: float):
+        if self.SetPulseType in AgilentN5183B.AVOID_DELAY_SET_PULSE_TYPES:
+            raise Exception("Pulse delay not available with this pulse type")
         value = float(value)
         self.Write('SOUR:PULM:INT:DEL', str(value))
         if self.PulseDelay != value:
@@ -165,6 +170,8 @@ class AgilentN5183B(Source):
     @PulsePeriod.setter
     def PulsePeriod(self, value: float):
         value = float(value)
+        if value <= self.PulseWidth:
+            raise Exception("Pulse width must be inferior to pulse period")
         self.Write('SOUR:PULM:INT:PER', str(value))
         if self.PulsePeriod != value:
             raise Exception("Error while setting the pulse period")
@@ -175,6 +182,8 @@ class AgilentN5183B(Source):
     @PulseWidth.setter
     def PulseWidth(self, value: float):
         value = float(value)
+        if value >= self.PulsePeriod:
+            raise Exception("Pulse width must be inferior to pulse period")
         self.Write('SOUR:PULM:INT:PWID', str(value))
         if self.PulseWidth != value:
             raise Exception("Error while setting the pulse width")
@@ -183,20 +192,30 @@ class AgilentN5183B(Source):
     INTERNAL_PULSE_SOURCE = 'INT'
     @property
     def SetPulseType(self) -> PulseType:
-        if self.Query('SOUR:PULM:SOU') == AgilentN5183B.EXTERNAL_PULSE_SOURCE:
+        if self.Query('SOUR:PULM:SOUR') == AgilentN5183B.EXTERNAL_PULSE_SOURCE:
             return PulseType.External
         else:
             return PulseType(self.Query('SOUR:PULM:SOUR:INT'))
     @SetPulseType.setter
     def SetPulseType(self, value: PulseType):
-        value = PulseType(value)
-        if value == PulseType.External:
-            self.Write('SOUR:PULM:SOU', AgilentN5183B.EXTERNAL_PULSE_SOURCE)
-        else:
-            self.Write('SOUR:PULM:SOU', AgilentN5183B.INTERNAL_PULSE_SOURCE)
-            self.Write('SOUR:PULM:SOUR:INT', str(value.value))
-        if self.SetPulseType != value:
-            raise Exception("Error while setting pulse type")
+        e = None
+        savedIsPulseEnabled = self.IsPulseEnabled
+        try:
+            if not savedIsPulseEnabled:
+                self.IsPulseEnabled = True
+            value = PulseType(value)
+            if value == PulseType.External:
+                self.Write('SOUR:PULM:SOUR', AgilentN5183B.EXTERNAL_PULSE_SOURCE)
+            else:
+                self.Write('SOUR:PULM:SOUR', AgilentN5183B.INTERNAL_PULSE_SOURCE)
+                self.Write('SOUR:PULM:SOUR:INT', str(value.value))
+            if self.SetPulseType != value:
+                raise Exception("Error while setting pulse type")
+        except Exception as e: e = e
+        finally:
+            if not savedIsPulseEnabled:
+                self.IsPulseEnabled = savedIsPulseEnabled
+            if e: raise e
 
     SWEEP_ON_MODE = 'LIST'
     SWEEP_OFF_MODE = 'FIX'
