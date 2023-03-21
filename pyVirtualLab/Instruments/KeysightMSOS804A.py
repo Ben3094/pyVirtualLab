@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Instrument, GetProperty
+from pyVirtualLab.VISAInstrument import Instrument
 import re
 from aenum import Enum
 from math import log10, floor
@@ -51,7 +51,6 @@ class Channel():
 
 class AnalogChannel(Channel):
 	@property
-	@GetProperty()
 	def Label(self) -> str:
 		return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
 	@Label.setter
