@@ -1,5 +1,6 @@
 from enum import Flag, unique
-from pyVirtualLab.VISAInstrument import Source
+from aenum import Enum
+from pyVirtualLab.VISAInstrument import Source, GetProperty, SetProperty
 
 @unique
 class Condition(Flag):
@@ -17,6 +18,15 @@ class Condition(Flag):
     Unregulated = 1024
     CoupledProtection = 2048
     DetectedOscillation = 4096
+
+@unique
+class MeasureType(Enum):
+    Average = 'DC'
+    RMS = 'ACDC'
+    HighLevel = 'HIGH'
+    LowLevel = 'LOW'
+    Maximum = 'MAX'
+    Minimum = 'MIN'
 
 class Output():
     def __init__(self, parentKeysightN6705C, address):
@@ -72,12 +82,17 @@ class Output():
             raise Exception("Voltage set is superior or equal to maximum voltage")
 
     @property
-    def MeasuredVoltage(self) -> float:
-        return float(self.__parent__.Query('MEAS:SCAL:VOLT:DC', f"(@{self.Address})").lstrip('[').rstrip(']'))
-
+    def MeasuredVoltage(self, measureType: MeasureType=MeasureType.Average) -> float:
+        return float(self.__parent__.Query(f"MEAS:SCAL:VOLT:{measureType.value}", f"(@{self.Address})").lstrip('[').rstrip(']'))
     @property
-    def MeasuredCurrent(self) -> float:
-        return float(self.__parent__.Query('MEAS:SCAL:CURR:DC', f"(@{self.Address})").lstrip('[').rstrip(']'))
+    def MeasuredCurrent(self, measureType: MeasureType=MeasureType.Average) -> float:
+        return float(self.__parent__.Query(f"MEAS:SCAL:CURR:{measureType.value}", f"(@{self.Address})").lstrip('[').rstrip(']'))
+    POWER_NOT_AVAILABLE_MEASURE_TYPE = [MeasureType.RMS, MeasureType.LowLevel, MeasureType.HighLevel]
+    @property
+    def MeasuredPower(self, measureType: MeasureType=MeasureType.Average) -> float:
+        if measureType in Output.POWER_NOT_AVAILABLE_MEASURE_TYPE:
+            raise Exception("This type of measure is not available")
+        return float(self.__parent__.Query(f"MEAS:SCAL:POW:{measureType.value}", f"(@{self.Address})").lstrip('[').rstrip(']'))
 
     @property
     def MaxCurrent(self) -> float:
@@ -95,13 +110,46 @@ class Output():
 
     @property
     def IsEnabled(self) -> bool:
-        return bool(int(self.__parent__.Query(":OUTP:STAT", f"(@{self.Address})")))
+        return bool(int(self.__parent__.Query("OUTP:STAT", f"(@{self.Address})")))
     @IsEnabled.setter
-    def IsEnabled(self, value):
+    def IsEnabled(self, value) -> bool:
         value = bool(value)
         self.__parent__.Write(f"OUTP:STAT {str(int(value))}", f",(@{self.Address})")
-        if self.IsEnabled != value:
+        newValue = self.IsEnabled
+        if newValue != value:
             raise Exception("Error while en/dis-abling source")
+        return newValue
+        
+    @property
+    def MaxMeasuredCurrentSet(self) -> float:
+        if bool(int(self.__parent__.Query('SENS:DLOG:CURR:RANG:AUTO', f"(@{self.Address})"))):
+            return float('inf')
+        else:
+            return float(self.__parent__.Query('SENS:DLOG:CURR:RANG', f"(@{self.Address})"))
+    @MaxMeasuredCurrentSet.setter
+    def MaxMeasuredCurrentSet(self, value: float) -> float:
+        value = float(value)
+        if str(value) == 'inf':
+            self.__parent__.Write(f"SENS:DLOG:CURR:RANG:AUTO 1,(@{self.Address})")
+        else:
+            self.__parent__.Write(f"SENS:DLOG:CURR:RANG {value},(@{self.Address})")
+            self.__parent__.Write(f"SENS:DLOG:CURR:RANG:AUTO 0,(@{self.Address})")
+        
+    @property
+    def MaxMeasuredVoltageSet(self) -> float:
+        if bool(int(self.__parent__.Query('SENS:DLOG:VOLT:RANG:AUTO', f"(@{self.Address})"))):
+            return float('inf')
+        else:
+            return float(self.__parent__.Query('SENS:DLOG:VOLT:RANG', f"(@{self.Address})"))
+    @MaxMeasuredVoltageSet.setter
+    def MaxMeasuredVoltageSet(self, value: float) -> float:
+        value = float(value)
+        if str(value) == 'inf':
+            self.__parent__.Write(f"SENS:DLOG:VOLT:RANG:AUTO 1,(@{self.Address})")
+        else:
+            self.__parent__.Write(f"SENS:DLOG:VOLT:RANG {value},(@{self.Address})")
+            self.__parent__.Write(f"SENS:DLOG:VOLT:RANG:AUTO 0,(@{self.Address})")
+
 
 class N6734B(Output):
     def __init__(self, parentKeysightN6705C, address):
@@ -130,3 +178,26 @@ class KeysightN6705C(Source):
                     output = Output
                 self.Outputs[address] = output(self, address)
         return self.__outputs__
+
+    LOW_INTERVAL_PARAMETER = 'RES20'
+    HIGH_INTERVAL_PARAMETER = 'RES40'
+    @property
+    def LowIntervalEnabled(self) -> bool:
+        return self.__parent__.Query('SENS:SWE:TINT:RES') == KeysightN6705C.LOW_INTERVAL_PARAMETER
+    @LowIntervalEnabled.setter
+    def LowIntervalEnabled(self, value: bool):
+        value = KeysightN6705C.LOW_INTERVAL_PARAMETER if value else KeysightN6705C.HIGH_INTERVAL_PARAMETER
+        self.__parent__.Write('SENS:SWE:TINT:RES', value)
+        if self.LowIntervalEnabled != value:
+            raise Exception("Error while en/dis-abling high time resolution")
+        
+    @property
+    @GetProperty(float, 'SENS:SWE:TINT')
+    def Interval(self, getMethodReturn) -> float:
+        return getMethodReturn
+    @Interval.setter
+    def Interval(self, value: float) -> float:
+        value = float(value)
+        self.__parent__.Write('SENS:SWE:TINT', value)
+
+    
