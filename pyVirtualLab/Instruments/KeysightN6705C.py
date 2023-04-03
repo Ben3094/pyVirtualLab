@@ -150,6 +150,66 @@ class Output():
             self.__parent__.Write(f"SENS:DLOG:VOLT:RANG {value},(@{self.Address})")
             self.__parent__.Write(f"SENS:DLOG:VOLT:RANG:AUTO 0,(@{self.Address})")
 
+    VOLTAGE_HEADER = 'VOLT'
+    CURRENT_HEADER = 'CURR'
+    POWER_HEADER = 'POW'
+    def GetMeasuredVoltage(self) -> list[float]:
+        return self.__getMesuredValues__(Output.VOLTAGE_HEADER)
+    def GetMeasuredCurrent(self) -> list[float]:
+        return self.__getMesuredValues__(Output.CURRENT_HEADER)
+    def GetMeasuredPower(self) -> list[float]:
+        return self.__getMesuredValues__(Output.POWER_HEADER)
+    def __getMesuredValues__(self, header):
+        savedASCIIFormat = self.__parent__.__isDataASCII__
+        self.__parent__.__isDataASCII__ = True
+        values = [float(value) for value in self.__parent__.Query(f"FETC:ARR:{header} (@{self.Address})").lstrip('[').rstrip(']').split(',')]
+        if not savedASCIIFormat:
+            self.__parent__.__isDataASCII__ = False
+        return values
+        
+    @property
+    def TriggeringVoltage(self) -> float:
+        return float(self.__parent__.Query(f"TRIG:ACQ:VOLT, (@{self.Address})"))
+    @TriggeringVoltage.setter
+    def TriggeringVoltage(self, value: float) -> float:
+        value = float(value)
+        self.__parent__.Write(f"TRIG:ACQ:VOLT {value}, (@{self.Address})")
+        if self.TriggeringVoltage != value:
+            raise Exception("Error while setting the triggering voltage")
+        return value
+    TRIGGERING_POSITIVE_SLOPE_HEADER = 'POS'
+    TRIGGERING_NEGATIVE_SLOPE_HEADER = 'NEG'
+    @property
+    def IsTriggeringVoltageSlopePositive(self) -> bool:
+        return self.__parent__.Query(f"TRIG:ACQ:VOLT:SLOP, (@{self.Address})") == Output.TRIGGERING_POSITIVE_SLOPE_HEADER
+    @IsTriggeringVoltageSlopePositive.setter
+    def IsTriggeringVoltageSlopePositive(self, value: bool) -> bool:
+        value = bool(value)
+        self.__parent__.Write(f"TRIG:ACQ:VOLT:SLOP {Output.TRIGGERING_POSITIVE_SLOPE_HEADER if value else Output.TRIGGERING_NEGATIVE_SLOPE_HEADER}, (@{self.Address})")
+        if self.IsTriggeringVoltageSlopePositive != value:
+            raise Exception("Error while setting voltage trigger slope direction")
+        return value
+        
+    @property
+    def TriggeringCurrent(self) -> float:
+        return float(self.__parent__.Query(f"TRIG:ACQ:CURR, (@{self.Address})"))
+    @TriggeringCurrent.setter
+    def TriggeringCurrent(self, value: float) -> float:
+        value = float(value)
+        self.__parent__.Write(f"TRIG:ACQ:CURR {value}, (@{self.Address})")
+        if self.TriggeringCurrent != value:
+            raise Exception("Error while setting the triggering current")
+        return value
+    @property
+    def IsTriggeringCurrentSlopePositive(self) -> bool:
+        return self.__parent__.Query(f"TRIG:ACQ:CURR:SLOP, (@{self.Address})") == Output.TRIGGERING_POSITIVE_SLOPE_HEADER
+    @IsTriggeringCurrentSlopePositive.setter
+    def IsTriggeringCurrentSlopePositive(self, value: bool) -> bool:
+        value = bool(value)
+        self.__parent__.Write(f"TRIG:ACQ:CURR:SLOP {Output.TRIGGERING_POSITIVE_SLOPE_HEADER if value else Output.TRIGGERING_NEGATIVE_SLOPE_HEADER}, (@{self.Address})")
+        if self.IsTriggeringCurrentSlopePositive != value:
+            raise Exception("Error while setting current trigger slope direction")
+        return value
 
 class N6734B(Output):
     def __init__(self, parentKeysightN6705C, address):
@@ -201,3 +261,16 @@ class KeysightN6705C(Source):
         self.__parent__.Write('SENS:SWE:TINT', value)
 
     
+
+    ASCII_DATA_FORMAT = 'ASCII'
+    REAL_DATA_FORMAT = 'REAL'
+    @property
+    def __isDataASCII__(self) -> bool:
+        return self.Query('FORM:DATA') == KeysightN6705C.ASCII_DATA_FORMAT
+    @__isDataASCII__.setter
+    def __isDataASCII__(self, value: bool) -> bool:
+        value = bool(value)
+        self.Write('FORM:DATA', KeysightN6705C.ASCII_DATA_FORMAT if value else KeysightN6705C.REAL_DATA_FORMAT)
+        if self.__isDataASCII__ != value:
+            raise Exception("Error while setting data format")
+        return value

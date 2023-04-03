@@ -103,8 +103,6 @@ class AnalogChannel(Channel):
 		return float(self.__parent__.Query(f"MEAS:VMAX", f"{self.__commandAddress__}"))
 	def GetMinimum(self) -> float:
 		return float(self.__parent__.Query(f"MEAS:VMIN", f"{self.__commandAddress__}"))
-	def GetAverage(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:VAV", f"DISP,{self.__commandAddress__}"))
 	def GetRange(self) -> float:
 		return float(self.__parent__.Query(f"MEAS:VPP", f"{self.__commandAddress__}"))
 	def GetFrequency(self) -> float:
@@ -115,6 +113,24 @@ class AnalogChannel(Channel):
 		return float(self.__parent__.Query(f"MEAS:RIS", f"{self.__commandAddress__}"))
 	def GetFallTime(self) -> float:
 		return float(self.__parent__.Query(f"MEAS:FALL", f"{self.__commandAddress__}"))
+	
+	# AC measurements
+	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
+	OVER_1_CYCLE_MEASUREMENT_ARGUMENT = 'CYCL'
+	def GetAverage(self, overOnly1Cycle = False) -> float:
+		return float(self.__parent__.Query(
+			f"MEAS:VAV",
+			','.join([AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
+	    	self.__commandAddress__])))
+
+	WITH_DC_COMPONENT_ARGUMENT = 'DC'
+	WITHOUT_DC_COMPONENT_ARGUMENT = 'AC'
+	def GetRMS(self, overOnly1Cycle = False, removeDCComponent = True) -> float:
+		return float(self.__parent__.Query(
+			f"MEAS:VRMS",
+			','.join([AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
+	     	AnalogChannel.WITHOUT_DC_COMPONENT_ARGUMENT if removeDCComponent else AnalogChannel.WITH_DC_COMPONENT_ARGUMENT,
+	     	self.__commandAddress__])))
 
 class DigitalChannel(Channel):
 	TYPE_COMMAND_HEADER = 'DIG'
