@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 import re
 from aenum import Enum
 from math import log10, floor
@@ -48,18 +48,43 @@ class Channel():
 		data = dict(zip(abscissae, data))
 		self.__parent__.VISATimeout = savedTimeout
 		return data
+	
+	@property
+	def Scale(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:SCAL"))
+	@Scale.setter
+	def Scale(self, value: float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:SCAL {value}")
+		if self.Scale != value:
+			raise Exception("Error while setting scale")
+		return value
+	
+	@property
+	def Offset(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:OFFS"))
+	@Offset.setter
+	def Offset(self, value: float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:OFFS {value}")
+		if self.Offset != value:
+			raise Exception("Error while setting offset")
+		return value
 
 class AnalogChannel(Channel):
 	@property
 	def Label(self) -> str:
 		return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
 	@Label.setter
-	def Label(self, value: str):
+	def Label(self, value: str) -> str:
 		value = str(value)
 		if value.isascii() & len(value) <= 16:
-			return self.__parent__.Write(f"{self.__commandAddress__}:LAB {value}")
+			self.__parent__.Write(f"{self.__commandAddress__}:LAB {value}")
 		else:
 			raise Exception("Label must be ASCII and less or equal 16 characters long")
+		if self.Label != value:
+			raise Exception("Error while setting label")
+		return value
 
 	@property
 	def IsEnabled(self) -> bool:
@@ -118,19 +143,27 @@ class AnalogChannel(Channel):
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
 	OVER_1_CYCLE_MEASUREMENT_ARGUMENT = 'CYCL'
 	def GetAverage(self, overOnly1Cycle = False) -> float:
-		return float(self.__parent__.Query(
-			f"MEAS:VAV",
-			','.join([AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
-	    	self.__commandAddress__])))
+		savedSendValidMeas = self.__parent__.SendValidMeasurements
+		self.__parent__.SendValidMeasurements = True
+		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
+	    		self.__commandAddress__]
+		value = float(self.__parent__.Query('MEAS:VAV', ','.join(args)).split(',')[0])
+		if not savedSendValidMeas:
+			self.__parent__.SendValidMeasurements = False
+		return value
 
 	WITH_DC_COMPONENT_ARGUMENT = 'DC'
 	WITHOUT_DC_COMPONENT_ARGUMENT = 'AC'
 	def GetRMS(self, overOnly1Cycle = False, removeDCComponent = True) -> float:
-		return float(self.__parent__.Query(
-			f"MEAS:VRMS",
-			','.join([AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
-	     	AnalogChannel.WITHOUT_DC_COMPONENT_ARGUMENT if removeDCComponent else AnalogChannel.WITH_DC_COMPONENT_ARGUMENT,
-	     	self.__commandAddress__])))
+		savedSendValidMeas = self.__parent__.SendValidMeasurements
+		self.__parent__.SendValidMeasurements = True
+		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
+	    		AnalogChannel.WITHOUT_DC_COMPONENT_ARGUMENT if removeDCComponent else AnalogChannel.WITH_DC_COMPONENT_ARGUMENT,
+	    		self.__commandAddress__]
+		value = float(self.__parent__.Query('MEAS:VRMS', ','.join(args)).split(',')[0])
+		if not savedSendValidMeas:
+			self.__parent__.SendValidMeasurements = False
+		return value
 
 class DigitalChannel(Channel):
 	TYPE_COMMAND_HEADER = 'DIG'
@@ -506,6 +539,24 @@ class KeysightMSOS804A(Instrument):
 	@ReturnHeader.setter
 	def ReturnHeader(self, value: bool):
 		self.Write('SYST:HEAD', str(int(bool(value))))
+	
+	@property
+	@GetProperty(float, 'TIM:SCAL')
+	def TimeScale(self, getMethodReturn) -> float:
+		return getMethodReturn
+	@TimeScale.setter
+	@SetProperty(float, 'TIM:SCAL')
+	def TimeScale(self, value: float) -> float:
+		pass
+	
+	@property
+	@GetProperty(bool, 'MEAS:SEND')
+	def SendValidMeasurements(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@SendValidMeasurements.setter
+	@SetProperty(bool, 'MEAS:SEND')
+	def SendValidMeasurements(self, value: bool) -> bool:
+		pass
 
 	ANALOG_CHANNELS = 4
 	@property
