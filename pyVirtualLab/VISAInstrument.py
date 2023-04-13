@@ -108,13 +108,13 @@ class Instrument:
 			
 	def Write(self, command: str, args:str=''):
 		if self.IsConnected:
-			return self.__instr__.write(command + ((' ' + args) if args is not '' else ''))
+			return self.__instr__.write(command + ((' ' + args) if args != '' else ''))
 		else:
 			raise Exception("The instrument is not connected")
 
 	def Query(self, command: str, args:str=''):
 		if self.IsConnected:
-			return str(self.__instr__.query(command + '? ' + args)).strip('\n').strip('\r').strip('"').lstrip(':').removeprefix(command).strip()
+			return str(self.__instr__.query(command + '?' + ((' ' + args) if args != '' else ''))).strip('\n').strip('\r').strip('"').lstrip(':').removeprefix(command).strip()
 		else:
 			raise Exception("The instrument is not connected")
 

@@ -33,7 +33,7 @@ class Channel():
 
 	@property
 	def IsEnabled(self) -> bool:
-		return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP?"))
+		return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP"))
 	@IsEnabled.setter
 	def IsEnabled(self, value: bool) -> bool:
 		value = bool(value)
