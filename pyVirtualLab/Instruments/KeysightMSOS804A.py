@@ -31,6 +31,17 @@ class Channel():
 	def Address(self) -> float:
 		return self.__address__
 
+	@property
+	def IsEnabled(self) -> bool:
+		return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP?"))
+	@IsEnabled.setter
+	def IsEnabled(self, value: bool) -> bool:
+		value = bool(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(value)}")
+		if self.IsEnabled != value:
+			raise Exception(f"Error when en/dis-able {self.__commandAddress__}")
+		return value
+
 	def GetWaveform(self) -> dict[float, float]:
 		self.__parent__.Write("WAV:SOUR", self.__commandAddress__)
 		self.__parent__.Write("WAV:BYT LSBF")
@@ -85,13 +96,6 @@ class AnalogChannel(Channel):
 		if self.Label != value:
 			raise Exception("Error while setting label")
 		return value
-
-	@property
-	def IsEnabled(self) -> bool:
-		return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP?"))
-	@IsEnabled.setter
-	def IsEnabled(self, value: bool):
-		return self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(bool(value))}")
 
 	@property
 	def IsInverted(self) -> bool:
@@ -177,13 +181,6 @@ class Function(Channel):
 	def __init__(self, parentKeysightMSOS804A, address: str, involvedChannels: list[Channel]):
 		super().__init__(parentKeysightMSOS804A, address)
 		self._involvedChannels = involvedChannels
-
-	@property
-	def IsEnabled(self) -> bool:
-		return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP?"))
-	@IsEnabled.setter
-	def IsEnabled(self, value: bool):
-		return self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(bool(value))}")
 
 	def ChangeFunction(self, targetedFunction):
 		self.__parent__.Write(f"{self.__commandAddress__}:{targetedFunction.NAME}", targetedFunction.INIT_PARAMS)
@@ -486,6 +483,9 @@ class KeysightMSOS804A(Instrument):
 		self.__analogChannels__ = dict()
 		self.__digitalChannels__ = dict()
 		self.__functions__ = dict()
+
+	def Clear(self):
+		self.Write('CDIS')
 	
 	@property
 	def Average(self) -> int:
@@ -565,7 +565,34 @@ class KeysightMSOS804A(Instrument):
 			for address in range(1, self.ANALOG_CHANNELS+1):
 				self.__analogChannels__[address] = AnalogChannel(self, address)
 		return self.__analogChannels__
-
+	
+	@property
+	@GetProperty(bool, 'ACQ:SRAT:ANAL:AUTO')
+	def __isAutoAnalogSampleRateEnabled__(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@__isAutoAnalogSampleRateEnabled__.setter
+	@SetProperty(bool, 'ACQ:SRAT:ANAL:AUTO')
+	def __isAutoAnalogSampleRateEnabled__(self, value: bool) -> bool:
+		pass
+	AUTO_SAMPLE_RATE_ENABLED_VALUE = float('inf')
+	@property
+	def AnalogSampleRate(self) -> float:
+		if self.__isAutoAnalogSampleRateEnabled__:
+			return KeysightMSOS804A.AUTO_SAMPLE_RATE_ENABLED_VALUE
+		else:
+			return float(self.Query('ACQ:SRAT:ANAL'))
+	@AnalogSampleRate.setter
+	def AnalogSampleRate(self, value: float) -> float:
+		value = float(value)
+		if value == KeysightMSOS804A.AUTO_SAMPLE_RATE_ENABLED_VALUE:
+			self.__isAutoAnalogSampleRateEnabled__ = True
+			return value
+		else:
+			if self.__isAutoAnalogSampleRateEnabled__ == True:
+				self.__isAutoAnalogSampleRateEnabled__ = False
+			self.Write('ACQ:SRAT:ANAL', value)
+			return self.AnalogSampleRate
+		
 	DIGITAL_CHANNELS = 16
 	@property
 	def DigitalChannels(self) -> dict[int, DigitalChannel]:
@@ -573,6 +600,32 @@ class KeysightMSOS804A(Instrument):
 			for address in range(0, self.DIGITAL_CHANNELS):
 				self.__digitalChannels__[address] = DigitalChannel(self, address)
 		return self.__digitalChannels__
+
+	@property
+	@GetProperty(bool, 'ACQ:SRAT:DIG:AUTO')
+	def __isAutoDigitalSampleRateEnabled__(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@__isAutoDigitalSampleRateEnabled__.setter
+	@SetProperty(bool, 'ACQ:SRAT:DIG:AUTO')
+	def __isAutoDigitalSampleRateEnabled__(self, value: bool) -> bool:
+		pass
+	@property
+	def DigitalSampleRate(self) -> float:
+		if self.__isAutoDigitalSampleRateEnabled__:
+			return KeysightMSOS804A.AUTO_SAMPLE_RATE_ENABLED_VALUE
+		else:
+			return float(self.Query('ACQ:SRAT:DIG'))
+	@DigitalSampleRate.setter
+	def DigitalSampleRate(self, value: float) -> float:
+		value = float(value)
+		if value == KeysightMSOS804A.AUTO_SAMPLE_RATE_ENABLED_VALUE:
+			self.__isAutoDigitalSampleRateEnabled__ = True
+			return value
+		else:
+			if self.__isAutoDigitalSampleRateEnabled__ == True:
+				self.__isAutoDigitalSampleRateEnabled__ = False
+			self.Write('ACQ:SRAT:DIG', value)
+			return self.DigitalSampleRate
 
 	FUNCTIONS = 16
 	@property
