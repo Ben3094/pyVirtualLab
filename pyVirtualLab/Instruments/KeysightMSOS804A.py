@@ -590,7 +590,7 @@ class KeysightMSOS804A(Instrument):
 		else:
 			if self.__isAutoAnalogSampleRateEnabled__ == True:
 				self.__isAutoAnalogSampleRateEnabled__ = False
-			self.Write('ACQ:SRAT:ANAL', value)
+			self.Write('ACQ:SRAT:ANAL', str(value))
 			return self.AnalogSampleRate
 		
 	DIGITAL_CHANNELS = 16
@@ -624,7 +624,7 @@ class KeysightMSOS804A(Instrument):
 		else:
 			if self.__isAutoDigitalSampleRateEnabled__ == True:
 				self.__isAutoDigitalSampleRateEnabled__ = False
-			self.Write('ACQ:SRAT:DIG', value)
+			self.Write('ACQ:SRAT:DIG', str(value))
 			return self.DigitalSampleRate
 
 	FUNCTIONS = 16
