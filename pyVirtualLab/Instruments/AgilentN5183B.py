@@ -109,15 +109,10 @@ class AgilentN5183B(Source):
 	def IsEnabled(self, value: bool) -> bool:
 		return value
 
-	def LoadCorrection(self, frequencies: list, gains: list):
-		frequencies = list(frequencies)
-		gains = list(gains)
-		frequenciesLength = len(frequencies)
-		if (frequenciesLength != len(gains)):
-			raise Exception('Arrays must be of the same length')
+	def LoadCompensation(self, compensations: dict[float, float]):
 		self.Write("SOUR:CORR:FLAT:PRES")
-		for index in range(0, frequenciesLength):
-			self.Write("SOUR:CORR:FLAT:PAIR " + str(frequencies[index]) + ',' + str(gains[index]))
+		for compensation in compensations:
+			self.Write("SOUR:CORR:FLAT:PAIR " + str(compensation[0]) + ',' + str(compensation[1]))
 
 	def ClearCorrection(self):
 		self.Write("SOUR:CORR:FLAT:LOAD TMP")
@@ -125,11 +120,11 @@ class AgilentN5183B(Source):
 
 	@property
 	@GetProperty(bool, 'SOUR:CORR:STAT')
-	def IsCorrectionEnabled(self, getMethodReturn) -> bool:
+	def IsCompensated(self, getMethodReturn) -> bool:
 		return getMethodReturn
-	@IsCorrectionEnabled.setter
+	@IsCompensated.setter
 	@SetProperty(bool, 'SOUR:CORR:STAT')
-	def IsCorrectionEnabled(self, value: bool) -> bool:
+	def IsCompensated(self, value: bool) -> bool:
 		return value
 
 	@property

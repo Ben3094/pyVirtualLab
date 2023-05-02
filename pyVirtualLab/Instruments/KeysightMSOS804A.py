@@ -155,6 +155,16 @@ class AnalogChannel(Channel):
 		if not savedSendValidMeas:
 			self.__parent__.SendValidMeasurements = False
 		return value
+	
+	def GetArea(self, overOnly1Cycle = False) -> float:
+		savedSendValidMeas = self.__parent__.SendValidMeasurements
+		self.__parent__.SendValidMeasurements = True
+		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
+	    		self.__commandAddress__]
+		value = float(self.__parent__.Query('MEAS:AREA', ','.join(args)).split(',')[0])
+		if not savedSendValidMeas:
+			self.__parent__.SendValidMeasurements = False
+		return value
 
 	WITH_DC_COMPONENT_ARGUMENT = 'DC'
 	WITHOUT_DC_COMPONENT_ARGUMENT = 'AC'
@@ -171,6 +181,11 @@ class AnalogChannel(Channel):
 
 class DigitalChannel(Channel):
 	TYPE_COMMAND_HEADER = 'DIG'
+
+class WaveformMemoryChannel(Channel):
+	TYPE_COMMAND_HEADER = 'WMEM'
+	def Save(self, channel:Channel):
+		self.__parent__.Write(f"{self.__commandAddress__}:SAVE", channel.__commandAddress__)
 
 class Function(Channel):
 	TYPE_COMMAND_HEADER = 'FUNC'
@@ -472,6 +487,28 @@ class SmoothFunction(Function):
 	NAME = 'SMO'
 class SubtractFunction(Function):
 	NAME = 'SUB'
+	INIT_PARAMS = 'CHAN1,CHAN2'
+	PARAMS_STRING_FORMAT = "(?P<FirstOperand>[A-Z]+\d+)\s*,*\s*(?P<SecondOperand>[A-Z]+\d+)"
+
+	@property
+	def FirstOperand(self) -> Channel:
+		params = self.GetParams()
+		return self.__parent__.StringToChannel(params['FirstOperand'])
+	@FirstOperand.setter
+	def FirstOperand(self, value: Channel):
+		self.SetParam('FirstOperand', value.__commandAddress__)
+		if self.FirstOperand.__commandAddress__ != value.__commandAddress__:
+			raise Exception("Error while setting first operand channel")
+	@property
+	def SecondOperand(self) -> Channel:
+		params = self.GetParams()
+		return self.__parent__.StringToChannel(params['SecondOperand'])
+	@SecondOperand.setter
+	def SecondOperand(self, value: Channel):
+		self.SetParam('SecondOperand', value.__commandAddress__)
+		if self.SecondOperand.__commandAddress__ != value.__commandAddress__:
+			raise Exception("Error while setting second operand channel")
+		
 class VersusFunction(Function):
 	NAME = 'VERS'
 
@@ -482,6 +519,7 @@ class KeysightMSOS804A(Instrument):
 		super(KeysightMSOS804A, self).__init__(address)
 		self.__analogChannels__ = dict()
 		self.__digitalChannels__ = dict()
+		self.__waveformMemoryChannels__ = dict()
 		self.__functions__ = dict()
 
 	def Clear(self):
@@ -565,6 +603,14 @@ class KeysightMSOS804A(Instrument):
 			for address in range(1, self.ANALOG_CHANNELS+1):
 				self.__analogChannels__[address] = AnalogChannel(self, address)
 		return self.__analogChannels__
+	
+	SINGLE_OSCILLOSCOPE_MEMORIES = 4
+	@property
+	def WaveformMemoryChannels(self) -> dict[int, WaveformMemoryChannel]:
+		if len(self.__waveformMemoryChannels__) < 1:
+			for address in range(1, self.SINGLE_OSCILLOSCOPE_MEMORIES+1):
+				self.__waveformMemoryChannels__[address] = WaveformMemoryChannel(self, address)
+		return self.__waveformMemoryChannels__
 	
 	@property
 	@GetProperty(bool, 'ACQ:SRAT:ANAL:AUTO')
