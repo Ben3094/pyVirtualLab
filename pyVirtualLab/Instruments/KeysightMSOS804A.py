@@ -33,7 +33,7 @@ class Channel():
 
 	@property
 	def IsEnabled(self) -> bool:
-		return bool(self.__parent__.Query(f"{self.__commandAddress__}:DISP"))
+		return bool(int(self.__parent__.Query(f"{self.__commandAddress__}:DISP")))
 	@IsEnabled.setter
 	def IsEnabled(self, value: bool) -> bool:
 		value = bool(value)
@@ -81,51 +81,6 @@ class Channel():
 		if self.Offset != value:
 			raise Exception("Error while setting offset")
 		return value
-
-class AnalogChannel(Channel):
-	@property
-	def Label(self) -> str:
-		return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
-	@Label.setter
-	def Label(self, value: str) -> str:
-		value = str(value)
-		if value.isascii() & len(value) <= 16:
-			self.__parent__.Write(f"{self.__commandAddress__}:LAB {value}")
-		else:
-			raise Exception("Label must be ASCII and less or equal 16 characters long")
-		if self.Label != value:
-			raise Exception("Error while setting label")
-		return value
-
-	@property
-	def IsInverted(self) -> bool:
-		return bool(self.__parent__.Query(f"{self.__commandAddress__}:INV"))
-	@IsInverted.setter
-	def IsInverted(self, value: bool):
-		return self.__parent__.Write(f"{self.__commandAddress__}:INV {int(bool(value))}")
-	
-	@property
-	def Unit(self) -> ChannelUnit:
-		match self.__parent__.Query(f"{self.__commandAddress__}:UNIT"):
-			case "VOLT":
-				return ChannelUnit.Volt
-			case "AMP":
-				return ChannelUnit.Ampere
-			case "WATT":
-				return ChannelUnit.Watt
-			case "UNKN":
-				return ChannelUnit.Unknown
-	@Unit.setter
-	def Unit(self, value: ChannelUnit):
-		match value:
-			case ChannelUnit.Volt:
-				self.__parent__.Write(f"{self.__commandAddress__}:UNIT VOLT")
-			case ChannelUnit.Ampere:
-				self.__parent__.Write(f"{self.__commandAddress__}:UNIT AMP")
-			case ChannelUnit.Watt:
-				self.__parent__.Write(f"{self.__commandAddress__}:UNIT WATT")
-			case ChannelUnit.Unknown:
-				self.__parent__.Write(f"{self.__commandAddress__}:UNIT UNKN")
 	
 	# Measurements
 	def GetMaximum(self) -> float:
@@ -178,6 +133,51 @@ class AnalogChannel(Channel):
 		if not savedSendValidMeas:
 			self.__parent__.SendValidMeasurements = False
 		return value
+
+class AnalogChannel(Channel):
+	@property
+	def Label(self) -> str:
+		return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
+	@Label.setter
+	def Label(self, value: str) -> str:
+		value = str(value)
+		if value.isascii() & len(value) <= 16:
+			self.__parent__.Write(f"{self.__commandAddress__}:LAB {value}")
+		else:
+			raise Exception("Label must be ASCII and less or equal 16 characters long")
+		if self.Label != value:
+			raise Exception("Error while setting label")
+		return value
+
+	@property
+	def IsInverted(self) -> bool:
+		return bool(self.__parent__.Query(f"{self.__commandAddress__}:INV"))
+	@IsInverted.setter
+	def IsInverted(self, value: bool):
+		return self.__parent__.Write(f"{self.__commandAddress__}:INV {int(bool(value))}")
+	
+	@property
+	def Unit(self) -> ChannelUnit:
+		match self.__parent__.Query(f"{self.__commandAddress__}:UNIT"):
+			case "VOLT":
+				return ChannelUnit.Volt
+			case "AMP":
+				return ChannelUnit.Ampere
+			case "WATT":
+				return ChannelUnit.Watt
+			case "UNKN":
+				return ChannelUnit.Unknown
+	@Unit.setter
+	def Unit(self, value: ChannelUnit):
+		match value:
+			case ChannelUnit.Volt:
+				self.__parent__.Write(f"{self.__commandAddress__}:UNIT VOLT")
+			case ChannelUnit.Ampere:
+				self.__parent__.Write(f"{self.__commandAddress__}:UNIT AMP")
+			case ChannelUnit.Watt:
+				self.__parent__.Write(f"{self.__commandAddress__}:UNIT WATT")
+			case ChannelUnit.Unknown:
+				self.__parent__.Write(f"{self.__commandAddress__}:UNIT UNKN")
 
 class DigitalChannel(Channel):
 	TYPE_COMMAND_HEADER = 'DIG'
@@ -486,7 +486,7 @@ class MultiplyFunction(Function):
 class SmoothFunction(Function):
 	NAME = 'SMO'
 class SubtractFunction(Function):
-	NAME = 'SUB'
+	NAME = 'SUBT'
 	INIT_PARAMS = 'CHAN1,CHAN2'
 	PARAMS_STRING_FORMAT = "(?P<FirstOperand>[A-Z]+\d+)\s*,*\s*(?P<SecondOperand>[A-Z]+\d+)"
 
@@ -700,3 +700,6 @@ class KeysightMSOS804A(Instrument):
 
 			case Function.TYPE_COMMAND_HEADER:
 				return self.__functions__[int(match.groups(0)[1])]
+
+			case WaveformMemoryChannel.TYPE_COMMAND_HEADER:
+				return self.WaveformMemoryChannels[int(match.groups(0)[1])]
