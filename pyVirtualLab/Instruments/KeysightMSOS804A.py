@@ -603,6 +603,15 @@ class KeysightMSOS804A(Instrument):
 		pass
 	
 	@property
+	@GetProperty(float, 'TIM:POS')
+	def Delay(self, getMethodReturn) -> float:
+		return getMethodReturn
+	@Delay.setter
+	@SetProperty(float, 'TIM:POS')
+	def Delay(self, value: float) -> float:
+		pass
+	
+	@property
 	@GetProperty(bool, 'MEAS:SEND')
 	def SendValidMeasurements(self, getMethodReturn) -> bool:
 		return getMethodReturn
