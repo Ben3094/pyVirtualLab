@@ -112,7 +112,7 @@ class AgilentN5183B(Source):
 	def LoadCompensation(self, compensations: dict[float, float]):
 		self.Write("SOUR:CORR:FLAT:PRES")
 		for compensation in compensations:
-			self.Write("SOUR:CORR:FLAT:PAIR " + str(compensation[0]) + ',' + str(compensation[1]))
+			self.Write("SOUR:CORR:FLAT:PAIR " + str(compensation) + ',' + str(compensations[compensation]))
 
 	def ClearCorrection(self):
 		self.Write("SOUR:CORR:FLAT:LOAD TMP")

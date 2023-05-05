@@ -218,6 +218,21 @@ class Function(Channel):
 		response = str(response).replace(currentValue, value)
 		self.__parent__.Write(self.__commandAddress__ + response)
 
+class AbsoluteFunction(Function):
+	NAME = 'ABS'
+	INIT_PARAMS = 'CHAN1'
+	PARAMS_STRING_FORMAT = "(?P<Operand[A-Z]+\d+)"
+
+	@property
+	def Operand(self) -> Channel:
+		params = self.GetParams()
+		return self.__parent__.StringToChannel(params['Operand'])
+	@Operand.setter
+	def Operand(self, value: Channel):
+		self.SetParam('Operand', value.__commandAddress__)
+		if self.Operand.__commandAddress__ != value.__commandAddress__:
+			raise Exception("Error while setting operand channel")
+
 class AddFunction(Function):
 	NAME = 'ADD'
 	INIT_PARAMS = 'CHAN1,CHAN2'
