@@ -221,7 +221,7 @@ class Function(Channel):
 class AbsoluteFunction(Function):
 	NAME = 'ABS'
 	INIT_PARAMS = 'CHAN1'
-	PARAMS_STRING_FORMAT = "(?P<Operand[A-Z]+\d+)"
+	PARAMS_STRING_FORMAT = "(?P<Operand>[A-Z]+\d+)"
 
 	@property
 	def Operand(self) -> Channel:
@@ -236,27 +236,27 @@ class AbsoluteFunction(Function):
 class AddFunction(Function):
 	NAME = 'ADD'
 	INIT_PARAMS = 'CHAN1,CHAN2'
-	PARAMS_STRING_FORMAT = "(?P<Operand1>[A-Z]+\d+)\s*,*\s*(?P<Operand2>[A-Z]+\d+)"
+	PARAMS_STRING_FORMAT = "(?P<FirstOperand>[ A-Z]+\d+)\s*,*\s*(?P<SecondOperand>[A-Z]+\d+)"
 
 	@property
-	def Operand1(self) -> Channel:
+	def FirstOperand(self) -> Channel:
 		params = self.GetParams()
-		return self.__parent__.StringToChannel(params['Operand1'])
-	@Operand1.setter
-	def Operand1(self, value: Channel):
-		self.SetParam('Operand1', value.__commandAddress__)
-		if self.Operand1.__commandAddress__ != value.__commandAddress__:
-			raise Exception("Error while setting operand 1 channel")
+		return self.__parent__.StringToChannel(params['FirstOperand'])
+	@FirstOperand.setter
+	def FirstOperand(self, value: Channel):
+		self.SetParam('FirstOperand', value.__commandAddress__)
+		if self.FirstOperand.__commandAddress__ != value.__commandAddress__:
+			raise Exception("Error while setting first operand channel")
 			
 	@property
-	def Operand2(self) -> Channel:
+	def SecondOperand(self) -> Channel:
 		params = self.GetParams()
-		return self.__parent__.StringToChannel(params['Operand2'])
-	@Operand1.setter
-	def Operand2(self, value: Channel):
-		self.SetParam('Operand2', value.__commandAddress__)
-		if self.Operand2.__commandAddress__ != value.__commandAddress__:
-			raise Exception("Error while setting operand 2 channel")
+		return self.__parent__.StringToChannel(params['SecondOperand'])
+	@FirstOperand.setter
+	def SecondOperand(self, value: Channel):
+		self.SetParam('SecondOperand', value.__commandAddress__)
+		if self.SecondOperand.__commandAddress__ != value.__commandAddress__:
+			raise Exception("Error while setting second operand channel")
 class EnvelopeFunction(Function):
 	NAME = 'ADEM'
 	INIT_PARAMS = 'CHAN1'
