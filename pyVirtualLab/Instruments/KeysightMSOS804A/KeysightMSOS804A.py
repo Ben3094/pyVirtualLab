@@ -86,7 +86,8 @@ class KeysightMSOS804A(Instrument):
 		if reply == 'ADV':
 			reply = self.Query('TRIG:ADV:MODE')
 		if self.__trigger__ is not Triggers.TRIGGERS_NAMES[reply]:
-			self.__trigger__.__parent__ = None # Unlink old trigger object
+			if self.__trigger__:
+				self.__trigger__.__parent__ = None # Unlink old trigger object
 			self.__trigger__ = Triggers.TRIGGERS_NAMES[reply]()
 		self.__trigger__.__parent__ = self
 		return self.__trigger__
