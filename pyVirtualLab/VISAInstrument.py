@@ -283,7 +283,7 @@ class Source(Instrument):
 
 def RECURSIVE_SUBCLASSES(type:type) -> list[type]:
 	currentLevelSubclasses = type.__subclasses__()
-	deeperLevelSubclasses:list[type] = list(type)
+	deeperLevelSubclasses:list = list()
 	for currentLevelSubclass in currentLevelSubclasses:
 		deeperLevelSubclasses = deeperLevelSubclasses + RECURSIVE_SUBCLASSES(currentLevelSubclass)
-	return currentLevelSubclass + deeperLevelSubclasses
+	return currentLevelSubclasses + deeperLevelSubclasses
