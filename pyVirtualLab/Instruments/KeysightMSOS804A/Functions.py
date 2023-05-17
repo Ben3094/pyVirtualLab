@@ -319,7 +319,7 @@ class SideFilterFunction(Function):
 	@Bandwidth.setter
 	def Bandwidth(self, value: float):
 		value = float(value)
-		self.SetParam('Bandwidth', value)
+		self.SetParam('Bandwidth', str(value))
 		if self.Bandwidth != value:
 			raise Exception("Error while setting bandwidth")
 class HighPassFunction(SideFilterFunction):
