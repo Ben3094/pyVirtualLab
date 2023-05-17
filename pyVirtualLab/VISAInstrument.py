@@ -280,3 +280,10 @@ class Source(Instrument):
 	def __init__(self, address, visaTimeout=Instrument.DEFAULT_VISA_TIMEOUT):
 		Instrument.__init__(self, address, visaTimeout)
 		self.Abort = self._abort
+
+def RECURSIVE_SUBCLASSES(type:type) -> list[type]:
+	currentLevelSubclasses = type.__subclasses__()
+	deeperLevelSubclasses:list[type] = list(type)
+	for currentLevelSubclass in currentLevelSubclasses:
+		deeperLevelSubclasses = deeperLevelSubclasses + RECURSIVE_SUBCLASSES(currentLevelSubclass)
+	return currentLevelSubclass + deeperLevelSubclasses
