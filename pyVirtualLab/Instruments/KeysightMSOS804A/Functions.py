@@ -52,7 +52,7 @@ class AbsoluteFunction(Function):
 class AddFunction(Function):
 	NAME = 'ADD'
 	INIT_PARAMS = 'CHAN1,CHAN2'
-	PARAMS_STRING_FORMAT = "(?P<FirstOperand>[ A-Z]+\d+)\s*,*\s*(?P<SecondOperand>[A-Z]+\d+)"
+	PARAMS_STRING_FORMAT = "(?P<FirstOperand>[A-Z]+\d+)\s*,*\s*(?P<SecondOperand>[A-Z]+\d+)"
 
 	@property
 	def FirstOperand(self) -> Channel:
@@ -300,7 +300,7 @@ class FFTPhaseFunction(Function):
 	NAME = 'FFTP'
 class SideFilterFunction(Function):
 	INIT_PARAMS = 'CHAN1'
-	PARAMS_STRING_FORMAT = "(?P<Target>[A-Z]+\d+)\s*,*\s*(?P<Bandwidth>[A-Z]+\d+)"
+	PARAMS_STRING_FORMAT = "(?P<Target>[A-Z]+\d+)\s*,*\s*(?P<Bandwidth>[E.+-\d]+)"
 
 	@property
 	def Target(self) -> Channel:
