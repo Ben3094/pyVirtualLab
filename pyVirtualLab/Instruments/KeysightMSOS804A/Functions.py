@@ -1,4 +1,4 @@
-from Channels import Channel
+from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel
 from aenum import Enum
 import re
 

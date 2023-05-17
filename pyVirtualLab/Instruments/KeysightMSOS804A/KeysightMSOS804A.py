@@ -1,8 +1,8 @@
 from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 from aenum import Enum
-from Functions import Function, FUNCTIONS_NAMES
-from Channels import Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel
-import Triggers
+from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
+from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel
+import pyVirtualLab.Instruments.KeysightMSOS804A.Triggers
 import re
 
 class RunState(Enum):
