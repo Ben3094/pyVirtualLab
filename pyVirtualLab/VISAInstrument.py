@@ -243,13 +243,14 @@ class Instrument:
 	
 	def __updateVendor__(self, check=False) -> str:
 		rematch:re.Match = None
-		for vendor in VendorAbbreviation:
-			rematch = re.match(vendor.value, self.Id)
-			if rematch:
-				if rematch.pos == 0:
-					break
+		for vendorAbbreviation in VendorAbbreviation:
+			for value in vendorAbbreviation.values:
+				rematch = re.match(value, self.Id)
+				if rematch:
+					if rematch.pos == 0:
+						break
 		if rematch:
-			return rematch.string
+			return rematch.match
 		else:
 			if check:
 				raise Exception("Unknown manufacturer")
