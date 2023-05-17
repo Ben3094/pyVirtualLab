@@ -316,7 +316,7 @@ class SideFilterFunction(Function):
 	def Bandwidth(self) -> Channel:
 		params = self.GetParams()
 		return self.__parent__.StringToChannel(params['Bandwidth'])
-	@Target.setter
+	@Bandwidth.setter
 	def Target(self, value: Channel):
 		self.SetParam('Bandwidth', value.__commandAddress__)
 		if self.Target.__commandAddress__ != value.__commandAddress__:
