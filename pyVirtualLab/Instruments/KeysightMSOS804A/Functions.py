@@ -300,7 +300,7 @@ class FFTPhaseFunction(Function):
 	NAME = 'FFTP'
 class SideFilterFunction(Function):
 	INIT_PARAMS = 'CHAN1'
-	PARAMS_STRING_FORMAT = "(?P<Target>[A-Z]+\d+)\s*,*\s*(?P<Bandwidth>[E.+-\d]+)"
+	PARAMS_STRING_FORMAT = "(?P<Target>[A-Z]+\d+)\s*,*\s*(?P<Bandwidth>[E\.+-\d]+)"
 
 	@property
 	def Target(self) -> Channel:
