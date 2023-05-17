@@ -1,4 +1,5 @@
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel
+from pyVirtualLab.VISAInstrument import RECURSIVE_SUBCLASSES
 from aenum import Enum
 import re
 
@@ -365,4 +366,4 @@ class SubtractFunction(Function):
 class VersusFunction(Function):
 	NAME = 'VERS'
 
-FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in Function.__subclasses__()])
+FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in RECURSIVE_SUBCLASSES(Function)])
