@@ -257,8 +257,8 @@ class Instrument:
 			return self.Id.split(',')[0]
 		
 	def __updateModelAndFirmware__(self):
-		modelAndFirmware = self.Id.removeprefix(self.Vendor).split(',', 2)
-		return modelAndFirmware[0], modelAndFirmware[1]
+		modelAndFirmware = self.Id.removeprefix(self.Vendor).rstrip().rstrip('\n').split(',', 2)
+		return modelAndFirmware[1], modelAndFirmware[2]
 
 	def SelfTest(self):
 		if self.IsConnected:
