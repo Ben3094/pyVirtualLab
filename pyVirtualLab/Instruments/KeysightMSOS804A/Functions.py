@@ -313,13 +313,14 @@ class SideFilterFunction(Function):
 			raise Exception("Error while setting target channel")
 
 	@property
-	def Bandwidth(self) -> Channel:
+	def Bandwidth(self) -> float:
 		params = self.GetParams()
 		return float(params['Bandwidth'])
 	@Bandwidth.setter
-	def Target(self, value: Channel):
-		self.SetParam('Bandwidth', value.__commandAddress__)
-		if self.Target.__commandAddress__ != value.__commandAddress__:
+	def Target(self, value: float):
+		value = float(value)
+		self.SetParam('Bandwidth', value)
+		if self.Bandwidth != value:
 			raise Exception("Error while setting bandwidth")
 class HighPassFunction(SideFilterFunction):
 	NAME = 'HIGH'
