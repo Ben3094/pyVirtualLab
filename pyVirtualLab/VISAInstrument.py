@@ -206,7 +206,7 @@ class Instrument:
 			self.__instr__.timeout = self.VISATimeout
 			self.Id = self.__updateId__()
 			self.Vendor = self.__updateVendor__()
-			self.Model, self.Firmware = self.__updateModelAndFirmware__
+			self.Model, self.Firmware = self.__updateModelAndFirmware__()
 		except Exception as e:
 			self.__isConnected__ = False
 			raise e
