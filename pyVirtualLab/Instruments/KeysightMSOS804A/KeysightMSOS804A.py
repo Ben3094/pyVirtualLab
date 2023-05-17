@@ -2,6 +2,7 @@ from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 from aenum import Enum
 from Functions import Function, FUNCTIONS_NAMES
 from Channels import Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel
+import Triggers
 import re
 
 class RunState(Enum):
@@ -77,6 +78,29 @@ class KeysightMSOS804A(Instrument):
 	@ReturnHeader.setter
 	def ReturnHeader(self, value: bool):
 		self.Write('SYST:HEAD', str(int(bool(value))))
+
+	__trigger__ = None
+	@property
+	def Trigger(self) -> Triggers.Trigger:
+		reply:str = self.Query('TRIG:MODE')
+		if reply == 'ADV':
+			reply = self.Query('TRIG:ADV:MODE')
+		if self.__trigger__ is not Triggers.TRIGGERS_NAMES[reply]:
+			self.__trigger__.__parent__ = None # Unlink old trigger object
+			self.__trigger__ = Triggers.TRIGGERS_NAMES[reply]()
+		self.__trigger__.__parent__ = self
+		return self.__trigger__
+	@Trigger.setter
+	def Trigger(self, value:Triggers.Trigger) -> Triggers.Trigger:
+		if value is Triggers.AdvancedTrigger:
+			self.Write('TRIG:ADV:MODE', value.NAME)
+		else:
+			self.Write('TRIG:MODE', value.NAME)
+		self.__trigger__ = value
+		currentTrigger = self.Trigger
+		if value == currentTrigger:
+			raise Exception("Error while setting trigger mode")
+		return currentTrigger
 	
 	@property
 	@GetProperty(float, 'TIM:SCAL')

@@ -8,6 +8,10 @@ class ChannelUnit(Enum):
 
 class Channel():
 	TYPE_COMMAND_HEADER = 'CHAN'
+	
+	__parent__ = None
+	__address__:str = None
+	__commandAddress__:str = None
 
 	def __init__(self, parentKeysightMSOS804A, address):
 		self.__parent__ = parentKeysightMSOS804A

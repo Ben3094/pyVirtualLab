@@ -1,6 +1,7 @@
 import pyvisa
 import aenum
 import enum
+import re
 
 def GetProperty(dataType: type, visaGetCommand: str):
 	__converter__ = None
@@ -54,8 +55,116 @@ def SetProperty(dataType: type, visaSetCommand: str):
 		return wrapper
 	return decorator
 
+# See IVI foundation VXI plug&play System Alliance VPP-9: Instrument Vendor Abbreviations
+class VendorAbbreviation(aenum.Enum):
+	AQ = "Acqiris"
+	AC = "Applicos BV"
+	AV = "Advantest Corporation"
+	AF = "Aeroflex Laboratories"
+	AG = "Agilent Technologies"
+	AI = "AIM GmbH"
+	AX = "AMETRIX Instruments"
+	AM = "AMP Incorporated"
+	AM = "Analogic, Corp."
+	AD = "Ando Electric Company Limited"
+	AU = "Anritsu Company"
+	AT = "Astronics Test Systems Inc."
+	AO = "AOIP Instrumentation"
+	AS = "ASCOR Incorporated"
+	AP = "Audio Precision, Inc"
+	BB = "B&B Technologies"
+	BA = "BAE Systems"
+	BK = "Bruel & Kjaer"
+	BU = "Bustec Production Ltd."
+	CA = "CAL-AV Labs, Inc."
+	CI = "Cambridge Instruments"
+	CH = "C&H Technologies, Inc."
+	CE = "Chyng Hong Electronic Co., Ltd"
+	CM = "CMC Labs"
+	CC = "Compressor Controls Corporation"
+	CY = "CYTEC Corporation"
+	DP = "Directed Perceptions Inc."
+	DS = "DSP Technology Inc."
+	EA = "EA Elektro-Automatik GmbH"
+	EI = "EIP Microwave, Inc."
+	EX = "EXFO Inc."
+	FL = "Fluke Company Inc."
+	FO = "fos4X GmbH"
+	GR = "GenRad"
+	GT = "Giga-tronics, Inc."
+	GN = "gnubi communications, Inc."
+	HP = "Hewlett-Packard Company"
+	HH = "Hoecherl & Hackl GmbH"
+	UN = "Holding “Informtest”"
+	IS = "Intepro Systems"
+	DV = "IBEKO POWER AB"
+	IF = "IFR"
+	IT = "Instrumental Systems Corporation"
+	IE = "Instrumentation Engineering, Inc."
+	IC = "Integrated Control Systems"
+	KE = "Keithley Instruments"
+	KP = "Kepco, Inc."
+	KT = "Keysight Technologies"
+	KI = "Kikusui Inc."
+	LC = "LeCroy"
+	LP = "LitePoint Corporation"
+	MP = "MAC Panel Company"
+	MT = "ManTech Test Systems"
+	MI = "Marconi Instruments"
+	MS = "Microscan"
+	ML = "MIT Lincoln Laboratory"
+	NI = "National Instruments Corp."
+	NT = "NEUTRIK AG"
+	ND = "Newland Design + Associates, Inc."
+	NH = "NH Research"
+	NA = "North Atlantic Instruments"
+	PW = "Pacific MindWorks, Inc."
+	PE = "PesMatrix Inc."
+	PM = "Phase Metrics"
+	PI = "Pickering Interfaces"
+	PC = "Picotest"
+	PT = "Power-Tek Inc."
+	RI = "Racal Instruments, Inc."
+	RQ = "Raditeq"
+	RA = "Radisys Corp."
+	RS = "Rohde & Schwarz GmbH"
+	SL = "Schlumberger Technologies"
+	SC = "Scicom"
+	SR = "Scientific Research Corporation"
+	AU = "Serendipity Systems, Inc."
+	SI = "SignalCraft Technologies Inc."
+	ST = "Sony/Tektronix Corporation"
+	SS = "Spectrum Signal Processing, Inc."
+	SP = "Spitzenberger & Spies GmbH"
+	TA = "Talon Instruments"
+	TK = "Tektronix, Inc."
+	TE = "Teradyne"
+	TS = "Test & Measurement Systems Inc."
+	RF = "ThinkRF Corporation"
+	AT = "Thurlby Thandar Instruments Limited Transmagnetics, Inc."
+	TM = "Transmagnetics, Inc."
+	TP = "TSE Plazotta"
+	TT = "TTI Testron, Inc."
+	US = "Universal Switching Corporation"
+	VE = "Vencon Technologies Inc."
+	XR = "Versatile Power"
+	VP = "Virginia Panel, Corp."
+	VT = "VXI Technology, Inc."
+	VA = "VXIbus Associates, Inc."
+	WT = "Wavetek Corp."
+	WG = "Wandel & Goltermann"
+	WZ = "Welzek"
+	YK = "Yokogawa Electric Corporation"
+	ZT = "ZTEC"
+
+# See IVI fundation SCPI Volume 1: Syntax and Style
 class Instrument:
 	DEFAULT_VISA_TIMEOUT = 2000
+
+	Id:str = None
+	Vendor:str = None
+	Model:str = None
+	Firmware:str = None
 
 	def __init__(self, address: str, visaTimeout:int=DEFAULT_VISA_TIMEOUT):
 		self.__rm__ = pyvisa.ResourceManager('@py')
@@ -95,7 +204,9 @@ class Instrument:
 		try:
 			self.__instr__ = self.__rm__.open_resource(self.Address)
 			self.__instr__.timeout = self.VISATimeout
-			self.Id
+			self.Id = self.__updateId__()
+			self.Vendor = self.__updateVendor__()
+			self.Model, self.Firmware = self.__updateModelAndFirmware__
 		except Exception as e:
 			self.__isConnected__ = False
 			raise e
@@ -124,11 +235,29 @@ class Instrument:
 		else:
 			raise Exception("The instrument is not connected")
 
-	def Id(self) -> str:
+	def __updateId__(self) -> str:
 		if self.IsConnected:
 			return self.__instr__.query('*IDN?')
 		else:
 			raise Exception("The instrument is not connected")
+	
+	def __updateVendor__(self, check=False) -> str:
+		rematch:re.Match = None
+		for vendor in VendorAbbreviation:
+			rematch = re.match(vendor.value, self.Id)
+			if rematch:
+				if rematch.pos == 0:
+					break
+		if rematch:
+			return rematch.string
+		else:
+			if check:
+				raise Exception("Unknown manufacturer")
+			return self.Id.split(',')[0]
+		
+	def __updateModelAndFirmware__(self):
+		modelAndFirmware = self.Id.removeprefix(self.Vendor).split(',', 2)
+		return modelAndFirmware[0], modelAndFirmware[1]
 
 	def SelfTest(self):
 		if self.IsConnected:
