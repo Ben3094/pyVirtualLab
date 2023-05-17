@@ -317,7 +317,7 @@ class SideFilterFunction(Function):
 		params = self.GetParams()
 		return float(params['Bandwidth'])
 	@Bandwidth.setter
-	def Target(self, value: float):
+	def Bandwidth(self, value: float):
 		value = float(value)
 		self.SetParam('Bandwidth', value)
 		if self.Bandwidth != value:
