@@ -79,7 +79,11 @@ class SensorWithoutEEPROM(KeysightN191XSensor):
 
     @property
     def AssociatedCalibrationFactorsSet(self) -> CalibrationFactorsSet:
-        return self.__parentKeysightN191X__.CalibrationFactorsSets[self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:CORR:CSET1:SEL")]
+        name = self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:CORR:CSET1:SEL")
+        if name == '':
+            return None
+        else:
+            return self.__parentKeysightN191X__.CalibrationFactorsSets[name]
     @AssociatedCalibrationFactorsSet.setter
     def AssociatedCalibrationFactorsSet(self, calibrationFactorsSet: CalibrationFactorsSet=None):
         if calibrationFactorsSet == None:
