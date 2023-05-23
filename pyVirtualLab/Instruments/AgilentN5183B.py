@@ -109,9 +109,10 @@ class AgilentN5183B(Source):
 	def IsEnabled(self, value: bool) -> bool:
 		return value
 	
-	def CompensateDeviceGain(self, deviceFrequencyDependentGain: dict[float, float], desiredGain: float):
+	def CompensateDeviceGain(self, deviceFrequencyDependentGain: dict[float, float], desiredGain: float) -> dict[float, float]:
 		compensatingPowers = dict(zip(deviceFrequencyDependentGain.keys(), [(desiredGain - gain) for gain in deviceFrequencyDependentGain.values()]))
 		self.LoadCompensation(compensatingPowers)
+		return compensatingPowers
 
 	def LoadCompensation(self, compensations: dict[float, float]):
 		self.ClearCompensation()
