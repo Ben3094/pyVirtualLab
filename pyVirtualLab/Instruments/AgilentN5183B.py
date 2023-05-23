@@ -108,13 +108,17 @@ class AgilentN5183B(Source):
 	@SetProperty(bool, 'OUTP:STAT')
 	def IsEnabled(self, value: bool) -> bool:
 		return value
+	
+	def CompensateDeviceGain(self, deviceFrequencyDependentGain: dict[float, float], desiredGain: float):
+		compensatingPowers = dict(zip(deviceFrequencyDependentGain.keys(), [(desiredGain - gain) for gain in deviceFrequencyDependentGain.values()]))
+		self.LoadCompensation(compensatingPowers)
 
 	def LoadCompensation(self, compensations: dict[float, float]):
-		self.Write("SOUR:CORR:FLAT:PRES")
+		self.ClearCompensation()
 		for compensation in compensations:
 			self.Write("SOUR:CORR:FLAT:PAIR " + str(compensation) + ',' + str(compensations[compensation]))
 
-	def ClearCorrection(self):
+	def ClearCompensation(self):
 		self.Write("SOUR:CORR:FLAT:LOAD TMP")
 		self.Write("SOUR:CORR:FLAT:PRES")
 
