@@ -83,12 +83,12 @@ class AgilentN5183B(Source):
 			raise Exception("Error while setting the frequency")
 
 	@property
-	@GetProperty(int, 'SOUR:FREQ:MULT')
-	def FrequencyMultiplier(self, getMethodReturn) -> int:
+	@GetProperty(float, 'SOUR:FREQ:MULT')
+	def FrequencyMultiplier(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@FrequencyMultiplier.setter
-	@SetProperty(int, 'SOUR:FREQ:MULT')
-	def FrequencyMultiplier(self, value: int) -> int:
+	@SetProperty(float, 'SOUR:FREQ:MULT')
+	def FrequencyMultiplier(self, value: float) -> float:
 		return value
 
 	@property
