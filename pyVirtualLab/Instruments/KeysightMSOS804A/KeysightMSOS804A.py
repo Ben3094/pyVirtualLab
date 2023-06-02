@@ -25,7 +25,7 @@ class KeysightMSOS804A(Instrument):
 
 	def Clear(self):
 		self.Write('CDIS')
-	
+
 	@property
 	def Average(self) -> int:
 		if not bool(self.Query("ACQ:AVER")):
@@ -58,6 +58,16 @@ class KeysightMSOS804A(Instrument):
 				self.Write("STOP")
 			case RunState.Single:
 				self.Write("SING")
+
+	@property
+	def IsAutoTriggerEnabled(self) -> bool:
+		return True if str(self.Query('TRIG:SWE')) == 'AUTO' else False
+	@IsAutoTriggerEnabled.setter
+	def IsAutoTriggerEnabled(self, value: bool) -> bool:
+		self.Write('TRIG:SWE', 'AUTO' if value else 'TRIG')
+		if self.IsAutoTriggerEnabled != value:
+			raise Exception('Error while en/dis-abling auto trigger')
+		return value
 
 	@property
 	def AcquisitionState(self) -> AcquisitionState:
@@ -102,7 +112,7 @@ class KeysightMSOS804A(Instrument):
 		if value == currentTrigger:
 			raise Exception("Error while setting trigger mode")
 		return currentTrigger
-	
+
 	@property
 	@GetProperty(float, 'TIM:SCAL')
 	def TimeScale(self, getMethodReturn) -> float:
@@ -111,7 +121,7 @@ class KeysightMSOS804A(Instrument):
 	@SetProperty(float, 'TIM:SCAL')
 	def TimeScale(self, value: float) -> float:
 		pass
-	
+
 	@property
 	@GetProperty(float, 'TIM:POS')
 	def Delay(self, getMethodReturn) -> float:
@@ -120,7 +130,7 @@ class KeysightMSOS804A(Instrument):
 	@SetProperty(float, 'TIM:POS')
 	def Delay(self, value: float) -> float:
 		pass
-	
+
 	@property
 	@GetProperty(bool, 'MEAS:SEND')
 	def SendValidMeasurements(self, getMethodReturn) -> bool:
@@ -137,7 +147,7 @@ class KeysightMSOS804A(Instrument):
 			for address in range(1, self.ANALOG_CHANNELS+1):
 				self.__analogChannels__[address] = AnalogChannel(self, address)
 		return self.__analogChannels__
-	
+
 	SINGLE_OSCILLOSCOPE_MEMORIES = 4
 	@property
 	def WaveformMemoryChannels(self) -> dict[int, WaveformMemoryChannel]:
@@ -145,7 +155,7 @@ class KeysightMSOS804A(Instrument):
 			for address in range(1, self.SINGLE_OSCILLOSCOPE_MEMORIES+1):
 				self.__waveformMemoryChannels__[address] = WaveformMemoryChannel(self, address)
 		return self.__waveformMemoryChannels__
-	
+
 	@property
 	@GetProperty(bool, 'ACQ:SRAT:ANAL:AUTO')
 	def __isAutoAnalogSampleRateEnabled__(self, getMethodReturn) -> bool:
@@ -172,7 +182,7 @@ class KeysightMSOS804A(Instrument):
 				self.__isAutoAnalogSampleRateEnabled__ = False
 			self.Write('ACQ:SRAT:ANAL', str(value))
 			return self.AnalogSampleRate
-		
+
 	DIGITAL_CHANNELS = 16
 	@property
 	def DigitalChannels(self) -> dict[int, DigitalChannel]:
