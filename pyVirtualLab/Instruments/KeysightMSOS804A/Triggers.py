@@ -1,10 +1,11 @@
 from aenum import enum
+from pyVirtualLab.Instruments.KeysightMSOS804A.KeysightMSOS804A import KeysightMSOS804A
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel
 
 class Trigger:
 	NAME:str = None
 	
-	__parent__ = None
+	__parent__:KeysightMSOS804A = None
 
 class SourcedTrigger(Trigger):
 	ALLOWED_SOURCES:list[type] = []
@@ -118,9 +119,7 @@ class SerialBus3Trigger(SerialBusTrigger):
 	NAME:str = 'SBUS3'
 class SerialBus4Trigger(SerialBusTrigger):
 	NAME:str = 'SBUS4'
-	
-class SequenceTrigger(Trigger):
-	NAME:str = 'SEQ'
+
 class SetupAndHoldTrigger(SourcedTrigger):
 	NAME:str = 'SHOL'
 	ALLOWED_SOURCES:list[type] = [AnalogChannel]
@@ -141,5 +140,127 @@ class WindowTrigger(SourcedTrigger):
 	ALLOWED_SOURCES:list[type] = [AnalogChannel]
 class ViolationTrigger(AdvancedTrigger):
 	NAME:str = 'VIOL'
+
+
+class SequenceResetCondition:
+	NAME:str = None
+	__parent__ = None
+	def __init__(self, parentSequenceTrigger) -> None:
+		self.__parent__ = parentSequenceTrigger
+class ChannelLogicalCondition(enum):
+	High = 'HIGH'
+	Low = 'LOW'
+	Any = 'DONT'
+class ChannelsResetCondition(SequenceResetCondition):
+	NAME:str = 'EVEN'
+
+	@property
+	def ChannelsLogicalConditions(self) -> dict[AnalogChannel, ChannelLogicalCondition]:
+		values = dict()
+		for channel in self.__parent__.__parent.AnalogChannels.values():
+			values[channel] = ChannelLogicalCondition(self.__parent__.__parent__.Query('TRIG:SEQ:RES:EVEN', channel.__commandAddress__))
+		return values
+	@ChannelsLogicalConditions.setter
+	def ChannelsLogicalConditions(self, values:dict[AnalogChannel, ChannelLogicalCondition]) -> dict[AnalogChannel, ChannelLogicalCondition]:
+		forbiddenChannel = list()
+		if self.__parent__.FirstTrigger is SourcedTrigger:
+			forbiddenChannel.append(self.__parent__.FirstTrigger.Source)
+		if self.__parent__.SecondTrigger is SourcedTrigger:
+			forbiddenChannel.append(self.__parent__.SecondTrigger.Source)
+		for channel in values:
+			if channel in forbiddenChannel:
+				raise Exception(f"Channel {channel.__Address__} is already an event source")
+		for channel in values:
+			self.__parent__.__parent__.Write(f"TRIG:SEQ:RES:EVEN {channel.__commandAddress__}", values[channel].value)
+
+class TimeResetCondition(SequenceResetCondition):
+	NAME:str = 'TIME'
+
+	@property
+	def TimeLeft(self) -> float:
+		return float(self.__parent__.__parent__.Query('TRIG:SEQ:RES:TIME'))
+	@TimeLeft.setter
+	def TimeLeft(self, value:float) -> float:
+		value = float(value)
+		self.__parent__.__parent__.Write('TRIG:SEQ:RES:TIME', value)
+		if self.TimeLeft != value:
+			raise Exception("Error while setting max time until reset")
+		return value
+
+class SequenceTrigger(Trigger):
+	NAME:str = 'SEQ'
+	ALLOWED_TRIGGER_TYPES = [EdgeTrigger, GlitchTrigger, PulseWidthTrigger, PatternTrigger, RuntTrigger, SetupAndHoldTrigger, StateTrigger, TimeoutTrigger, TransitionTrigger, WindowTrigger]
+
+	@property
+	def __isDelayEnabled__(self) -> bool:
+		return bool(int(self.__parent__.Query('TRIG:SEQ:WAIT:ENAB')))
+	@__isDelayEnabled__.setter
+	def __isDelayEnabled__(self, value: bool):
+		value = bool(value)
+		self.__parent__.Write('TRIG:SEQ:WAIT:ENAB', str(int(value)))
+		if self.__isDelayEnabled__ != value:
+			raise Exception("Error while en/dis-abling delay between sequence events")
+	@property
+	def MinDelayBetweenEvents(self) -> float:
+		if self.__isDelayEnabled__:
+			return float(self.__parent__.Query('TRIG:SEQ:WAIT:TIME'))
+		else:
+			return 0
+	@MinDelayBetweenEvents.setter
+	def MinDelayBetweenEvents(self, value: float) -> float:
+		value = float(value)
+		if value < 0:
+			value = 0
+		if value == 0:
+			self.__isDelayEnabled__ = False
+		else:
+			self.__isDelayEnabled__ = True
+			self.__parent__.Write('TRIG:SEQ:WAIT:TIME', str(value))
+		if self.MinDelayBetweenEvents != value:
+			raise Exception("Error while setting sequenced triggers delay")
+		return value
+	
+	__resetCondition__: SequenceResetCondition = None	
+	@property
+	def ResetCondition(self) -> SequenceResetCondition:
+		type = TimeResetCondition if self.__parent__.Query('TRIG:SEQ:RES:TYPE') == TimeResetCondition.NAME else ChannelsResetCondition
+		if not self.__resetCondition__ is type:
+			self.__resetCondition__ = type(self)
+		return self.__resetCondition__
+	def ChangeResetCondition(self, resetCondition: type) -> SequenceResetCondition:
+		if self.ResetCondition != resetCondition:
+			if self.ResetCondition is SequenceResetCondition:
+				self.ResetCondition.__parent__ = None
+			self.__resetCondition__ = resetCondition(self)
+			self.__parent__.__parent__.Write('TRIG:SEQ:RES:TYPE', self.NAME)
+		return self.ResetCondition
+
+	# TODO: Deal with limitations
+	__triggers__:tuple[Trigger,Trigger] = dict(zip([1,2], [None, None]))
+	def __changeTrigger__(self, newTriggerType:type, address:float) -> Trigger:
+		if not newTriggerType in self.ALLOWED_TRIGGER_TYPES:
+			raise Exception(f"{newTriggerType.__name__} not allowed in sequence")
+		if not self.__triggers__[address] is newTriggerType:
+			self.__parent__.Write(f"TRIG:SEQ:TERM{address}", newTriggerType.NAME)
+			if self.__triggers__[address] is Trigger:
+				self.__triggers__[address].__parent__ = None
+			self.__triggers__[address] = newTriggerType()
+			self.__triggers__[address].__parent__ = self
+			self.__triggers__[address].NAME = self.__triggers__[address].NAME + str(address)
+		return self.__triggers__[address]
+	def __getTrigger__(self, address:float) -> Trigger:
+		newTriggerType = TRIGGERS_NAMES[self.__parent__.Query(f"TRIG:SEQ:TERM{address}").rstrip(str(address))]
+		return self.__changeTrigger__(newTriggerType, address)
+	
+	@property
+	def FirstTrigger(self) -> Trigger:
+		return self.__getTrigger__(1)
+	def ChangeFirstTrigger(self, triggerType:type) -> Trigger:
+		return self.__changeTrigger__(triggerType, 1)
+	@property
+	def SecondTrigger(self) -> Trigger:
+		return self.__getTrigger__(2)
+	def ChangeSecondTrigger(self, triggerType:type) -> Trigger:
+		return self.__changeTrigger__(triggerType, 2)
 
 TRIGGERS_NAMES = dict([(subclass.NAME, subclass) for subclass in Trigger.__subclasses__()])
