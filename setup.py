@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
 
-with open("README.md", "r", encoding="utf-8") as fh:
+with open("README.md", "r", encoding="utf-16") as fh:
     long_description = fh.read()
 
-with open("requirements.txt", "r", encoding="utf-8") as fh:
+with open("requirements.txt", "r", encoding="utf-16") as fh:
     install_requires = [line.strip() for line in fh.readlines()]
 
 setup(
     name='pyVirtualLab',
-    version='0.0.879',
+    version='0.0.880',
     author='Benjamin SAGGIN',
     description='An abstraction library for laboratory instruments',
     long_description=long_description,
