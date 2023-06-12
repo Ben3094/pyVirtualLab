@@ -2,7 +2,7 @@ from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 from aenum import Enum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel
-import pyVirtualLab.Instruments.KeysightMSOS804A.Triggers as Triggers
+from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger
 import re
 
 class RunState(Enum):
@@ -91,7 +91,7 @@ class KeysightMSOS804A(Instrument):
 
 	__trigger__ = None
 	@property
-	def Trigger(self) -> Triggers.Trigger:
+	def Trigger(self) -> Trigger:
 		reply:str = self.Query('TRIG:MODE')
 		if reply == 'ADV':
 			reply = self.Query('TRIG:ADV:MODE')
@@ -102,8 +102,8 @@ class KeysightMSOS804A(Instrument):
 		self.__trigger__.__parent__ = self
 		return self.__trigger__
 	@Trigger.setter
-	def Trigger(self, value:Triggers.Trigger) -> Triggers.Trigger:
-		if value is Triggers.AdvancedTrigger:
+	def Trigger(self, value:Trigger) -> Trigger:
+		if value is AdvancedTrigger:
 			self.Write('TRIG:ADV:MODE', value.NAME)
 		else:
 			self.Write('TRIG:MODE', value.NAME)
