@@ -2,7 +2,7 @@ from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 from aenum import Enum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel
-from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger
+from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
 
 class RunState(Enum):
@@ -95,10 +95,10 @@ class KeysightMSOS804A(Instrument):
 		reply:str = self.Query('TRIG:MODE')
 		if reply == 'ADV':
 			reply = self.Query('TRIG:ADV:MODE')
-		if self.__trigger__ is not Triggers.TRIGGERS_NAMES[reply]:
+		if self.__trigger__ is not TRIGGERS_NAMES[reply]:
 			if self.__trigger__:
 				self.__trigger__.__parent__ = None # Unlink old trigger object
-			self.__trigger__ = Triggers.TRIGGERS_NAMES[reply]()
+			self.__trigger__ = TRIGGERS_NAMES[reply]()
 		self.__trigger__.__parent__ = self
 		return self.__trigger__
 	@Trigger.setter
