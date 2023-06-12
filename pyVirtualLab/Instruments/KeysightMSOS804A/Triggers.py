@@ -1,11 +1,10 @@
 from aenum import enum
-from pyVirtualLab.Instruments.KeysightMSOS804A.KeysightMSOS804A import KeysightMSOS804A
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel
 
 class Trigger:
 	NAME:str = None
 	
-	__parent__:KeysightMSOS804A = None
+	__parent__ = None
 
 class SourcedTrigger(Trigger):
 	ALLOWED_SOURCES:list[type] = []
