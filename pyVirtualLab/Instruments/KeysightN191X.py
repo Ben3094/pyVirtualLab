@@ -221,12 +221,6 @@ class KeysightN191X(Instrument):
     @SetProperty(float, 'CALC:LIM:LOW')
     def LowerPowerLimit(self, value:float):
         pass
-
-    @property
-    @GetProperty(bool, 'CALC:LIM:FAIL?')
-    def IsPowerLimitsTriggered(self, getMethodReturn) -> bool:
-        return getMethodReturn
-
     @property
     @GetProperty(float, 'CALC:LIM:UPP')
     def UpperPowerLimit(self, getMethodReturn) -> float:
@@ -235,6 +229,10 @@ class KeysightN191X(Instrument):
     @SetProperty(float, 'CALC:LIM:UPP')
     def UpperPowerLimit(self, value:float):
         pass
+    @property
+    @GetProperty(bool, 'CALC:LIM:FAIL')
+    def IsPowerLimitsTriggered(self, getMethodReturn) -> bool:
+        return getMethodReturn
 
     MAX_SENSORS = 4
     @property
