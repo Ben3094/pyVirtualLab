@@ -1,7 +1,6 @@
-from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 from aenum import Enum
 from math import nan
-
 
 class CalibrationFactorsSet:
     def __init__(self, parentKeysightN191X, name: str) -> None:
@@ -213,6 +212,29 @@ class KeysightN191X(Instrument):
         super(KeysightN191X, self).__init__(address)
         self.__sensors__ = dict()
         self.__calibrationFactorsSets__ = dict()
+
+    @property
+    @GetProperty(float, 'CALC:LIM:LOW')
+    def LowerPowerLimit(self, getMethodReturn) -> float:
+        return getMethodReturn
+    @LowerPowerLimit.setter
+    @SetProperty(float, 'CALC:LIM:LOW')
+    def LowerPowerLimit(self, value:float):
+        pass
+
+    @property
+    @GetProperty(bool, 'CALC:LIM:FAIL?')
+    def IsPowerLimitsTriggered(self, getMethodReturn) -> bool:
+        return getMethodReturn
+
+    @property
+    @GetProperty(float, 'CALC:LIM:UPP')
+    def UpperPowerLimit(self, getMethodReturn) -> float:
+        return getMethodReturn
+    @UpperPowerLimit.setter
+    @SetProperty(float, 'CALC:LIM:UPP')
+    def UpperPowerLimit(self, value:float):
+        pass
 
     MAX_SENSORS = 4
     @property
