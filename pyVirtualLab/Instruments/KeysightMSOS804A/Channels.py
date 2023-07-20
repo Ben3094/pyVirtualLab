@@ -89,9 +89,9 @@ class Channel():
 	def GetFallTime(self) -> float:
 		return float(self.__parent__.Query("MEAS:FALL", f"{self.__commandAddress__}"))
 	def GetPositiveWidth(self) -> float:
-		return float(self.__parent__.Query("MEAD:PWID", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:PWID", f"{self.__commandAddress__}"))
 	def GetNegativeWidth(self) -> float:
-		return float(self.__parent__.Query("MEAD:NWID", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:NWID", f"{self.__commandAddress__}"))
 	
 	# AC measurements
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
