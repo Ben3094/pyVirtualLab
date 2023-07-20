@@ -75,19 +75,23 @@ class Channel():
 	
 	# Measurements
 	def GetMaximum(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:VMAX", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:VMAX", f"{self.__commandAddress__}"))
 	def GetMinimum(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:VMIN", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:VMIN", f"{self.__commandAddress__}"))
 	def GetRange(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:VPP", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:VPP", f"{self.__commandAddress__}"))
 	def GetFrequency(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:FREQ", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:FREQ", f"{self.__commandAddress__}"))
 	def GetPeriod(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:PER", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:PER", f"{self.__commandAddress__}"))
 	def GetRiseTime(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:RIS", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:RIS", f"{self.__commandAddress__}"))
 	def GetFallTime(self) -> float:
-		return float(self.__parent__.Query(f"MEAS:FALL", f"{self.__commandAddress__}"))
+		return float(self.__parent__.Query("MEAS:FALL", f"{self.__commandAddress__}"))
+	def GetPositiveWidth(self) -> float:
+		return float(self.__parent__.Query("MEAD:PWID", f"{self.__commandAddress__}"))
+	def GetNegativeWidth(self) -> float:
+		return float(self.__parent__.Query("MEAD:NWID", f"{self.__commandAddress__}"))
 	
 	# AC measurements
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
