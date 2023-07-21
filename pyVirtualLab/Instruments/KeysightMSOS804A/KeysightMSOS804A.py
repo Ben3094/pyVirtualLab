@@ -4,6 +4,7 @@ from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTI
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel
 from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
+from time import time, sleep
 
 class RunState(Enum):
 	Stop = 0
@@ -22,6 +23,11 @@ class KeysightMSOS804A(Instrument):
 		self.__digitalChannels__ = dict()
 		self.__waveformMemoryChannels__ = dict()
 		self.__functions__ = dict()
+
+	def Wait(self, delay:float=0.01, timeout:float=5):
+		startTime:float = time()
+		while (startTime+timeout < time()) | (self.Query('PDER') != '1'):
+			sleep(delay)
 
 	def Clear(self):
 		self.Write('CDIS')

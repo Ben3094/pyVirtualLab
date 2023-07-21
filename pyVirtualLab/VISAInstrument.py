@@ -2,6 +2,7 @@ import pyvisa
 import aenum
 import enum
 import re
+from time import time, sleep
 
 def GetProperty(dataType: type, visaGetCommand: str):
 	__converter__ = None
@@ -259,6 +260,11 @@ class Instrument:
 	def __updateModelAndFirmware__(self):
 		modelAndFirmware = self.Id.removeprefix(self.Vendor).rstrip().rstrip('\n').split(',', 2)
 		return modelAndFirmware[1], modelAndFirmware[2]
+	
+	def Wait(self, delay:float=0.01, timeout:float=5):
+		startTime:float = time()
+		while (startTime+timeout < time()) | (self.Query('OPC') != '1'):
+			sleep(delay)
 
 	def SelfTest(self):
 		if self.IsConnected:
