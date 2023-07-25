@@ -366,5 +366,8 @@ class SubtractFunction(Function):
 		
 class VersusFunction(Function):
 	NAME = 'VERS'
+		
+class UserDefinedFunction(Function):
+	NAME = 'USER_DEF_FN'
 
 FUNCTIONS_NAMES = dict([(subclass.NAME, subclass) for subclass in RECURSIVE_SUBCLASSES(Function)])
