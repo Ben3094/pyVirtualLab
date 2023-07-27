@@ -74,24 +74,28 @@ class Channel():
 		return value
 	
 	# Measurements
+	def GetFrequency(self) -> float:
+		return float(self.__parent__.Query("MEAS:FREQ", f"{self.__commandAddress__}"))
+	def GetPeriod(self) -> float:
+		return float(self.__parent__.Query("MEAS:PER", f"{self.__commandAddress__}"))
+	def GetPositiveWidth(self) -> float:
+		return float(self.__parent__.Query("MEAS:PWID", f"{self.__commandAddress__}"))
+	def GetNegativeWidth(self) -> float:
+		return float(self.__parent__.Query("MEAS:NWID", f"{self.__commandAddress__}"))
+	
+class VerticalMeasurePossibleChannel(Channel):
 	def GetMaximum(self) -> float:
 		return float(self.__parent__.Query("MEAS:VMAX", f"{self.__commandAddress__}"))
 	def GetMinimum(self) -> float:
 		return float(self.__parent__.Query("MEAS:VMIN", f"{self.__commandAddress__}"))
 	def GetRange(self) -> float:
 		return float(self.__parent__.Query("MEAS:VPP", f"{self.__commandAddress__}"))
-	def GetFrequency(self) -> float:
-		return float(self.__parent__.Query("MEAS:FREQ", f"{self.__commandAddress__}"))
-	def GetPeriod(self) -> float:
-		return float(self.__parent__.Query("MEAS:PER", f"{self.__commandAddress__}"))
 	def GetRiseTime(self) -> float:
 		return float(self.__parent__.Query("MEAS:RIS", f"{self.__commandAddress__}"))
 	def GetFallTime(self) -> float:
 		return float(self.__parent__.Query("MEAS:FALL", f"{self.__commandAddress__}"))
-	def GetPositiveWidth(self) -> float:
-		return float(self.__parent__.Query("MEAS:PWID", f"{self.__commandAddress__}"))
-	def GetNegativeWidth(self) -> float:
-		return float(self.__parent__.Query("MEAS:NWID", f"{self.__commandAddress__}"))
+	def GetPeakToPeakAmplitude(self) -> float:
+		return float(self.__parent__.Query("MEAS:VPP", f"{self.__commandAddress__}"))
 	
 	# AC measurements
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
@@ -129,7 +133,7 @@ class Channel():
 			self.__parent__.SendValidMeasurements = False
 		return value
 
-class AnalogChannel(Channel):
+class AnalogChannel(VerticalMeasurePossibleChannel):
 	@property
 	def Label(self) -> str:
 		return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
@@ -177,7 +181,7 @@ class AnalogChannel(Channel):
 class DigitalChannel(Channel):
 	TYPE_COMMAND_HEADER = 'DIG'
 
-class WaveformMemoryChannel(Channel):
+class WaveformMemoryChannel(VerticalMeasurePossibleChannel):
 	TYPE_COMMAND_HEADER = 'WMEM'
 	def Save(self, channel:Channel):
 		self.__parent__.Write(f"{self.__commandAddress__}:SAVE", channel.__commandAddress__)
