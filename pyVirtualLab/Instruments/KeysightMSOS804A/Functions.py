@@ -74,7 +74,7 @@ class AddFunction(Function):
 		if self.SecondOperand.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting second operand channel")
 class EnvelopeFunction(Function):
-	NAME = 'ADEM'
+	NAME = 'ENV'
 	INIT_PARAMS = 'CHAN1'
 	PARAMS_STRING_FORMAT = "(?P<Source>[A-Z]\d+)"
 
