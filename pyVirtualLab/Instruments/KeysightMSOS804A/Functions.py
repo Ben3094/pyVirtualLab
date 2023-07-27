@@ -1,9 +1,9 @@
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel
+from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, VerticalMeasurePossibleChannel
 from pyVirtualLab.VISAInstrument import RECURSIVE_SUBCLASSES
 from aenum import Enum
 import re
 
-class Function(Channel):
+class Function(VerticalMeasurePossibleChannel):
 	TYPE_COMMAND_HEADER = 'FUNC'
 	NAME = str()
 	PARAMS_STRING_FORMAT = str()
