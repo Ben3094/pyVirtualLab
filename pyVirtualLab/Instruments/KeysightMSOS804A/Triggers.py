@@ -1,4 +1,4 @@
-from aenum import enum
+from aenum import Enum
 from pyVirtualLab.VISAInstrument import RECURSIVE_SUBCLASSES
 import pyVirtualLab.Instruments.KeysightMSOS804A.Channels as Channels
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
@@ -64,12 +64,12 @@ class CommunicationSerialPatternTrigger(SourcedTrigger):
 class DelayTrigger(Trigger):
 	NAME:str = 'DEL'
 
-class EdgeCoupling(enum):
+class EdgeCoupling(Enum):
 	AC = 'AC'
 	DC = 'DC'
 	LowFrequencyReject = 'LFR'
 	HighFrequencyReject = 'HFR'
-class EdgeSlope(enum):
+class EdgeSlope(Enum):
 	Positive = 'POS'
 	Negative = 'NEG'
 	Either = 'EITH'
@@ -148,7 +148,7 @@ class SequenceResetCondition:
 	__parent__ = None
 	def __init__(self, parentSequenceTrigger) -> None:
 		self.__parent__ = parentSequenceTrigger
-class ChannelLogicalCondition(enum):
+class ChannelLogicalCondition(Enum):
 	High = 'HIGH'
 	Low = 'LOW'
 	Any = 'DONT'
