@@ -1,11 +1,11 @@
 from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 from aenum import Enum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource
+from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource
 from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
 from time import time, sleep
-
+	
 class RunState(Enum):
 	Stop = 0
 	Single = 1
@@ -23,6 +23,8 @@ class KeysightMSOS804A(Instrument):
 		self.__digitalChannels__ = dict()
 		self.__waveformMemoryChannels__ = dict()
 		self.__functions__ = dict()
+		self.AuxSource:AuxSource = AuxSource()
+		self.LineSource:LineSource = LineSource()
 
 	def Wait(self, delay:float=0.01, timeout:float=5):
 		startTime:float = time()
@@ -255,7 +257,7 @@ class KeysightMSOS804A(Instrument):
 				return self.WaveformMemoryChannels[int(match.groups(0)[1])]
 			
 			case AuxSource.TYPE_COMMAND_HEADER:
-				return AuxSource()
+				return self.AuxSource
 			
 			case LineSource.TYPE_COMMAND_HEADER:
-				return LineSource()
+				return self.LineSource
