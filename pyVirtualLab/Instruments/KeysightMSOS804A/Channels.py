@@ -1,10 +1,6 @@
 from aenum import Enum
 
-class Source():
-	TYPE_COMMAND_HEADER = None
-	
-	__commandAddress__:str = None
-
+class Source():	
 	def __init__(self):
 		self.__commandAddress__ = self.TYPE_COMMAND_HEADER
 class AuxSource(Source):
