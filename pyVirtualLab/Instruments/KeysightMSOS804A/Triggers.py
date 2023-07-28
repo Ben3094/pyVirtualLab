@@ -1,4 +1,5 @@
 from aenum import enum
+from pyVirtualLab.VISAInstrument import RECURSIVE_SUBCLASSES
 import pyVirtualLab.Instruments.KeysightMSOS804A.Channels as Channels
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
 
@@ -263,4 +264,4 @@ class SequenceTrigger(Trigger):
 	def ChangeSecondTrigger(self, triggerType:type) -> Trigger:
 		return self.__changeTrigger__(triggerType, 2)
 
-TRIGGERS_NAMES = dict([(subclass.NAME, subclass) for subclass in Trigger.__subclasses__()])
+TRIGGERS_NAMES = dict([(subclass.NAME, subclass) for subclass in RECURSIVE_SUBCLASSES(Trigger)])

@@ -150,7 +150,7 @@ class AgilentN5183B(Source):
 		return float(self.Query('SOUR:PULM:INT:DEL'))
 	@PulseDelay.setter
 	def PulseDelay(self, value: float):
-		if self.SetPulseType in AgilentN5183B.AVOID_DELAY_SET_PULSE_TYPES:
+		if self.PulseTypeSet in AgilentN5183B.AVOID_DELAY_SET_PULSE_TYPES:
 			raise Exception("Pulse delay not available with this pulse type")
 		value = float(value)
 		self.Write('SOUR:PULM:INT:DEL', str(value))
@@ -184,13 +184,13 @@ class AgilentN5183B(Source):
 	EXTERNAL_PULSE_SOURCE = str(PulseType.External.value)
 	INTERNAL_PULSE_SOURCE = 'INT'
 	@property
-	def SetPulseType(self) -> PulseType:
+	def PulseTypeSet(self) -> PulseType:
 		if self.Query('SOUR:PULM:SOUR') == AgilentN5183B.EXTERNAL_PULSE_SOURCE:
 			return PulseType.External
 		else:
 			return PulseType(self.Query('SOUR:PULM:SOUR:INT'))
-	@SetPulseType.setter
-	def SetPulseType(self, value: PulseType):
+	@PulseTypeSet.setter
+	def PulseTypeSet(self, value: PulseType):
 		e = None
 		savedIsPulseEnabled = self.IsPulseEnabled
 		try:
@@ -202,7 +202,7 @@ class AgilentN5183B(Source):
 			else:
 				self.Write('SOUR:PULM:SOUR', AgilentN5183B.INTERNAL_PULSE_SOURCE)
 				self.Write('SOUR:PULM:SOUR:INT', str(value.value))
-			if self.SetPulseType != value:
+			if self.PulseTypeSet != value:
 				raise Exception("Error while setting pulse type")
 		except Exception as e: e = e
 		finally:
