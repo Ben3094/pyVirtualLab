@@ -410,15 +410,15 @@ class AgilentN5183B(Source):
 		OutSignal.Trigger1In
 	]
 	@property
-	def Tigger1OutSignal(self) -> OutSignal:
+	def Trigger1OutSignal(self) -> OutSignal:
 		return OutSignal(self.Query('ROUT:CONN:TRIGger1:OUTP'))
-	@Tigger1OutSignal.setter
-	def Tigger1OutSignal(self, value: OutSignal):
+	@Trigger1OutSignal.setter
+	def Trigger1OutSignal(self, value: OutSignal):
 		value = OutSignal(value)
 		if value in AgilentN5183B.BANNED_TRIGGER1_OUT_SIGNAL:
 			raise Exception('This type of signal is not allowed for this connector')
 		self.Write('ROUT:CONN:TRIGger1:OUTP', str(value.value))
-		if self.Tigger1OutSignal != value:
+		if self.Trigger1OutSignal != value:
 			raise Exception("Error while setting this connector out signal")
 
 	BANNED_TRIGGER2_OUT_SIGNAL = [
@@ -427,15 +427,15 @@ class AgilentN5183B(Source):
 		OutSignal.Trigger2In
 	]
 	@property
-	def Tigger2OutSignal(self) -> OutSignal:
+	def Trigger2OutSignal(self) -> OutSignal:
 		return OutSignal(self.Query('ROUT:CONN:TRIGger2:OUTP'))
-	@Tigger2OutSignal.setter
-	def Tigger2OutSignal(self, value: OutSignal):
+	@Trigger2OutSignal.setter
+	def Trigger2OutSignal(self, value: OutSignal):
 		value = OutSignal(value)
 		if value in AgilentN5183B.BANNED_TRIGGER2_OUT_SIGNAL:
 			raise Exception('This type of signal is not allowed for this connector')
 		self.Write('ROUT:CONN:TRIGger2:OUTP', str(value.value))
-		if self.Tigger2OutSignal != value:
+		if self.Trigger2OutSignal != value:
 			raise Exception("Error while setting this connector out signal")
 
 '''If the LF out port is connected to sweep out port to get a unique out trig port,
