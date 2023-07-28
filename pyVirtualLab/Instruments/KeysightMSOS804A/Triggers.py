@@ -18,7 +18,7 @@ class SourcedTrigger(Trigger):
 	def Source(self, value: Channels.Source) -> Channels.Source:
 		if not type(value) in self.ALLOWED_SOURCES:
 			raise Exception("Source type is not allowed")
-		self.Write(f"TRIG:{self.NAME}:SOUR", value.__commandAddress__)
+		self.__parent__.Write(f"TRIG:{self.NAME}:SOUR", value.__commandAddress__)
 		if self.Source != value:
 			raise Exception("Error while setting source")
 		return value
