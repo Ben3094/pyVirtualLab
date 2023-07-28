@@ -1,4 +1,5 @@
 from aenum import enum
+import pyVirtualLab.Instruments.KeysightMSOS804A.Channels as Channels
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
 
 class Trigger:

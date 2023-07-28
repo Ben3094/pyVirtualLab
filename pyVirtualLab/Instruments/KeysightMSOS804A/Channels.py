@@ -91,6 +91,10 @@ class Channel(Source):
 		return float(self.__parent__.Query("MEAS:PWID", f"{self.__commandAddress__}"))
 	def GetNegativeWidth(self) -> float:
 		return float(self.__parent__.Query("MEAS:NWID", f"{self.__commandAddress__}"))
+	RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'RIS'
+	FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'FALL'
+	def GetDutyCycle(self, onDownState:bool=False) -> float:
+		return float(self.__parent__.Query("MEAS:DUTY", f"{self.__commandAddress__},{Channel.FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT if onDownState else Channel.RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT}"))
 	
 class VerticalMeasurePossibleChannel(Channel):
 	def GetMaximum(self) -> float:
