@@ -1,6 +1,10 @@
 from aenum import Enum
 
-class Source():	
+class Source():
+	TYPE_COMMAND_HEADER = None
+	
+	__commandAddress__:str = None
+
 	def __init__(self):
 		self.__commandAddress__ = self.TYPE_COMMAND_HEADER
 class AuxSource(Source):
@@ -19,6 +23,7 @@ class Channel(Source):
 	__address__:str = None
 
 	def __init__(self, parentKeysightMSOS804A, address):
+		super().__init__()
 		self.__parent__ = parentKeysightMSOS804A
 		self.__address__ = address
 		self.__commandAddress__ = f"{self.__commandAddress__}{self.__address__}"
