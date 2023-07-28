@@ -1,22 +1,31 @@
 from aenum import Enum
 
+class Source():
+	TYPE_COMMAND_HEADER = None
+	
+	__commandAddress__:str = None
+
+	def __init__(self):
+		self.__commandAddress__ = self.TYPE_COMMAND_HEADER
+class AuxSource(Source):
+	TYPE_COMMAND_HEADER = 'AUX'
+class LineSource(Source):
+	TYPE_COMMAND_HEADER = 'LINE'
 class ChannelUnit(Enum):
 	Volt = 0
 	Ampere = 1
 	Watt = 2
 	Unknown = 3
-
-class Channel():
+class Channel(Source):
 	TYPE_COMMAND_HEADER = 'CHAN'
 	
 	__parent__ = None
 	__address__:str = None
-	__commandAddress__:str = None
 
 	def __init__(self, parentKeysightMSOS804A, address):
 		self.__parent__ = parentKeysightMSOS804A
 		self.__address__ = address
-		self.__commandAddress__ = f"{self.TYPE_COMMAND_HEADER}{self.__address__}"
+		self.__commandAddress__ = f"{self.__commandAddress__}{self.__address__}"
 
 	@property
 	def Address(self) -> float:

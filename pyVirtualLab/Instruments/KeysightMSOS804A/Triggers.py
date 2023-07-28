@@ -1,5 +1,6 @@
 from aenum import enum
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, AnalogChannel, DigitalChannel
+import pyVirtualLab.Instruments.KeysightMSOS804A.Channels as Channels
+from Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
 
 class Trigger:
 	NAME:str = None
@@ -10,12 +11,12 @@ class SourcedTrigger(Trigger):
 	ALLOWED_SOURCES:list[type] = []
 	
 	@property
-	def Source(self) -> Channel:
+	def Source(self) -> Channels.Source:
 		return self.__parent__.StringToChannel(self.__parent__.Query(f"TRIG:{self.NAME}:SOUR"))
 	@Source.setter
-	def Source(self, value: Channel) -> Channel:
+	def Source(self, value: Channels.Source) -> Channels.Source:
 		if not type(value) in self.ALLOWED_SOURCES:
-			raise Exception("Channel type is not allowed")
+			raise Exception("Source type is not allowed")
 		self.Write(f"TRIG:{self.NAME}:SOUR", value.__commandAddress__)
 		if self.Source != value:
 			raise Exception("Error while setting source")
@@ -73,7 +74,7 @@ class EdgeSlope(enum):
 	Either = 'EITH'
 class EdgeTrigger(SourcedTrigger):
 	NAME:str = 'EDGE'
-	ALLOWED_SOURCES:list[type] = [AnalogChannel, DigitalChannel] # TODO: add Aux and Line
+	ALLOWED_SOURCES:list[type] = [AnalogChannel, DigitalChannel, AuxSource, LineSource]
 
 	@property
 	def Coupling(self) -> EdgeCoupling:
