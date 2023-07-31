@@ -1,5 +1,61 @@
 from aenum import Enum
 
+class ResultState(Enum):
+	Correct = 0
+	Questionable = 1
+	Less = 2
+	Greater = 3
+	Invalid = 4
+	EdgeNotFound = 5
+	MaxNotFound = 6
+	MinNotFound = 7
+	TimeNotFound = 8
+	VoltageNotFound = 9
+	TopEqualsBase = 10
+	TooSmall = 11
+	LowerNotFoung = 12
+	UpperNotFound = 13
+	UpperCloseToLower = 14
+	TopNotFound = 15
+	BaseNotFound = 16
+	CompletionCriteriaNotReached = 17
+	Impossible = 18
+	WaveformNotDisplayed = 19
+	HighWaveformClipped = 20
+	LowWaveformClipped = 21
+	HighAndLowClippedWaveform = 22
+	DataContainsHoles = 23
+	DataNotFound = 24
+	FFTPeakNotFound = 29
+	EyePatternNotFound = 30
+	NRZEyeNotFound = 31
+	ExtinctionRatioInvalid = 32
+	MoreThanOneSource = 33
+	SignalTooSmall = 35
+	AverageWaitToComplete = 36
+	WaitingForClock = 38
+	NeedJitterMode = 39
+	MeasurementNotOnScreen = 40
+	ClockRecoveryImpossible = 41
+	PLLLoopBandwidthTooHigh = 42
+	RJDJNotFound = 43
+	ClockRecoveryProhibited = 45
+	JitterPreventRJDJSeparation = 46
+	SampleRatesDifferent = 52
+	SignalsDoNotCross = 53
+	SignalTooPeriodic = 54
+	OutOfComputingMemory = 55
+	LowerThresholdNotFound = 56
+	UpperThresholdNotFound = 57
+	TooMuchNoise = 59
+	NotSuitedMeasurement = 60
+	NoOpenEyeFound = 61
+	NotSuitedConfiguration = 62
+	NotSuitedResponsivity = 63
+	CrossCorrelationTimeTooBig = 64
+	InvalidEdgePolarity = 65
+	CarrierFrequencyNotFound = 66
+
 class Source():
 	TYPE_COMMAND_HEADER = None
 	
@@ -84,18 +140,24 @@ class Channel(Source):
 		return value
 	
 	# Measurements
+	def __queryMeasurement__(self, args) -> (float, ResultState):
+		currentSendValidMeasurements = self.__parent__.SendValidMeasurements
+		self.__parent__.SendValidMeasurements = True
+		values = self.__parent__.Query(args).split(',')
+		self.__parent__.SendValidMeasurements = currentSendValidMeasurements
+		return float(values[0]), ResultState(values[1])
 	def GetFrequency(self) -> float:
-		return float(self.__parent__.Query("MEAS:FREQ", f"{self.__commandAddress__}"))
+		return self.__queryMeasurement__("MEAS:FREQ", f"{self.__commandAddress__}")[0]
 	def GetPeriod(self) -> float:
-		return float(self.__parent__.Query("MEAS:PER", f"{self.__commandAddress__}"))
+		return self.__queryMeasurement__("MEAS:PER", f"{self.__commandAddress__}")[0]
 	def GetPositiveWidth(self) -> float:
-		return float(self.__parent__.Query("MEAS:PWID", f"{self.__commandAddress__}"))
+		return self.__queryMeasurement__("MEAS:PWID", f"{self.__commandAddress__}")[0]
 	def GetNegativeWidth(self) -> float:
-		return float(self.__parent__.Query("MEAS:NWID", f"{self.__commandAddress__}"))
+		return self.__queryMeasurement__("MEAS:NWID", f"{self.__commandAddress__}")[0]
 	RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'RIS'
 	FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'FALL'
 	def GetDutyCycle(self, onDownState:bool=False) -> float:
-		return float(self.__parent__.Query("MEAS:DUTY", f"{self.__commandAddress__},{Channel.FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT if onDownState else Channel.RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT}"))
+		return self.__queryMeasurement__("MEAS:DUTY", f"{self.__commandAddress__},{Channel.FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT if onDownState else Channel.RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT}")[0]
 	
 class VerticalMeasurePossibleChannel(Channel):
 	def GetMaximum(self) -> float:

@@ -28,7 +28,8 @@ class KeysightMSOS804A(Instrument):
 
 	def Wait(self, delay:float=0.01, timeout:float=5):
 		startTime:float = time()
-		while (startTime+timeout < time()) | (self.Query('PDER') != '1'):
+		stopTime = startTime+timeout
+		while (time() < stopTime) & (self.Query('PDER') != '1'):
 			sleep(delay)
 
 	def Clear(self):

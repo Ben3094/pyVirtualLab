@@ -263,7 +263,8 @@ class Instrument:
 	
 	def Wait(self, delay:float=0.01, timeout:float=5):
 		startTime:float = time()
-		while (startTime+timeout < time()) | (self.Query('OPC') != '1'):
+		stopTime = startTime+timeout
+		while (time() < stopTime) & (self.Query('*OPC') != '1'):
 			sleep(delay)
 
 	def SelfTest(self):
