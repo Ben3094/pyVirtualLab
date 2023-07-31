@@ -145,7 +145,7 @@ class Channel(Source):
 		self.__parent__.SendValidMeasurements = True
 		values = self.__parent__.Query(command, args).split(',')
 		self.__parent__.SendValidMeasurements = currentSendValidMeasurements
-		return float(values[0]), ResultState(values[1])
+		return float(values[0]), ResultState(int(values[1]))
 	def GetFrequency(self) -> float:
 		return self.__queryMeasurement__("MEAS:FREQ", f"{self.__commandAddress__}")[0]
 	def GetPeriod(self) -> float:
