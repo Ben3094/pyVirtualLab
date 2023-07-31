@@ -140,10 +140,10 @@ class Channel(Source):
 		return value
 	
 	# Measurements
-	def __queryMeasurement__(self, args) -> (float, ResultState):
+	def __queryMeasurement__(self, command, args) -> (float, ResultState):
 		currentSendValidMeasurements = self.__parent__.SendValidMeasurements
 		self.__parent__.SendValidMeasurements = True
-		values = self.__parent__.Query(args).split(',')
+		values = self.__parent__.Query(command, args).split(',')
 		self.__parent__.SendValidMeasurements = currentSendValidMeasurements
 		return float(values[0]), ResultState(values[1])
 	def GetFrequency(self) -> float:
