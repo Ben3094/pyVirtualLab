@@ -209,7 +209,24 @@ class VerticalMeasurePossibleChannel(Channel):
 			self.__parent__.SendValidMeasurements = False
 		return value
 
+class AnalogChannelConfiguration(Enum):
+	OneMegaOhmImpedance = 'DC'
+	FiftyOhmImpedance = 'DC50'
+	AC = 'AC'
+	LowFrequencyReject1 = 'LFR1'
+	LowFrequencyReject2 = 'LFR2'
 class AnalogChannel(VerticalMeasurePossibleChannel):
+	@property
+	def Configuration(self) -> AnalogChannelConfiguration:
+		return AnalogChannelConfiguration(self.__parent__.Query(f"{self.__commandAddress__}:INP?"))
+	@Configuration.setter
+	def Configuration(self, value:AnalogChannelConfiguration) -> AnalogChannelConfiguration:
+		value = AnalogChannelConfiguration(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:INP {value.value}")
+		if self.Configuration != value:
+			raise Exception(f"Error while setting channel {self.Address} configuration")
+		return value
+
 	@property
 	def Label(self) -> str:
 		return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
