@@ -218,7 +218,7 @@ class AnalogChannelConfiguration(Enum):
 class AnalogChannel(VerticalMeasurePossibleChannel):
 	@property
 	def Configuration(self) -> AnalogChannelConfiguration:
-		return AnalogChannelConfiguration(self.__parent__.Query(f"{self.__commandAddress__}:INP?"))
+		return AnalogChannelConfiguration(self.__parent__.Query(f"{self.__commandAddress__}:INP"))
 	@Configuration.setter
 	def Configuration(self, value:AnalogChannelConfiguration) -> AnalogChannelConfiguration:
 		value = AnalogChannelConfiguration(value)
@@ -229,7 +229,7 @@ class AnalogChannel(VerticalMeasurePossibleChannel):
 
 	@property
 	def Label(self) -> str:
-		return self.__parent__.Query(f"{self.__commandAddress__}:LAB?")
+		return self.__parent__.Query(f"{self.__commandAddress__}:LAB")
 	@Label.setter
 	def Label(self, value: str) -> str:
 		value = str(value)
