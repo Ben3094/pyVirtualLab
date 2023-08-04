@@ -64,6 +64,18 @@ class CommunicationSerialPatternTrigger(SourcedTrigger):
 class DelayTrigger(Trigger):
 	NAME:str = 'DEL'
 
+class LeveledSourceTrigger(SourcedTrigger):
+	@property
+	def Level(self) -> float:
+		return float(self.__parent__.Query('TRIG:LEV', f"{self.Source.__commandAddress__}"))
+	@Level.setter
+	def Level(self, value:float) -> float:
+		value = float(value)
+		self.__parent__.Write('TRIG:LEV', f"{self.Source.__commandAddress__}, {value}")
+		if self.Level != value:
+			raise Exception("Error while setting the trigger level")
+		return value
+	
 class EdgeCoupling(Enum):
 	AC = 'AC'
 	DC = 'DC'
@@ -73,7 +85,7 @@ class EdgeSlope(Enum):
 	Positive = 'POS'
 	Negative = 'NEG'
 	Either = 'EITH'
-class EdgeTrigger(SourcedTrigger):
+class EdgeTrigger(LeveledSourceTrigger):
 	NAME:str = 'EDGE'
 	ALLOWED_SOURCES:list[type] = [AnalogChannel, DigitalChannel, AuxSource, LineSource]
 
@@ -98,7 +110,7 @@ class EdgeTrigger(SourcedTrigger):
 		if self.Slope != value:
 			raise Exception("Error while setting edge slope")
 		return value
-class GlitchTrigger(SourcedTrigger):
+class GlitchTrigger(LeveledSourceTrigger):
 	NAME:str = 'GLIT'
 	ALLOWED_SOURCES:list[type] = [AnalogChannel, DigitalChannel]
 class PatternTrigger(Trigger):
