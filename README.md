@@ -2,7 +2,21 @@
 
 **An abstraction library to laboratory instruments**
 
-This library is used as Python drivers to turn various physical instruments into Python objects. It uses pyvisa as base but it is more object-oriented.
+This library is used as Python drivers to turn various physical instruments into Python objects. It uses pyVISA as a base but it is more object-oriented. To not rely on platform-specific implementation of VISA, this library uses pyVISA pure Python back-end.
+
+> **Use pure Python back-end**
+>
+> 1. Install "pyVISA" and "pyVISA-py" package on your environment
+> ```sh
+> # In terminal
+> pip install -U pyvisa
+> pip install -U pyvisa-py
+> ```
+> 2. In your Python code, use the following command to get a universal VISA resource manager.
+> ```python
+> resourceManager = pyvisa.ResourceManager('@py')
+> ```
+> 3. You good to go !
 
 ## Instrument object
 
