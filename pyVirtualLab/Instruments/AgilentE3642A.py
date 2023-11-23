@@ -7,7 +7,7 @@ class AgilentE3642A(Source):
     def __init__(self, address: str):
         super(AgilentE3642A, self).__init__(address, self.DEFAULT_TIMEOUT)
 
-    def _abort(self):
+    def __abort__(self):
         self.IsEnabled = False
 
     LOW_VOLTAGE_RANGE_HIGH_LIMIT = 8

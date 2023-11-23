@@ -158,7 +158,6 @@ class VendorAbbreviation(aenum.Enum):
 	YK = "Yokogawa Electric Corporation"
 	ZT = "ZTEC"
 
-# See IVI fundation SCPI Volume 1: Syntax and Style
 class Instrument:
 	DEFAULT_VISA_TIMEOUT = 2000
 
@@ -173,6 +172,7 @@ class Instrument:
 		self.__isConnected__ = False
 		self.__visaTimeout__ = visaTimeout
 
+	# See "VPP-4.3: The VISA Library" at 4.3.1.1 section
 	@property
 	def Address(self) -> str:
 		return self.__address__
@@ -218,6 +218,7 @@ class Instrument:
 		self.__isConnected__ = False
 		return self.__isConnected__
 			
+	# See IVI fundation SCPI Volume 1: Syntax and Style
 	def Write(self, command: str, args:str=''):
 		if self.IsConnected:
 			return self.__instr__.write(command + ((' ' + args) if args != '' else ''))
@@ -281,12 +282,12 @@ class Instrument:
 			raise Exception("The instrument is not connected")
 
 class Source(Instrument):
-	def _abort(self):
+	def __abort__(self):
 		self.Reset()
 
 	def __init__(self, address, visaTimeout=Instrument.DEFAULT_VISA_TIMEOUT):
 		Instrument.__init__(self, address, visaTimeout)
-		self.Abort = self._abort
+		self.Abort = self.__abort__
 
 def RECURSIVE_SUBCLASSES(type:type) -> list[type]:
 	currentLevelSubclasses = type.__subclasses__()

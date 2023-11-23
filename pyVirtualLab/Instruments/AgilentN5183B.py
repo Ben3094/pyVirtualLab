@@ -42,7 +42,7 @@ class AgilentN5183B(Source):
 	def __init__(self, address: str):
 		super(AgilentN5183B, self).__init__(address, 20000)
 
-	def _abort(self):
+	def __abort__(self):
 		self.IsEnabled = False
 
 	DEFAULT_POWER_FORMAT = "{:2.2f}"
