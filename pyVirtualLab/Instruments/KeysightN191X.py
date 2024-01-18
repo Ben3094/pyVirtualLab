@@ -237,8 +237,6 @@ class KeysightN191X(Instrument):
     MAX_SENSORS = 4
     @property
     def Sensors(self) -> dict[int, KeysightN191XSensor]:
-        savedTimeout = self.VISATimeout
-        self.VISATimeout = KeysightN191X.SENSORS_DISCOVERY_TIMEOUT
         for address in range(1, KeysightN191X.MAX_SENSORS+1):
             try:
                 type = self.Query(f"SERV:SENS{address}:TYPE")
@@ -250,7 +248,6 @@ class KeysightN191X(Instrument):
             except Exception:
                 if address in self.__sensors__:
                     del self.__sensors__[address]
-        self.VISATimeout = savedTimeout
         return self.__sensors__
 
     MAX_CALIBRATION_FACTORS_SETS = 20
