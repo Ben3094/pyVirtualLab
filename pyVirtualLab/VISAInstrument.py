@@ -2,7 +2,10 @@ import pyvisa
 import aenum
 import enum
 import re
+from pyvisa import ResourceManager
+from pyvisa.resources import Resource
 from time import time, sleep
+from abc import abstractmethod
 
 def GetProperty(dataType: type, visaGetCommand: str):
 	__converter__ = None
@@ -55,6 +58,29 @@ def SetProperty(dataType: type, visaSetCommand: str):
 			return func(*args, **kwargs)
 		return wrapper
 	return decorator
+
+class VirtualResource:
+	def __init__(self):
+		pass
+
+	@abstractmethod
+	def write(self, value:str) -> None:
+		pass
+	@abstractmethod
+	def read(self) -> str:
+		pass
+	@abstractmethod
+	def query(self, value:str) -> str:
+		pass
+
+	@property
+	@abstractmethod
+	def timeout(self) -> float:
+		pass
+	@timeout.setter
+	@abstractmethod
+	def timeout(self, value:float):
+		pass
 
 # See IVI foundation VXI plug&play System Alliance VPP-9: Instrument Vendor Abbreviations
 class VendorAbbreviation(aenum.Enum):
@@ -158,6 +184,26 @@ class VendorAbbreviation(aenum.Enum):
 	YK = "Yokogawa Electric Corporation"
 	ZT = "ZTEC"
 
+ADDRESS_GRAMMAR_SEPARATOR:str = "::"
+
+class InterfaceType(aenum.Enum):
+	VXI = 'VXI'
+	GPIB_VXI = 'GPIB-VXI'
+	GPIB = 'GPIB'
+	Serial = 'ASRL' # Means "Asynchronous SeRiaL"
+	Ethernet = 'TCPIP'
+	USB = 'USB'
+	PXI = 'PXI'
+
+class RessourceType(aenum.Enum):
+	Instrument = 'INSTR'
+	MemoryAccess = 'MEMACC'
+	GPIBBus = 'INTFC'
+	Backplane = 'BACKPLANE' # Hosts one or several VXI or PXI instruments
+	Servant = 'SERVANT'
+
+DEFAULT_RESOURCE_MANAGER = pyvisa.ResourceManager('@py')
+
 class Instrument:
 	DEFAULT_VISA_TIMEOUT = 2000
 
@@ -165,12 +211,25 @@ class Instrument:
 	Vendor:str = None
 	Model:str = None
 	Firmware:str = None
+	InterfaceType = None
 
 	def __init__(self, address: str, visaTimeout:int=DEFAULT_VISA_TIMEOUT):
-		self.__rm__ = pyvisa.ResourceManager('@py')
 		self.__address__ = address
 		self.__isConnected__ = False
 		self.__visaTimeout__ = visaTimeout
+		self.__resource__:Resource|VirtualResource = None
+
+	@property
+	def Resource(self):
+		return self.__resource__
+	@Resource.setter
+	def Resource(self, value):
+		isConnected = self.IsConnected
+		if isConnected:
+			self.Disconnect()
+		self.__resource__ = value
+		if isConnected:
+			self.Connect()
 
 	# See "VPP-4.3: The VISA Library" at 4.3.1.1 section
 	@property
@@ -184,12 +243,16 @@ class Instrument:
 				self.Disconnect()
 				self.Connect()
 		return self.__address__
+	
+	@property
+	def ConnectionType(self) -> InterfaceType:
+		return 
 
 	@property
-	def VISATimeout(self) -> int:
+	def timeout(self) -> int:
 		return self.__visaTimeout__
-	@VISATimeout.setter
-	def VISATimeout(self, value: int):
+	@timeout.setter
+	def timeout(self, value: int):
 		if value != self.__visaTimeout__:
 			self.__visaTimeout__ = int(value)
 			if self.IsConnected:
@@ -203,47 +266,53 @@ class Instrument:
 	def Connect(self) -> bool:
 		self.__isConnected__ = True
 		try:
-			self.__instr__ = self.__rm__.open_resource(self.Address)
-			self.__instr__.timeout = self.VISATimeout
+			if self.__resource__ is VirtualResource:
+				self.__resource__ = self.__resource__
+			else:
+				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address)
+			self.__resource__.timeout = self.timeout
 			self.Id = self.__updateId__()
 			self.Vendor = self.__updateVendor__()
 			self.Model, self.Firmware = self.__updateModelAndFirmware__()
+			self.InterfaceType = self.__updateInterfaceType__() 
 		except Exception as e:
 			self.__isConnected__ = False
 			raise e
 		return self.__isConnected__
 
 	def Disconnect(self) -> bool:
-		self.__instr__.close()
+		self.__resource__.close()
 		self.__isConnected__ = False
 		return self.__isConnected__
+	def close(self) -> None:
+		self.Disconnect()
 			
 	# See IVI fundation SCPI Volume 1: Syntax and Style
-	def Write(self, command: str, args:str=''):
+	def write(self, command: str, args:str=''):
 		if self.IsConnected:
-			return self.__instr__.write(command + ((' ' + args) if args != '' else ''))
+			return self.__resource__.write(command + ((' ' + args) if args != '' else ''))
 		else:
 			raise Exception("The instrument is not connected")
 
-	def Query(self, command: str, args:str=''):
+	def query(self, command: str, args:str=''):
 		if self.IsConnected:
-			return str(self.__instr__.query(command + '?' + ((' ' + args) if args != '' else ''))).strip('\n').strip('\r').strip('"').lstrip(':').removeprefix(command).strip()
+			return str(self.__resource__.query(command + '?' + ((' ' + args) if args != '' else ''))).strip('\n').strip('\r').strip('"').lstrip(':').removeprefix(command).strip()
 		else:
 			raise Exception("The instrument is not connected")
 
-	def Read(self) -> str:
+	def read(self) -> str:
 		if self.IsConnected:
-			return str(self.__instr__.read()).strip('\n')
+			return str(self.__resource__.read()).strip('\n')
 		else:
 			raise Exception("The instrument is not connected")
 
 	def __updateId__(self) -> str:
 		if self.IsConnected:
-			return self.__instr__.query('*IDN?')
+			return self.__resource__.query('*IDN?')
 		else:
 			raise Exception("The instrument is not connected")
 	
-	def __updateVendor__(self, check=False) -> str:
+	def __updateVendor__(self, check=False) -> VendorAbbreviation or str:
 		rematch:re.Match = None
 		for vendorAbbreviation in VendorAbbreviation:
 			for value in vendorAbbreviation.values:
@@ -257,6 +326,21 @@ class Instrument:
 			if check:
 				raise Exception("Unknown manufacturer")
 			return self.Id.split(',')[0]
+	
+	def __updateInterfaceType__(self, check=False) -> InterfaceType or str:
+		rematch:re.Match = None
+		for interfaceType in InterfaceType:
+			for value in interfaceType.values:
+				rematch = re.match(value, self.Id)
+				if rematch:
+					if rematch.pos == 0:
+						break
+		if rematch:
+			return rematch.match
+		else:
+			if check:
+				raise Exception("Unknown instrument type")
+			return self.Id.split(',')[0]
 		
 	def __updateModelAndFirmware__(self):
 		modelAndFirmware = self.Id.removeprefix(self.Vendor).rstrip().rstrip('\n').split(',', 2)
@@ -265,19 +349,19 @@ class Instrument:
 	def Wait(self, delay:float=0.01, timeout:float=5):
 		startTime:float = time()
 		stopTime = startTime+timeout
-		while (time() < stopTime) & (self.Query('*OPC') != '1'):
+		while (time() < stopTime) & (self.query('*OPC') != '1'):
 			sleep(delay)
 
 	def SelfTest(self):
 		if self.IsConnected:
-			if not bool(int(self.__instr__.query('*TST?'))):
+			if not bool(int(self.__resource__.query('*TST?'))):
 				raise Exception('Error in the self test')
 		else:
 			raise Exception("The instrument is not connected")
 	
 	def Reset(self):
 		if self.IsConnected:
-			self.__instr__.write('*RST')
+			self.__resource__.write('*RST')
 		else:
 			raise Exception("The instrument is not connected")
 

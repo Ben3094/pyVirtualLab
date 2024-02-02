@@ -227,12 +227,12 @@ class KeysightN6705C(Source):
         if self.__outputs__ == None:
             self.__outputs__ = dict()
             address = 0
-            connectedOutputs = int(self.Query('SYST:CHAN:COUN'))
+            connectedOutputs = int(self.query('SYST:CHAN:COUN'))
             while address <= KeysightN6705C.MAX_OUTPUTS and len(self.Outputs) < connectedOutputs:
                 address += 1
                 output = None
                 try:
-                    output = globals()[str(self.Query('SYST:CHAN:MOD', f"(@{address})")).replace('\n','')]
+                    output = globals()[str(self.query('SYST:CHAN:MOD', f"(@{address})")).replace('\n','')]
                 except: pass
                 if output == None:
                     output = Output
@@ -266,11 +266,11 @@ class KeysightN6705C(Source):
     REAL_DATA_FORMAT = 'REAL'
     @property
     def __isDataASCII__(self) -> bool:
-        return self.Query('FORM:DATA') == KeysightN6705C.ASCII_DATA_FORMAT
+        return self.query('FORM:DATA') == KeysightN6705C.ASCII_DATA_FORMAT
     @__isDataASCII__.setter
     def __isDataASCII__(self, value: bool) -> bool:
         value = bool(value)
-        self.Write('FORM:DATA', KeysightN6705C.ASCII_DATA_FORMAT if value else KeysightN6705C.REAL_DATA_FORMAT)
+        self.write('FORM:DATA', KeysightN6705C.ASCII_DATA_FORMAT if value else KeysightN6705C.REAL_DATA_FORMAT)
         if self.__isDataASCII__ != value:
             raise Exception("Error while setting data format")
         return value

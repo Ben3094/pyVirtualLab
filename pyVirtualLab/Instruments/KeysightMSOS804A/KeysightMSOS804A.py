@@ -29,29 +29,29 @@ class KeysightMSOS804A(Instrument):
 	def Wait(self, delay:float=0.01, timeout:float=5):
 		startTime:float = time()
 		stopTime = startTime+timeout
-		while (time() < stopTime) & (self.Query('PDER') != '1'):
+		while (time() < stopTime) & (self.query('PDER') != '1'):
 			sleep(delay)
 
 	def Clear(self):
-		self.Write('CDIS')
+		self.write('CDIS')
 
 	@property
 	def Average(self) -> int:
-		if not bool(self.Query("ACQ:AVER")):
+		if not bool(self.query("ACQ:AVER")):
 			return 1
 		else:
-			return int(self.Query("ACQ:AVER:COUN"))
+			return int(self.query("ACQ:AVER:COUN"))
 	@Average.setter
 	def Average(self, count: int):
 		if count < 2:
-			self.Write("ACQ:AVER OFF")
+			self.write("ACQ:AVER OFF")
 		else:
-			self.Write("ACQ:AVER:COUN " + str(int(count)))
-			self.Write("ACQ:AVER ON")
+			self.write("ACQ:AVER:COUN " + str(int(count)))
+			self.write("ACQ:AVER ON")
 
 	@property
 	def RunState(self) -> RunState:
-		match str(self.Query("RST")):
+		match str(self.query("RST")):
 			case 'RUN':
 				return RunState.Run
 			case 'STOP':
@@ -62,25 +62,25 @@ class KeysightMSOS804A(Instrument):
 	def RunState(self, runState: RunState):
 		match runState:
 			case RunState.Run:
-				self.Write("RUN")
+				self.write("RUN")
 			case RunState.Stop:
-				self.Write("STOP")
+				self.write("STOP")
 			case RunState.Single:
-				self.Write("SING")
+				self.write("SING")
 
 	@property
 	def IsAutoTriggerEnabled(self) -> bool:
-		return True if str(self.Query('TRIG:SWE')) == 'AUTO' else False
+		return True if str(self.query('TRIG:SWE')) == 'AUTO' else False
 	@IsAutoTriggerEnabled.setter
 	def IsAutoTriggerEnabled(self, value: bool) -> bool:
-		self.Write('TRIG:SWE', 'AUTO' if value else 'TRIG')
+		self.write('TRIG:SWE', 'AUTO' if value else 'TRIG')
 		if self.IsAutoTriggerEnabled != value:
 			raise Exception('Error while en/dis-abling auto trigger')
 		return value
 
 	@property
 	def AcquisitionState(self) -> AcquisitionState:
-		match str(self.Query("AST")):
+		match str(self.query("AST")):
 			case 'ARM':
 				return AcquisitionState.Armed
 			case 'TRIG' | 'ATRIG':
@@ -89,21 +89,21 @@ class KeysightMSOS804A(Instrument):
 				return AcquisitionState.Done
 
 	def AutoScale(self):
-		self.Write("AUT")
+		self.write("AUT")
 
 	@property
 	def ReturnHeader(self) -> bool:
-		return bool(int(self.Query('SYST:HEAD')))
+		return bool(int(self.query('SYST:HEAD')))
 	@ReturnHeader.setter
 	def ReturnHeader(self, value: bool):
-		self.Write('SYST:HEAD', str(int(bool(value))))
+		self.write('SYST:HEAD', str(int(bool(value))))
 
 	__trigger__ = None
 	@property
 	def Trigger(self) -> Trigger:
-		reply:str = self.Query('TRIG:MODE')
+		reply:str = self.query('TRIG:MODE')
 		if reply == 'ADV':
-			reply = self.Query('TRIG:ADV:MODE')
+			reply = self.query('TRIG:ADV:MODE')
 		if self.__trigger__ is not TRIGGERS_NAMES[reply]:
 			if self.__trigger__:
 				self.__trigger__.__parent__ = None # Unlink old trigger object
@@ -113,9 +113,9 @@ class KeysightMSOS804A(Instrument):
 	@Trigger.setter
 	def Trigger(self, value:Trigger) -> Trigger:
 		if value is AdvancedTrigger:
-			self.Write('TRIG:ADV:MODE', value.NAME)
+			self.write('TRIG:ADV:MODE', value.NAME)
 		else:
-			self.Write('TRIG:MODE', value.NAME)
+			self.write('TRIG:MODE', value.NAME)
 		self.__trigger__ = value
 		currentTrigger = self.Trigger
 		if value == currentTrigger:
@@ -179,7 +179,7 @@ class KeysightMSOS804A(Instrument):
 		if self.__isAutoAnalogSampleRateEnabled__:
 			return KeysightMSOS804A.AUTO_SAMPLE_RATE_ENABLED_VALUE
 		else:
-			return float(self.Query('ACQ:SRAT:ANAL'))
+			return float(self.query('ACQ:SRAT:ANAL'))
 	@AnalogSampleRate.setter
 	def AnalogSampleRate(self, value: float) -> float:
 		value = float(value)
@@ -189,7 +189,7 @@ class KeysightMSOS804A(Instrument):
 		else:
 			if self.__isAutoAnalogSampleRateEnabled__ == True:
 				self.__isAutoAnalogSampleRateEnabled__ = False
-			self.Write('ACQ:SRAT:ANAL', str(value))
+			self.write('ACQ:SRAT:ANAL', str(value))
 			return self.AnalogSampleRate
 
 	DIGITAL_CHANNELS = 16
@@ -213,7 +213,7 @@ class KeysightMSOS804A(Instrument):
 		if self.__isAutoDigitalSampleRateEnabled__:
 			return KeysightMSOS804A.AUTO_SAMPLE_RATE_ENABLED_VALUE
 		else:
-			return float(self.Query('ACQ:SRAT:DIG'))
+			return float(self.query('ACQ:SRAT:DIG'))
 	@DigitalSampleRate.setter
 	def DigitalSampleRate(self, value: float) -> float:
 		value = float(value)
@@ -223,7 +223,7 @@ class KeysightMSOS804A(Instrument):
 		else:
 			if self.__isAutoDigitalSampleRateEnabled__ == True:
 				self.__isAutoDigitalSampleRateEnabled__ = False
-			self.Write('ACQ:SRAT:DIG', str(value))
+			self.write('ACQ:SRAT:DIG', str(value))
 			return self.DigitalSampleRate
 
 	FUNCTIONS = 16
@@ -234,7 +234,7 @@ class KeysightMSOS804A(Instrument):
 
 		for address in range(1, self.FUNCTIONS+1):
 			query = f"{Function.TYPE_COMMAND_HEADER}{address}"
-			response = self.Query(query).lstrip(':').split()
+			response = self.query(query).lstrip(':').split()
 			params = response[1].split(',')
 			channelsInvolved = [channelInvolved for channelInvolved in params if channelInvolved.startswith(AnalogChannel.TYPE_COMMAND_HEADER) or channelInvolved.startswith(DigitalChannel.TYPE_COMMAND_HEADER) or channelInvolved.startswith(Function.TYPE_COMMAND_HEADER)]
 			self.__functions__[address] = FUNCTIONS_NAMES[response[0]](self, address, channelsInvolved)
