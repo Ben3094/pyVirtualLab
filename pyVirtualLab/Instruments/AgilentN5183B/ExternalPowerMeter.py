@@ -1,10 +1,66 @@
 from ...VISAInstrument import Instrument, VirtualResource
 
+class ExternalPowerMeterResource(VirtualResource):
+	def __init__(self, parentPowerMeter):
+		self.__parent__ = parentPowerMeter
+	
+	def write(self, value: str) -> None:
+		isPowerMeterDisplayed = self.__parent__.IsDisplayed
+		isPassthroughEnabled = self.__parent__.IsPassthroughEnabled
+
+		# Enable passthrough
+		if isPowerMeterDisplayed:
+			self.__parent__.IsDisplayed = False
+		if not isPassthroughEnabled:
+			self.__parent__.IsPassthroughEnabled = True
+
+		self.__parent__.Parent.Write(f"SYST:PMET{self.__parent__.Index}:PASS", f"<\"{value}\">")
+
+		# Disable passthrough
+		if not isPassthroughEnabled:
+			self.__parent__.IsPassthroughEnabled = False
+		if isPowerMeterDisplayed:
+			self.__parent__.IsDisplayed = True
+	
+	def read(self) -> str:
+		return self.__parent__.Parent.Read()
+	
+	def query(self, value: str) -> str:
+		isPowerMeterDisplayed = self.__parent__.IsDisplayed
+		isPassthroughEnabled = self.__parent__.IsPassthroughEnabled
+
+		# Enable passthrough
+		if isPowerMeterDisplayed:
+			self.__parent__.IsDisplayed = False
+		if not isPassthroughEnabled:
+			self.__parent__.IsPassthroughEnabled = True
+
+		value = self.__parent__.Parent.Query(f"SYST:PMET{self.__parent__.Index}:PASS", f"<\"{value}\">")
+
+		# Disable passthrough
+		if not isPassthroughEnabled:
+			self.__parent__.IsPassthroughEnabled = False
+		if isPowerMeterDisplayed:
+			self.__parent__.IsDisplayed = True
+
+		return value
+	
+	@property
+	def timeout(self) -> float:
+		return float(self.__parent__.Parent.Query(f"SYST:PMET{self.__parent__.Index}:PASS:TIM"))
+	@timeout.setter
+	def timeout(self, value:float):
+		value = float(value)
+		self.__parent__.Parent.Write(f"SYST:PMET{self.__parent__.Index}:PASS:TIM", value)
+		if self.timeout != value:
+			raise Exception(f"Error while setting external power meter {self.__parent__.Index} timeout")
+
 class ExternalPowerMeter(Instrument):
 	def __init__(self, powerMeter:Instrument, parentAgilentN5183B, externalPowerMeterIndex:int):
+		super(ExternalPowerMeter, self).__init__()
 		self.__parent__ = parentAgilentN5183B
 		self.__index__ = int(externalPowerMeterIndex)
-		self.Resource = ExternalPowerMeterResource(self.__parent__, self.__index__)
+		self.Resource = ExternalPowerMeterResource(self.__parent__)
 		self.__powerMeter__:Instrument = powerMeter
 		self.__powerMeter__.Resource = self.Resource
 
@@ -65,58 +121,3 @@ class ExternalPowerMeter(Instrument):
 	@IsPassthroughEnabled.setter
 	def IsPassthroughEnabled(self, value: bool) -> bool:
 		return self.__parent__.__setPowerMeterPassthroughState__(self.__index__, value)
-
-class ExternalPowerMeterResource(VirtualResource):
-	def __init__(self, parentPowerMeter:ExternalPowerMeter):
-		self.__parent__:ExternalPowerMeter = parentPowerMeter
-	
-	def write(self, value: str) -> None:
-		isPowerMeterDisplayed = self.__parent__.IsDisplayed
-		isPassthroughEnabled = self.__parent__.IsPassthroughEnabled
-
-		# Enable passthrough
-		if isPowerMeterDisplayed:
-			self.__parent__.IsDisplayed = False
-		if not isPassthroughEnabled:
-			self.__parent__.IsPassthroughEnabled = True
-
-		self.__parent__.Parent.Write(f"SYST:PMET{self.__parent__.Index}:PASS", f"<\"{value}\">")
-
-		# Disable passthrough
-		if not isPassthroughEnabled:
-			self.__parent__.IsPassthroughEnabled = False
-		if isPowerMeterDisplayed:
-			self.__parent__.IsDisplayed = True
-	
-	def read(self) -> str:
-		return self.__parent__.Parent.Read()
-	
-	def query(self, value: str) -> str:
-		isPowerMeterDisplayed = self.__parent__.IsDisplayed
-		isPassthroughEnabled = self.__parent__.IsPassthroughEnabled
-
-		# Enable passthrough
-		if isPowerMeterDisplayed:
-			self.__parent__.IsDisplayed = False
-		if not isPassthroughEnabled:
-			self.__parent__.IsPassthroughEnabled = True
-
-		value = self.__parent__.Parent.Query(f"SYST:PMET{self.__parent__.Index}:PASS", f"<\"{value}\">")
-
-		# Disable passthrough
-		if not isPassthroughEnabled:
-			self.__parent__.IsPassthroughEnabled = False
-		if isPowerMeterDisplayed:
-			self.__parent__.IsDisplayed = True
-
-		return value
-	
-	@property
-	def timeout(self) -> float:
-		return float(self.__parent__.Parent.Query(f"SYST:PMET{self.__parent__.Index}:PASS:TIM"))
-	@timeout.setter
-	def timeout(self, value:float):
-		value = float(value)
-		self.__parent__.Parent.Write(f"SYST:PMET{self.__parent__.Index}:PASS:TIM", value)
-		if self.timeout != value:
-			raise Exception(f"Error while setting external power meter {self.__parent__.Index} timeout")

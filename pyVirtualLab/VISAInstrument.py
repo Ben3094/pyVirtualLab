@@ -2,11 +2,9 @@ import pyvisa
 import aenum
 import enum
 from re import match, Match
-from pyvisa import ResourceManager
 from pyvisa.resources import Resource
 from time import time, sleep
 from abc import abstractmethod
-import ipaddress
 
 def GetProperty(dataType: type, visaGetCommand: str):
 	__converter__ = None
@@ -199,13 +197,13 @@ class InterfaceType(aenum.Enum):
 INTERFACE_BOARD_ENTRY_NAME:str = "Interface board"
 PXI_BUS_ENTRY_NAME:str = "PXI bus"
 PXI_INTERFACE_ENTRY_NAME:str = "PXI interface"
-def PARSE_INTERFACE_TYPE(value) -> tuple[InterfaceType, int]:
+def PARSE_INTERFACE_TYPE(value: str) -> tuple[InterfaceType, int]:
 	rematch:Match = None
 	for interfaceType in InterfaceType:
 		for interfaceTypeString in interfaceType.values:
 			rematch = match(f"{interfaceTypeString}(\d*)", value)
 			if rematch:
-				return (interfaceType, int(rematch[2]) if rematch[2] == '' else None)
+				return (interfaceType, int(rematch[1]) if rematch[1] != '' else None)
 	raise Exception("Unknown instrument type")
 VXI_LOGICAL_ADDRESS_ENTRY_NAME:str = "Logical address"
 GPIB_ADDRESS_ENTRY_NAME:str = "GPIB address"
@@ -282,12 +280,13 @@ def PARSE_ADDRESS(value:str) -> tuple[InterfaceType, dict[str, object], Resource
 			if resourceType == ResourceType.Servant:
 				interfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME] = value[1]
 			else:
-				interfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME] = ipaddress.ip_address(value[1])
+				interfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME] = value[1]
 				if resourceType == ResourceType.Socket:
 					interfaceProperties[ETHERNET_PORT_ENTRY_NAME] = int(value[2])
 				else:
 					interfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME] = value[2]
-					interfaceProperties[ETHERNET_PORT_ENTRY_NAME] = int(value[3])
+					if len(value) > 3:
+						interfaceProperties[ETHERNET_PORT_ENTRY_NAME] = int(value[3])	
 
 		case InterfaceType.USB:
 			interfaceProperties[INTERFACE_BOARD_ENTRY_NAME] = interfaceIndex
@@ -318,14 +317,15 @@ class Instrument:
 	Model:str = None
 	Firmware:str = None
 
-	def __init__(self, address: str, visaTimeout:int=DEFAULT_VISA_TIMEOUT):
-		self.__address__ = address
+	def __init__(self, address: str=None, visaTimeout:int=DEFAULT_VISA_TIMEOUT):
+		self.__address__ = None
 		self.__isConnected__ = False
 		self.__visaTimeout__ = visaTimeout
 		self.__resource__:Resource|VirtualResource = None
 		self.__interfaceType__:InterfaceType = None
 		self.__interfaceProperties__:dict[str, object] = dict()
 		self.__resourceType__:ResourceType = None
+		self.Address = address
 
 	@property
 	def Resource(self):
@@ -360,7 +360,7 @@ class Instrument:
 	def InterfaceProperties(self) -> dict[str, object]:
 		return self.__interfaceProperties__
 	@property
-	def InterfaceType(self):
+	def ResourceType(self):
 		return self.__resourceType__
 
 	@property
@@ -389,7 +389,6 @@ class Instrument:
 			self.Id = self.__updateId__()
 			self.Vendor = self.__updateVendor__()
 			self.Model, self.Firmware = self.__updateModelAndFirmware__()
-			self.InterfaceType = self.__updateInterfaceType__() 
 		except Exception as e:
 			self.__isConnected__ = False
 			raise e
@@ -439,7 +438,7 @@ class Instrument:
 		return self.Id.split(',')[0]
 		
 	def __updateModelAndFirmware__(self):
-		modelAndFirmware = self.Id.removeprefix(self.Vendor).rstrip().rstrip('\n').split(',', 2)
+		modelAndFirmware = self.Id.removeprefix(self.Vendor.value).rstrip().rstrip('\n').split(',', 2)
 		return modelAndFirmware[1], modelAndFirmware[2]
 	
 	def Wait(self, delay:float=0.01, timeout:float=5):
