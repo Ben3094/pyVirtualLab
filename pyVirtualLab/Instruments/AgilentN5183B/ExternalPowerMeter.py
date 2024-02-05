@@ -1,16 +1,15 @@
-from .AgilentN5183B import AgilentN5183B
 from ...VISAInstrument import Instrument, VirtualResource
 
 class ExternalPowerMeter(Instrument):
-	def __init__(self, powerMeter:Instrument, parentAgilentN5183B:AgilentN5183B, externalPowerMeterIndex:int):
-		self.__parent__:AgilentN5183B = parentAgilentN5183B
+	def __init__(self, powerMeter:Instrument, parentAgilentN5183B, externalPowerMeterIndex:int):
+		self.__parent__ = parentAgilentN5183B
 		self.__index__ = int(externalPowerMeterIndex)
 		self.Resource = ExternalPowerMeterResource(self.__parent__, self.__index__)
 		self.__powerMeter__:Instrument = powerMeter
 		self.__powerMeter__.Resource = self.Resource
 
 	@property
-	def Parent(self) -> AgilentN5183B:
+	def Parent(self):
 		return self.__parent__
 	
 	@property
