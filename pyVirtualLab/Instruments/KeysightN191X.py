@@ -239,7 +239,7 @@ class KeysightN191X(Instrument):
     def Sensors(self) -> dict[int, KeysightN191XSensor]:
         for address in range(1, KeysightN191X.MAX_SENSORS+1):
             try:
-                type = self.query(f"SERV:SENS{address}:TYPE")
+                type = self.Query(f"SERV:SENS{address}:TYPE")
                 toUpdate = not address in self.__sensors__
                 if not toUpdate:
                    toUpdate = self.__sensors__[address].__isType__(type)
@@ -254,7 +254,7 @@ class KeysightN191X(Instrument):
     @property
     def CalibrationFactorsSets(self) -> dict[str, CalibrationFactorsSet]:
         self.__calibrationFactorsSets__.clear()
-        setsNames = self.query("MEM:CAT:TABL").split('","')
+        setsNames = self.Query("MEM:CAT:TABL").split('","')
         for setName in setsNames:
             if '"' in setName:
                 setName = setName.split('"')[1]
@@ -281,5 +281,5 @@ class KeysightN191X(Instrument):
             self.CalibrationFactorsSets[deletedName].Name = newName
             self.CalibrationFactorsSets[newName].CalibrationFactors = value[newName].CalibrationFactors
         for newName in newNames:
-            self.write('MEM:TABL:SEL', newName)
+            self.Write('MEM:TABL:SEL', newName)
             self.CalibrationFactorsSets[newName].CalibrationFactors = value[newName].CalibrationFactors
