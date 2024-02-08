@@ -50,6 +50,7 @@ class AgilentN5183B(Source):
 	def __abort__(self):
 		self.IsEnabled = False
 
+	DEFAULT_POWER_METER_PORT = 5025
 	def __setPowerMeter__(self, value:Instrument, index:int) -> Instrument:
 		match value.InterfaceType:
 			case InterfaceType.GPIB_VXI:
@@ -58,7 +59,8 @@ class AgilentN5183B(Source):
 				self.Write(f"SYST:PMET{index}:COMM:TYPE", 'SOCK')
 				self.Write(f"SYST:PMET{index}:COMM:LAN:DEV", value.InterfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME])
 				self.Write(f"SYST:PMET{index}:COMM:LAN:IP", value.InterfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME])
-				self.Write(f"SYST:PMET{index}:COMM:LAN:PORT", value.InterfaceProperties[ETHERNET_PORT_ENTRY_NAME])
+				self.Write(f"SYST:PMET{index}:COMM:LAN:PORT", value.InterfaceProperties[ETHERNET_PORT_ENTRY_NAME] if ETHERNET_PORT_ENTRY_NAME in value.InterfaceProperties else AgilentN5183B.DEFAULT_POWER_METER_PORT)
+
 			case InterfaceType.USB:
 				self.Write(f"SYST:PMET{index}:COMM:TYPE", 'USB')
 			case _:
