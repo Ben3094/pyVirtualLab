@@ -81,6 +81,9 @@ class VirtualResource:
 	def timeout(self, value:float):
 		pass
 
+	def close(self) -> None:
+		pass
+
 # See IVI foundation VXI plug&play System Alliance VPP-9: Instrument Vendor Abbreviations
 class VendorAbbreviation(aenum.Enum):
 	AQ = "Acqiris"
@@ -317,10 +320,10 @@ class Instrument:
 	Model:str = None
 	Firmware:str = None
 
-	def __init__(self, address: str=None, visaTimeout:int=DEFAULT_VISA_TIMEOUT):
-		self.__address__ = None
-		self.__isConnected__ = False
-		self.__timeout__ = visaTimeout
+	def __init__(self, address: str=None, visaTimeout: int=DEFAULT_VISA_TIMEOUT):
+		self.__address__: str = None
+		self.__isConnected__: bool = False
+		self.__timeout__: int = visaTimeout
 		self.__resource__:Resource|VirtualResource = None
 		self.__interfaceType__:InterfaceType = None
 		self.__interfaceProperties__:dict[str, object] = dict()
@@ -365,7 +368,7 @@ class Instrument:
 
 	@property
 	def Timeout(self) -> int:
-		return self.__timeout__
+		return self.__resource__.timeout
 	@Timeout.setter
 	def Timeout(self, value: int):
 		if value != self.__timeout__:
@@ -381,11 +384,8 @@ class Instrument:
 	def Connect(self) -> bool:
 		self.__isConnected__ = True
 		try:
-			if self.__resource__ is VirtualResource:
-				self.__resource__ = self.__resource__
-			else:
-				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address)
-			self.__resource__.timeout = self.Timeout
+			if not issubclass(type(self.__resource__), VirtualResource):
+				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__)
 			self.Id = self.__updateId__()
 			self.Vendor = self.__updateVendor__()
 			self.Model, self.Firmware = self.__updateModelAndFirmware__()

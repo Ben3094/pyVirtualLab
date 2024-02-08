@@ -14,7 +14,7 @@ class ExternalPowerMeterResource(VirtualResource):
 		if not isPassthroughEnabled:
 			self.__parent__.IsPassthroughEnabled = True
 
-		self.__parent__.Parent.Write(f"SYST:PMET{self.__parent__.Index}:PASS", f"<\"{value}\">")
+		self.__parent__.Parent.Write(f"SYST:PMET{self.__parent__.Index}:PASS", f"\"{value}\"")
 
 		# Disable passthrough
 		if not isPassthroughEnabled:
@@ -35,7 +35,7 @@ class ExternalPowerMeterResource(VirtualResource):
 		if not isPassthroughEnabled:
 			self.__parent__.IsPassthroughEnabled = True
 
-		value = self.__parent__.Parent.Query(f"SYST:PMET{self.__parent__.Index}:PASS", f"<\"{value}\">")
+		value = self.__parent__.Parent.Query(f"SYST:PMET{self.__parent__.Index}:PASS", f"\"{value}\"")
 
 		# Disable passthrough
 		if not isPassthroughEnabled:
@@ -60,7 +60,7 @@ class ExternalPowerMeter(Instrument):
 		super(ExternalPowerMeter, self).__init__()
 		self.__parent__ = parentAgilentN5183B
 		self.__index__ = int(externalPowerMeterIndex)
-		self.Resource = ExternalPowerMeterResource(self.__parent__)
+		self.Resource = ExternalPowerMeterResource(self)
 		self.__powerMeter__:Instrument = powerMeter
 		self.__powerMeter__.Resource = self.Resource
 
