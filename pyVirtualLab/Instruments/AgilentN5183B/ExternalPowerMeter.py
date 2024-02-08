@@ -133,7 +133,7 @@ class ExternalPowerMeter(Instrument):
 	def IsPassthroughEnabled(self, value: bool) -> bool:
 		return self.__parent__.__setPowerMeterPassthroughState__(self.__index__, value)
 	
-	def UseAsEqualizatingPowerMeter(self):
+	def UseAsEqualizingPowerMeter(self):
 		match self.PowerMeter.InterfaceType:
 			case InterfaceType.GPIB_VXI:
 				self.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'VXI11')
