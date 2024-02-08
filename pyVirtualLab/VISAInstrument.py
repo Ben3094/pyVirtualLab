@@ -466,8 +466,8 @@ class Source(Instrument):
 	def __abort__(self):
 		self.Reset()
 
-	def __init__(self, address, visaTimeout=Instrument.DEFAULT_VISA_TIMEOUT):
-		Instrument.__init__(self, address, visaTimeout)
+	def __init__(self, address, timeout=Instrument.DEFAULT_VISA_TIMEOUT):
+		Instrument.__init__(self, address, timeout)
 		self.Abort = self.__abort__
 
 def RECURSIVE_SUBCLASSES(type:type) -> list[type]:

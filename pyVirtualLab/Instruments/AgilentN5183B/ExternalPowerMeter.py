@@ -1,4 +1,4 @@
-from ...VISAInstrument import Instrument, VirtualResource
+from ...VISAInstrument import Instrument, VirtualResource, InterfaceType, ETHERNET_DEVICE_NAME_ENTRY_NAME, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME
 
 class ExternalPowerMeterResource(VirtualResource):
 	def __init__(self, parentPowerMeter):
@@ -56,13 +56,13 @@ class ExternalPowerMeterResource(VirtualResource):
 			raise Exception(f"Error while setting external power meter {self.__parent__.Index} timeout")
 
 class ExternalPowerMeter(Instrument):
-	def __init__(self, powerMeter:Instrument, parentAgilentN5183B, externalPowerMeterIndex:int):
+	def __init__(self, originalPowerMeter:Instrument, parentAgilentN5183B, externalPowerMeterIndex:int):
 		super(ExternalPowerMeter, self).__init__()
 		self.__parent__ = parentAgilentN5183B
 		self.__index__ = int(externalPowerMeterIndex)
 		self.Resource = ExternalPowerMeterResource(self)
-		self.__powerMeter__:Instrument = powerMeter
-		self.__powerMeter__.Resource = self.Resource
+		self.__originalPowerMeter__:Instrument = originalPowerMeter
+		self.__originalPowerMeter__.Resource = self.Resource
 
 	@property
 	def Parent(self):
@@ -71,6 +71,17 @@ class ExternalPowerMeter(Instrument):
 	@property
 	def Index(self) -> int:
 		return self.__index__
+	
+	@property
+	def PowerMeter(self) -> Instrument:
+		return self.__originalPowerMeter__
+	
+	@property
+	def IsPowerMeterCorrectionOnA(self) -> bool:
+		return self.__parent__.__getPowerMeterCorrectionOnA__(self.__index__)
+	@IsPowerMeterCorrectionOnA.setter
+	def IsPowerMeterCorrectionOnA(self, value: bool) -> bool:
+		return self.__parent__.__setPowerMeterCorrectionOnA__(self.__index__, value)
 	
 	@property
 	def Power(self) -> float:
@@ -121,3 +132,21 @@ class ExternalPowerMeter(Instrument):
 	@IsPassthroughEnabled.setter
 	def IsPassthroughEnabled(self, value: bool) -> bool:
 		return self.__parent__.__setPowerMeterPassthroughState__(self.__index__, value)
+	
+	def UseAsEqualizatingPowerMeter(self):
+		match self.PowerMeter.InterfaceType:
+			case InterfaceType.GPIB_VXI:
+				self.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'VXI11')
+			case InterfaceType.Ethernet:
+				self.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'SOCK')
+				self.Write(f"SOUR:CORR:PMET:COMM:LAN:DEV", self.PowerMeter.InterfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME])
+				self.Write(f"SOUR:CORR:PMET:COMM:LAN:IP", self.PowerMeter.InterfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME])
+				self.Write(f"SOUR:CORR:PMET:COMM:LAN:PORT", self.PowerMeter.InterfaceProperties[ETHERNET_PORT_ENTRY_NAME] if ETHERNET_PORT_ENTRY_NAME in self.PowerMeter.InterfaceProperties else str(AgilentN5183B.DEFAULT_POWER_METER_PORT))
+
+			case InterfaceType.USB:
+				self.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'USB')
+			case _:
+				raise Exception("Direct connection from Agilent N5183B to a power meter must use Ethernet, GPIB-VXI, and USB")
+		
+		
+		self.Write('SOUR:CORR:PMET:CHAN', 'A' if self.IsPowerMeterCorrectionOnA else 'B')

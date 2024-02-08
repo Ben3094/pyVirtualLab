@@ -139,9 +139,9 @@ class AgilentN5183B(Source):
 		else:
 			raise Exception("Error while setting power meter decibel measurement state")
 		
-	def __getPowerMeterPassthroughState__(self, index:int) -> bool:
+	def __getPowerMeterPassthroughState__(self, index: int) -> bool:
 		return bool(int(self.Query(f"SYST:PMET{index}:PASS:ENAB")))
-	def __setPowerMeterPassthroughState__(self, index:int, value:bool) -> bool:
+	def __setPowerMeterPassthroughState__(self, index: int, value: bool) -> bool:
 		value = bool(value)
 		self.Write(f"SYST:PMET{index}:PASS:ENAB", int(value))
 		if self.__getPowerMeterPassthroughState__(index) == value:
@@ -151,13 +151,12 @@ class AgilentN5183B(Source):
  
 	POWER_METER_A = 'A'
 	POWER_METER_B = 'B'
-	@property
-	def IsPowerMeterCorrectionOnA(self) -> bool:
-		return True if self.Query('SOUR:CORR:PMET:CHAN') == AgilentN5183B.POWER_METER_A else False
-	def IsPowerMeterCorrectionOnA(self, index:int, value:bool) -> bool:
+	def __getPowerMeterCorrectionOnA__(self, index: int) -> bool:
+		return True if self.Query(f"SYST:PMET{index}:CHAN") == AgilentN5183B.POWER_METER_A else False
+	def __setPowerMeterCorrectionOnA__(self, index: int, value: bool) -> bool:
 		value = bool(value)
-		self.Write('SOUR:CORR:PMET:CHAN', AgilentN5183B.POWER_METER_A if value else AgilentN5183B.POWER_METER_B)
-		if self.IsPowerMeterCorrectionOnA(index) == value:
+		self.Write(f"SYST:PMET{index}:CHAN", AgilentN5183B.POWER_METER_A if value else AgilentN5183B.POWER_METER_B)
+		if self.__getPowerMeterCorrectionOnA__(index) == value:
 			return value
 		else:
 			raise Exception("Error while setting power meter used for correction")
