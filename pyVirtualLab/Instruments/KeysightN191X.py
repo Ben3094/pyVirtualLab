@@ -39,8 +39,8 @@ class CalibrationFactorsSet:
             raise Exception(f"Error while setting \"{self.Name}\" calibration factors")
 
 class KeysightN191XSensor:
-    __parentKeysightN191X__ = None
-    __address__ = None
+    __parentKeysightN191X__: Instrument = None
+    __address__: int = None
 
     def __init__(self, parentKeysightN191X, address: int):
         self.__parentKeysightN191X__ = parentKeysightN191X
@@ -57,10 +57,10 @@ class KeysightN191XSensor:
     def Power(self) -> float:
         pass
     def __measurePower__(self) -> float:
-        savedTimeout = self.__parentKeysightN191X__.VISATimeout
-        self.__parentKeysightN191X__.VISATimeout = KeysightN191X.MEASURE_TIMEOUT
+        savedTimeout = self.__parentKeysightN191X__.Timeout
+        self.__parentKeysightN191X__.Timeout = KeysightN191X.MEASURE_TIMEOUT
         measuredPower = float(self.__parentKeysightN191X__.Query(f"MEAS{self.__address__}"))
-        self.__parentKeysightN191X__.VISATimeout = savedTimeout
+        self.__parentKeysightN191X__.Timeout = savedTimeout
         return measuredPower
 
     DEFAULT_FREQUENCY_FORMAT = "{:11.0f}"

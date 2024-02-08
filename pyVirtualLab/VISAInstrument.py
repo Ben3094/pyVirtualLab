@@ -320,7 +320,7 @@ class Instrument:
 	def __init__(self, address: str=None, visaTimeout:int=DEFAULT_VISA_TIMEOUT):
 		self.__address__ = None
 		self.__isConnected__ = False
-		self.__visaTimeout__ = visaTimeout
+		self.__timeout__ = visaTimeout
 		self.__resource__:Resource|VirtualResource = None
 		self.__interfaceType__:InterfaceType = None
 		self.__interfaceProperties__:dict[str, object] = dict()
@@ -364,12 +364,12 @@ class Instrument:
 		return self.__resourceType__
 
 	@property
-	def timeout(self) -> int:
-		return self.__visaTimeout__
-	@timeout.setter
-	def timeout(self, value: int):
-		if value != self.__visaTimeout__:
-			self.__visaTimeout__ = int(value)
+	def Timeout(self) -> int:
+		return self.__timeout__
+	@Timeout.setter
+	def Timeout(self, value: int):
+		if value != self.__timeout__:
+			self.__timeout__ = int(value)
 			if self.IsConnected:
 				self.Disconnect()
 				self.Connect()
@@ -385,7 +385,7 @@ class Instrument:
 				self.__resource__ = self.__resource__
 			else:
 				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address)
-			self.__resource__.timeout = self.timeout
+			self.__resource__.timeout = self.Timeout
 			self.Id = self.__updateId__()
 			self.Vendor = self.__updateVendor__()
 			self.Model, self.Firmware = self.__updateModelAndFirmware__()
