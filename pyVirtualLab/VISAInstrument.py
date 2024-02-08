@@ -403,12 +403,14 @@ class Instrument:
 			
 	# See IVI fundation SCPI Volume 1: Syntax and Style
 	def Write(self, command: str, args:str=''):
+		args = str(args)
 		if self.IsConnected:
 			return self.__resource__.write(command + ((' ' + args) if args != '' else ''))
 		else:
 			raise Exception("The instrument is not connected")
 
 	def Query(self, command: str, args:str=''):
+		args = str(args)
 		if self.IsConnected:
 			return str(self.__resource__.query(command + '?' + ((' ' + args) if args != '' else ''))).strip('\n').strip('\r').strip('"').lstrip(':').removeprefix(command).strip()
 		else:
