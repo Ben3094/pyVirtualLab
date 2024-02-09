@@ -402,7 +402,7 @@ class Instrument:
 		if not self.__resource__:
 			return False
 		
-		thread = Thread(target=getattr(self.__resource__, 'stb'))
+		thread = Thread(target=lambda : getattr(self.__resource__, 'stb'))
 		thread.start()
 		try:
 			thread.join(timeout=Instrument.STB_QUERY_TIMEOUT)
