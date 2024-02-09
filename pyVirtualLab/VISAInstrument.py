@@ -5,6 +5,7 @@ from re import match, Match
 from pyvisa.resources import Resource
 from time import time, sleep
 from abc import abstractmethod
+from threading import Thread
 
 def GetProperty(dataType: type, visaGetCommand: str):
 	__converter__ = None
@@ -79,6 +80,11 @@ class VirtualResource:
 	@timeout.setter
 	@abstractmethod
 	def timeout(self, value:float):
+		pass
+
+	@property
+	@abstractmethod
+	def stb(self) -> int:
 		pass
 
 	def close(self) -> None:
@@ -185,6 +191,20 @@ class VendorAbbreviation(aenum.Enum):
 	WZ = "Welzek"
 	YK = "Yokogawa Electric Corporation"
 	ZT = "ZTEC"
+def PARSE_VENDOR(intrumentId, check=False) -> VendorAbbreviation or str:
+	rematch:Match = None
+	for vendorAbbreviation in VendorAbbreviation:
+		for value in vendorAbbreviation.values:
+			rematch = match(value, intrumentId)
+			if rematch:
+				return vendorAbbreviation
+	if check:
+		raise Exception("Unknown manufacturer")
+	return intrumentId.split(',')[0]
+		
+def PARSE_MODEL_AND_FIRMWARE(instrumentId: str, instrumentVendor: str):
+	modelAndFirmware = instrumentId.removeprefix(instrumentVendor).rstrip().rstrip('\n').split(',', 2)
+	return modelAndFirmware[1], modelAndFirmware[2]
 
 ADDRESS_GRAMMAR_SEPARATOR:str = "::"
 
@@ -322,12 +342,11 @@ class Instrument:
 
 	def __init__(self, address: str=None, visaTimeout: int=DEFAULT_VISA_TIMEOUT):
 		self.__address__: str = None
-		self.__isConnected__: bool = False
 		self.__timeout__: int = visaTimeout
-		self.__resource__:Resource|VirtualResource = None
-		self.__interfaceType__:InterfaceType = None
-		self.__interfaceProperties__:dict[str, object] = dict()
-		self.__resourceType__:ResourceType = None
+		self.__resource__: Resource|VirtualResource = None
+		self.__interfaceType__: InterfaceType = None
+		self.__interfaceProperties__: dict[str, object] = dict()
+		self.__resourceType__: ResourceType = None
 		self.Address = address
 
 	@property
@@ -377,27 +396,35 @@ class Instrument:
 				self.Disconnect()
 				self.Connect()
 
+	STB_QUERY_TIMEOUT:float = 1
 	@property
 	def IsConnected(self) -> bool:
-		return self.__isConnected__
+		if not self.__resource__:
+			return False
+		
+		thread = Thread(target=getattr(self.__resource__, 'stb'))
+		thread.start()
+		try:
+			thread.join(timeout=Instrument.STB_QUERY_TIMEOUT)
+			if thread.is_alive():
+				return False
+		except ConnectionResetError:
+			return False
 		
 	def Connect(self) -> bool:
-		self.__isConnected__ = True
 		try:
 			if not issubclass(type(self.__resource__), VirtualResource):
 				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__)
 			self.Id = self.__updateId__()
-			self.Vendor = self.__updateVendor__()
-			self.Model, self.Firmware = self.__updateModelAndFirmware__()
+			self.Vendor = PARSE_VENDOR(self.Id)
+			self.Model, self.Firmware = PARSE_MODEL_AND_FIRMWARE(self.Id, self.Vendor.values if self.Vendor is VendorAbbreviation else self.Vendor)
 		except Exception as e:
-			self.__isConnected__ = False
 			raise e
-		return self.__isConnected__
+		return self.IsConnected
 
 	def Disconnect(self) -> bool:
 		self.__resource__.close()
-		self.__isConnected__ = False
-		return self.__isConnected__
+		return self.IsConnected
 	def close(self) -> None:
 		self.Disconnect()
 			
@@ -427,21 +454,6 @@ class Instrument:
 			return self.__resource__.query('*IDN?')
 		else:
 			raise Exception("The instrument is not connected")
-	
-	def __updateVendor__(self, check=False) -> VendorAbbreviation or str:
-		rematch:Match = None
-		for vendorAbbreviation in VendorAbbreviation:
-			for value in vendorAbbreviation.values:
-				rematch = match(value, self.Id)
-				if rematch:
-					return vendorAbbreviation
-		if check:
-			raise Exception("Unknown manufacturer")
-		return self.Id.split(',')[0]
-		
-	def __updateModelAndFirmware__(self):
-		modelAndFirmware = self.Id.removeprefix(self.Vendor.value).rstrip().rstrip('\n').split(',', 2)
-		return modelAndFirmware[1], modelAndFirmware[2]
 	
 	def Wait(self, delay:float=0.01, timeout:float=5):
 		startTime:float = time()

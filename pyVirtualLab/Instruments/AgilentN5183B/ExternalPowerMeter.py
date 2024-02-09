@@ -54,6 +54,10 @@ class ExternalPowerMeterResource(VirtualResource):
 		self.__parent__.Parent.Write(f"SYST:PMET{self.__parent__.Index}:PASS:TIM", value)
 		if self.timeout != value:
 			raise Exception(f"Error while setting external power meter {self.__parent__.Index} timeout")
+	
+	@property
+	def stb(self) -> int:
+		return self.__parent__.Parent.Resource.stb
 
 class ExternalPowerMeter(Instrument):
 	def __init__(self, originalPowerMeter:Instrument, parentAgilentN5183B, externalPowerMeterIndex:int):
