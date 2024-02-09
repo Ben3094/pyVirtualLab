@@ -485,7 +485,7 @@ class Instrument:
 		
 	def __repr__(self) -> str:
 		if self.IsConnected:
-			return self.Vendor.values[0] + self.Model
+			return self.Vendor.name + self.Model
 		else:
 			return str(self.Address)
 
