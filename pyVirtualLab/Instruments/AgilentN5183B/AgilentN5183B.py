@@ -288,7 +288,7 @@ class AgilentN5183B(Source):
 			self.Write("SOUR:CORR:FLAT:PAIR " + str(compensation) + ',' + str(compensations[compensation]))
 
 	def ClearCompensation(self):
-		self.Write("SOUR:CORR:FLAT:LOAD TMP")
+		self.Write("SOUR:CORR:FLAT:LOAD \"TMP\"")
 		self.Write("SOUR:CORR:FLAT:PRES")
 
 	@property

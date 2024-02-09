@@ -412,7 +412,7 @@ class Instrument:
 	@property
 	def IsConnected(self) -> bool:
 		outValue = Queue()
-		thread = Thread(target=self.__getConnectionStatus__, args=[outValue])
+		thread = Thread(target=self.__getConnectionStatus__, args=[outValue], name=f"Is {str(self)} connected")
 		thread.start()
 		thread.join(timeout=Instrument.STB_QUERY_TIMEOUT)
 		if not thread.is_alive():
@@ -482,6 +482,12 @@ class Instrument:
 			self.__resource__.write('*RST')
 		else:
 			raise Exception("The instrument is not connected")
+		
+	def __repr__(self) -> str:
+		if self.IsConnected:
+			return self.Vendor.values[0] + self.Model
+		else:
+			return str(self.Address)
 
 class Source(Instrument):
 	def __abort__(self):
