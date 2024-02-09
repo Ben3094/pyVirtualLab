@@ -39,27 +39,24 @@ class PulseType(Enum):
 	Gated = 'GATE'
 	External = 'EXT'
 
-
-
 class AgilentN5183B(Source):
 	def __init__(self, address: str):
 		super(AgilentN5183B, self).__init__(address, 20000)
-		__powerMeter1Resource__:VirtualResource = None
-		__powerMeter2__:Instrument = None
+		__powerMeter1__:ExternalPowerMeter = None
+		__powerMeter2__:ExternalPowerMeter = None
 
 	def __abort__(self):
 		self.IsEnabled = False
 
-	DEFAULT_POWER_METER_PORT:int = 5025
 	def __setPowerMeter__(self, value:Instrument, index:int) -> Instrument:
 		match value.InterfaceType:
 			case InterfaceType.GPIB_VXI:
 				self.Write(f"SYST:PMET{index}:COMM:TYPE", 'VXI11')
 			case InterfaceType.Ethernet:
 				self.Write(f"SYST:PMET{index}:COMM:TYPE", 'SOCK')
-				self.Write(f"SYST:PMET{index}:COMM:LAN:DEV", value.InterfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME])
-				self.Write(f"SYST:PMET{index}:COMM:LAN:IP", value.InterfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME])
-				self.Write(f"SYST:PMET{index}:COMM:LAN:PORT", value.InterfaceProperties[ETHERNET_PORT_ENTRY_NAME] if ETHERNET_PORT_ENTRY_NAME in value.InterfaceProperties else str(AgilentN5183B.DEFAULT_POWER_METER_PORT))
+				self.Write(f"SYST:PMET{index}:COMM:LAN:DEV", f"\"{value.InterfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME]}\"")
+				self.Write(f"SYST:PMET{index}:COMM:LAN:IP", f"\"{value.InterfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME]}\"")
+				self.Write(f"SYST:PMET{index}:COMM:LAN:PORT", value.InterfaceProperties[ETHERNET_PORT_ENTRY_NAME] if ETHERNET_PORT_ENTRY_NAME in value.InterfaceProperties else str(ExternalPowerMeter.DEFAULT_POWER_METER_PORT))
 
 			case InterfaceType.USB:
 				self.Write(f"SYST:PMET{index}:COMM:TYPE", 'USB')
@@ -72,16 +69,16 @@ class AgilentN5183B(Source):
 		return self.Query('SYST:PMET:COMM:USB:LIST').split(',')
 	
 	@property
-	def PowerMeter1(self) -> Instrument:
+	def PowerMeter1(self) -> ExternalPowerMeter:
 		return self.__powerMeter1__
 	@PowerMeter1.setter
-	def PowerMeter1(self, value:Instrument):
+	def PowerMeter1(self, value:ExternalPowerMeter):
 		self.__powerMeter1__ = self.__setPowerMeter__(value, 1)
 	@property
-	def PowerMeter2(self) -> Instrument:
+	def PowerMeter2(self) -> ExternalPowerMeter:
 		return self.__powerMeter2__
 	@PowerMeter2.setter
-	def PowerMeter2(self, value:Instrument):
+	def PowerMeter2(self, value:ExternalPowerMeter):
 		self.__powerMeter2__ = self.__setPowerMeter__(value, 2)
 		
 	def __getPowerMeterMeasurement__(self, index:int) -> float:

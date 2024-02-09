@@ -3,9 +3,11 @@ import aenum
 import enum
 from re import match, Match
 from pyvisa.resources import Resource
+from pyvisa_py.protocols.rpc import RPCUnpackError
 from time import time, sleep
 from abc import abstractmethod
 from threading import Thread
+from queue import Queue
 
 def GetProperty(dataType: type, visaGetCommand: str):
 	__converter__ = None
@@ -340,14 +342,16 @@ class Instrument:
 	Model:str = None
 	Firmware:str = None
 
-	def __init__(self, address: str=None, visaTimeout: int=DEFAULT_VISA_TIMEOUT):
+	def __init__(self, address: str=None, timeout: int=DEFAULT_VISA_TIMEOUT):
 		self.__address__: str = None
-		self.__timeout__: int = visaTimeout
+		self.__timeout__: int = None
 		self.__resource__: Resource|VirtualResource = None
 		self.__interfaceType__: InterfaceType = None
 		self.__interfaceProperties__: dict[str, object] = dict()
 		self.__resourceType__: ResourceType = None
+
 		self.Address = address
+		self.Timeout = timeout
 
 	@property
 	def Resource(self):
@@ -396,19 +400,24 @@ class Instrument:
 				self.Disconnect()
 				self.Connect()
 
-	STB_QUERY_TIMEOUT:float = 1
+	def __getConnectionStatus__(self, outValue: Queue):
+		try:
+			self.__resource__.stb
+			outValue.put(True)
+		except RPCUnpackError:
+			outValue.put(True)
+		except Exception as e:
+			outValue.put(False)
+	STB_QUERY_TIMEOUT:float = 3
 	@property
 	def IsConnected(self) -> bool:
-		if not self.__resource__:
-			return False
-		
-		thread = Thread(target=lambda : getattr(self.__resource__, 'stb'))
+		outValue = Queue()
+		thread = Thread(target=self.__getConnectionStatus__, args=[outValue])
 		thread.start()
-		try:
-			thread.join(timeout=Instrument.STB_QUERY_TIMEOUT)
-			if thread.is_alive():
-				return False
-		except ConnectionResetError:
+		thread.join(timeout=Instrument.STB_QUERY_TIMEOUT)
+		if not thread.is_alive():
+			return outValue.get()
+		else:
 			return False
 		
 	def Connect(self) -> bool:
@@ -417,7 +426,7 @@ class Instrument:
 				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__)
 			self.Id = self.__updateId__()
 			self.Vendor = PARSE_VENDOR(self.Id)
-			self.Model, self.Firmware = PARSE_MODEL_AND_FIRMWARE(self.Id, self.Vendor.values if self.Vendor is VendorAbbreviation else self.Vendor)
+			self.Model, self.Firmware = PARSE_MODEL_AND_FIRMWARE(self.Id, self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor)
 		except Exception as e:
 			raise e
 		return self.IsConnected

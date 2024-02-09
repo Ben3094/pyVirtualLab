@@ -137,20 +137,20 @@ class ExternalPowerMeter(Instrument):
 	def IsPassthroughEnabled(self, value: bool) -> bool:
 		return self.__parent__.__setPowerMeterPassthroughState__(self.__index__, value)
 	
+	DEFAULT_POWER_METER_PORT:int = 5025
 	def UseAsEqualizingPowerMeter(self):
 		match self.PowerMeter.InterfaceType:
 			case InterfaceType.GPIB_VXI:
-				self.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'VXI11')
+				self.__parent__.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'VXI11')
 			case InterfaceType.Ethernet:
-				self.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'SOCK')
-				self.Write(f"SOUR:CORR:PMET:COMM:LAN:DEV", self.PowerMeter.InterfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME])
-				self.Write(f"SOUR:CORR:PMET:COMM:LAN:IP", self.PowerMeter.InterfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME])
-				self.Write(f"SOUR:CORR:PMET:COMM:LAN:PORT", self.PowerMeter.InterfaceProperties[ETHERNET_PORT_ENTRY_NAME] if ETHERNET_PORT_ENTRY_NAME in self.PowerMeter.InterfaceProperties else str(AgilentN5183B.DEFAULT_POWER_METER_PORT))
+				self.__parent__.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'SOCK')
+				self.__parent__.Write(f"SOUR:CORR:PMET:COMM:LAN:DEV", f"\"{self.PowerMeter.InterfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME]}\"")
+				self.__parent__.Write(f"SOUR:CORR:PMET:COMM:LAN:IP", f"\"{self.PowerMeter.InterfaceProperties[ETHERNET_HOST_ADDRESS_ENTRY_NAME]}\"")
+				self.__parent__.Write(f"SOUR:CORR:PMET:COMM:LAN:PORT", self.PowerMeter.InterfaceProperties[ETHERNET_PORT_ENTRY_NAME] if ETHERNET_PORT_ENTRY_NAME in self.PowerMeter.InterfaceProperties else str(ExternalPowerMeter.DEFAULT_POWER_METER_PORT))
 
 			case InterfaceType.USB:
-				self.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'USB')
+				self.__parent__.Write(f"SOUR:CORR:PMET:COMM:TYPE", 'USB')
 			case _:
 				raise Exception("Direct connection from Agilent N5183B to a power meter must use Ethernet, GPIB-VXI, and USB")
 		
-		
-		self.Write('SOUR:CORR:PMET:CHAN', 'A' if self.IsPowerMeterCorrectionOnA else 'B')
+		self.__parent__.Write('SOUR:CORR:PMET:CHAN', 'A' if self.IsPowerMeterCorrectionOnA else 'B')
