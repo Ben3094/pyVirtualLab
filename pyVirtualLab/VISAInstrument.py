@@ -484,7 +484,7 @@ class Instrument:
 			raise Exception("The instrument is not connected")
 		
 	def __repr__(self) -> str:
-		if self.IsConnected:
+		if self.Vendor:
 			return self.Vendor.name + self.Model
 		else:
 			return str(self.Address)
