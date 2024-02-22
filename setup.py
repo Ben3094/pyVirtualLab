@@ -6,9 +6,12 @@ with open("README.md", "r", encoding="utf-8") as fh:
 with open("requirements.txt", "r", encoding="utf-16") as fh:
     install_requires = [line.strip() for line in fh.readlines()]
 
+with open("tests_requirements.txt", "r", encoding="utf-16") as fh:
+    test = [line.strip() for line in fh.readlines()]
+
 setup(
     name='pyVirtualLab',
-    version='0.0.1080',
+    version='0.0.1129',
     author='Benjamin SAGGIN',
     description='An abstraction library for laboratory instruments',
     long_description=long_description,

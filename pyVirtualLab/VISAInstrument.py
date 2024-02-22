@@ -226,7 +226,7 @@ def PARSE_INTERFACE_TYPE(value: str) -> tuple[InterfaceType, int]:
 	rematch:Match = None
 	for interfaceType in InterfaceType:
 		for interfaceTypeString in interfaceType.values:
-			rematch = match(f"{interfaceTypeString}(\d*)", value)
+			rematch = match(f"{interfaceTypeString}(\\d*)", value)
 			if rematch:
 				return (interfaceType, int(rematch[1]) if rematch[1] != '' else None)
 	raise Exception("Unknown instrument type")
