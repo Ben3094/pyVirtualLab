@@ -57,8 +57,6 @@ class KeysightN191XSensor:
 
 	@property
 	def Power(self) -> float:
-		pass
-	def __measurePower__(self) -> float:
 		savedTimeout = self.__parentKeysightN191X__.Timeout
 		self.__parentKeysightN191X__.Timeout = KeysightN191X.MEASURE_TIMEOUT
 		measuredPower = float(self.__parentKeysightN191X__.Query(f"MEAS{self.__address__}"))
@@ -68,15 +66,17 @@ class KeysightN191XSensor:
 	DEFAULT_FREQUENCY_FORMAT = "{:11.0f}"
 	@property
 	def Frequency(self) -> float:
-		pass
+		return float(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:FREQ"))
 	@Frequency.setter
 	def Frequency(self, value: float) -> float:
-		pass
+		self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:FREQ " + str(value))
+		if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
+			raise Exception("Error while setting the frequency")
+		return self.Frequency
 
 class SensorWithoutEEPROM(KeysightN191XSensor):
 	def __init__(self, parentKeysightN191X, address: int):
 		super().__init__(parentKeysightN191X, address)
-		self.CalibrationFactors = dict()
 
 	@property
 	def AssociatedCalibrationFactorsSetName(self) -> set:
@@ -92,35 +92,6 @@ class SensorWithoutEEPROM(KeysightN191XSensor):
 		else:
 			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", value)
 			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", True)
-
-	__frequency__ = nan
-	@property
-	def Frequency(self) -> float:
-		if self.AssociatedCalibrationFactorsSet != None:
-			self.__frequency__ = float(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:FREQ"))
-		return self.__frequency__
-	@Frequency.setter
-	def Frequency(self, value: float) -> float:
-		if self.AssociatedCalibrationFactorsSet != None:
-			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:FREQ " + str(value))
-			if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
-				raise Exception("Error while setting the frequency")
-		self.__frequency__ = value
-		return self.Frequency
-
-	@KeysightN191XSensor.CalibrationFactor.setter
-	def CalibrationFactor(self, value) -> float:
-		value = float(value)
-		self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:GAIN1", str(value))
-		setValue = self.CalibrationFactor
-		if value != setValue:
-			raise Exception("Error while setting calibration factor")
-		return self.CalibrationFactor
-
-	@property
-	def Power(self) -> float:
-		self.CalibrationFactor = self.CalibrationFactors[min(self.CalibrationFactors.keys(), key=lambda k: abs(k-self.Frequency))]
-		return self.__measurePower__()
 
 class ASensor(SensorWithoutEEPROM):
 	def __init__(self, parentKeysightN1913A, address: int):
@@ -141,20 +112,6 @@ class HSensor(SensorWithoutEEPROM):
 class SensorWithEEPROM(KeysightN191XSensor):
 	def __init__(self, parentKeysightN191X, address: int):
 		super().__init__(parentKeysightN191X, address)
-
-	@property
-	def Power(self) -> float:
-		return self.__measurePower__()
-
-	@property
-	def Frequency(self) -> float:
-		return float(self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:FREQ"))
-	@Frequency.setter
-	def Frequency(self, value: float) -> float:
-		self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:FREQ " + str(value))
-		if self.Frequency != float(self.DEFAULT_FREQUENCY_FORMAT.format(value)):
-			raise Exception("Error while setting the frequency")
-		return self.Frequency
 
 	@property
 	def IsAutoRangeEnabled(self) -> bool:
@@ -256,4 +213,4 @@ class KeysightN191X(Instrument):
 	def CalibrationFactorsSets(self) -> CalibrationFactorSetsDict:
 		return self.__calibrationFactorsSets__
 	def RenameCalibrationFactorsSet(self, oldName, newName):
-		self.__parentN191X__.Write('MEM:TABL:MOVE', f"\"{oldName}\",\"{newName}\"")
+		self.Write('MEM:TABL:MOVE', f"\"{oldName}\",\"{newName}\"")
