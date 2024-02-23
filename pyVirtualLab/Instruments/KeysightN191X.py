@@ -11,14 +11,16 @@ class CalibrationFactorSetsDict(dict):
 		self.__parentN191X__ = parentN191X
 
 	def __getKeys__(self) -> list[str]:
-		keys = [key.split(',')[0] for key in self.__parentN191X__.Query("MEM:CAT:TABL").split(',"', 1)[1].split('","')]
-		return [key for key in keys if not key.startswith('CUSTOM_')]
+		return [key.split(',')[0] for key in self.__parentN191X__.Query("MEM:CAT:TABL").split(',"', 1)[1].split('","')]
 	
 	def __iter__(self) -> Iterator:
 		return iter(self.__getKeys__())
 	
 	def __len__(self) -> int:
 		return len(self.__getKeys__())
+	
+	def __contains__(self, _CalibrationFactorSetsDict__key: object) -> bool:
+		return _CalibrationFactorSetsDict__key in self.__getKeys__()
 	
 	def __delitem__(self, _CalibrationFactorSetsDict__key) -> None:
 		self.__parentN191X__.Write('MEM:CLE', f"\"{_CalibrationFactorSetsDict__key}\"")
@@ -86,11 +88,11 @@ class SensorWithoutEEPROM(KeysightN191XSensor):
 		else:
 			return name
 	@AssociatedCalibrationFactorsSetName.setter
-	def AssociatedCalibrationFactorsSet(self, value):
+	def AssociatedCalibrationFactorsSetName(self, value):
 		if value == None:
 			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", False)
 		else:
-			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", value)
+			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", f"\"{value}\"")
 			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", True)
 
 class ASensor(SensorWithoutEEPROM):
