@@ -229,7 +229,7 @@ def PARSE_INTERFACE_TYPE(value: str) -> tuple[InterfaceType, int]:
 			rematch = match(f"{interfaceTypeString}(\\d*)", value)
 			if rematch:
 				return (interfaceType, int(rematch[1]) if rematch[1] != '' else None)
-	raise Exception("Unknown instrument type")
+	return (None, None)
 VXI_LOGICAL_ADDRESS_ENTRY_NAME:str = "Logical address"
 GPIB_ADDRESS_ENTRY_NAME:str = "GPIB address"
 GPIB_SECONDARY_ADDRESS_ENTRY_NAME:str = "GPIB secondary address"
@@ -256,8 +256,7 @@ def PARSE_RESOURCE_TYPE(value) -> ResourceType:
 			rematch = match(resourceTypeString, value)
 			if rematch:
 				return resourceType
-	raise Exception("Unknown resource type")
-
+	return None
 def PARSE_ADDRESS(value:str) -> tuple[InterfaceType, dict[str, object], ResourceType]:
 	interfaceProperties:dict[str, object] = dict()
 	value = value.split(ADDRESS_GRAMMAR_SEPARATOR)
