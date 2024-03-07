@@ -102,7 +102,9 @@ class Output():
 			return float(self.__parent__.Query("SOUR:CURR:LEV:IMM:AMPL", f"(@{self.Address})"))
 	@MaxCurrent.setter
 	def MaxCurrent(self, value):
-		if value == None:	
+		if value == None:
+			maxCurrent = self.__parent__.Query("SOUR:CURR:RANG", f"(@{self.Address})")
+			self.__parent__.Write(f"SOUR:CURR:LEV:IMM:AMPL {maxCurrent},(@{self.Address})")
 			self.__parent__.Write(f"SOUR:CURR:PROT:STAT OFF,(@{self.Address})")
 		else:
 			value = float(value)
