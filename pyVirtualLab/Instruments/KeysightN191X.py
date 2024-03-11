@@ -166,7 +166,7 @@ class SensorType(Enum):
 	N = N8480Sensor
 
 class KeysightN191X(Instrument):
-	MEASURE_TIMEOUT = 20000
+	MEASURE_TIMEOUT = 40000
 
 	def __init__(self, address):
 		super(KeysightN191X, self).__init__(address)
