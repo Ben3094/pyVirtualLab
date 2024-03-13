@@ -193,16 +193,17 @@ class VendorAbbreviation(aenum.Enum):
 	WZ = "Welzek"
 	YK = "Yokogawa Electric Corporation"
 	ZT = "ZTEC"
-def PARSE_VENDOR(intrumentId, check=False) -> VendorAbbreviation or str:
+def PARSE_VENDOR(intrumentId:str, check=False) -> VendorAbbreviation | str:
 	rematch:Match = None
+	vendorID = intrumentId.split(',')[0]
 	for vendorAbbreviation in VendorAbbreviation:
 		for value in vendorAbbreviation.values:
-			rematch = match(value, intrumentId)
+			rematch = vendorID.lower() == value.lower()
 			if rematch:
 				return vendorAbbreviation
 	if check:
 		raise Exception("Unknown manufacturer")
-	return intrumentId.split(',')[0]
+	return vendorID
 		
 def PARSE_MODEL_AND_FIRMWARE(instrumentId: str, instrumentVendor: str):
 	modelAndFirmware = instrumentId.removeprefix(instrumentVendor).rstrip().rstrip('\n').split(',', 2)
