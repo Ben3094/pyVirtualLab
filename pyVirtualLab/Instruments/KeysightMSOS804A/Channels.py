@@ -140,7 +140,7 @@ class Channel(Source):
 		return value
 	
 	# Measurements
-	def __queryMeasurement__(self, command, args) -> (float, ResultState):
+	def __queryMeasurement__(self, command, args) -> tuple[float, ResultState]:
 		currentSendValidMeasurements = self.__parent__.SendValidMeasurements
 		self.__parent__.SendValidMeasurements = True
 		values = self.__parent__.Query(command, args).split(',')

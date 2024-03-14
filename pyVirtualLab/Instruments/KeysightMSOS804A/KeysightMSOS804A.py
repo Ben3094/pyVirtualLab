@@ -149,6 +149,15 @@ class KeysightMSOS804A(Instrument):
 	def SendValidMeasurements(self, value: bool) -> bool:
 		pass
 
+	@property
+	@GetProperty(bool, 'MEAS:STAT')
+	def SendMeasurementsStatistics(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@SendMeasurementsStatistics.setter
+	@SetProperty(bool, 'MEAS:STAT')
+	def SendMeasurementsStatistics(self, value: bool) -> bool:
+		pass
+
 	ANALOG_CHANNELS = 4
 	@property
 	def AnalogChannels(self) -> dict[int, AnalogChannel]:
