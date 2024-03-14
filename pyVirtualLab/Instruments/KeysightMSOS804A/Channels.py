@@ -160,9 +160,9 @@ class Channel(Source):
 			return
 		else:
 			currentSendValidMeasurements = self.__parent__.SendValidMeasurements
-			self.__parent__.SendValidMeasurements = True
+			self.__parent__.SendMeasurementState = True
 			values = self.__parent__.Query(command, args).split(',')
-			self.__parent__.SendValidMeasurements = currentSendValidMeasurements
+			self.__parent__.SendMeasurementState = currentSendValidMeasurements
 			return float(values[0])
 	
 	def GetFrequency(self, addToResultsList:bool=False) -> float:
