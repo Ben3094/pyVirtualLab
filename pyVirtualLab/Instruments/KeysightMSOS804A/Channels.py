@@ -1,4 +1,5 @@
 from aenum import Enum
+from typing import Callable
 
 class ResultState(Enum):
 	Correct = 0
@@ -55,6 +56,19 @@ class ResultState(Enum):
 	CrossCorrelationTimeTooBig = 64
 	InvalidEdgePolarity = 65
 	CarrierFrequencyNotFound = 66
+
+def MeasurementMethod(command:str, commandArgs:str):
+	def decorator(func):
+		def wrapper(*args, **kwargs):
+			if kwargs['addToResultsList']:
+				args[0].__parent__.Write(command, commandArgs)
+				return
+			else:
+				return args[0].__queryMeasurement__(command, args)[0]
+			kwargs['addToResultsList'] = __converter__(args[0].Query(visaGetCommand))
+			return func(*args, **kwargs)
+		return wrapper
+	return decorator
 
 class Source():
 	TYPE_COMMAND_HEADER = None
@@ -140,71 +154,72 @@ class Channel(Source):
 		return value
 	
 	# Measurements
-	def __queryMeasurement__(self, command, args) -> tuple[float, ResultState]:
-		currentSendValidMeasurements = self.__parent__.SendValidMeasurements
-		self.__parent__.SendValidMeasurements = True
-		values = self.__parent__.Query(command, args).split(',')
-		self.__parent__.SendValidMeasurements = currentSendValidMeasurements
-		return float(values[0]), ResultState(int(values[1]))
-	def GetFrequency(self) -> float:
-		return self.__queryMeasurement__("MEAS:FREQ", f"{self.__commandAddress__}")[0]
-	def GetPeriod(self) -> float:
-		return self.__queryMeasurement__("MEAS:PER", f"{self.__commandAddress__}")[0]
-	def GetPositiveWidth(self) -> float:
-		return self.__queryMeasurement__("MEAS:PWID", f"{self.__commandAddress__}")[0]
-	def GetNegativeWidth(self) -> float:
-		return self.__queryMeasurement__("MEAS:NWID", f"{self.__commandAddress__}")[0]
+	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> float:
+		if addToResultsList:
+			self.__parent__.Write(command, args)
+			return
+		else:
+			currentSendValidMeasurements = self.__parent__.SendValidMeasurements
+			self.__parent__.SendValidMeasurements = True
+			values = self.__parent__.Query(command, args).split(',')
+			self.__parent__.SendValidMeasurements = currentSendValidMeasurements
+			return float(values[0])
+	
+	def GetFrequency(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:FREQ", f"{self.__commandAddress__}", addToResultsList)
+	def GetPeriod(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:PER", f"{self.__commandAddress__}", addToResultsList)
+	def GetPositiveWidth(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:PWID", f"{self.__commandAddress__}", addToResultsList)
+	def GetNegativeWidth(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:NWID", f"{self.__commandAddress__}", addToResultsList)
 	RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'RIS'
 	FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'FALL'
-	def GetDutyCycle(self, onDownState:bool=False) -> float:
-		return self.__queryMeasurement__("MEAS:DUTY", f"{self.__commandAddress__},{Channel.FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT if onDownState else Channel.RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT}")[0]
+	def GetDutyCycle(self, onDownState:bool=False, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:DUTY", f"{self.__commandAddress__},{Channel.FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT if onDownState else Channel.RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT}", addToResultsList)
 	
 class VerticalMeasurePossibleChannel(Channel):
-	def GetMaximum(self) -> float:
-		return float(self.__parent__.Query("MEAS:VMAX", f"{self.__commandAddress__}"))
-	def GetMinimum(self) -> float:
-		return float(self.__parent__.Query("MEAS:VMIN", f"{self.__commandAddress__}"))
-	def GetRange(self) -> float:
-		return float(self.__parent__.Query("MEAS:VPP", f"{self.__commandAddress__}"))
-	def GetRiseTime(self) -> float:
-		return float(self.__parent__.Query("MEAS:RIS", f"{self.__commandAddress__}"))
-	def GetFallTime(self) -> float:
-		return float(self.__parent__.Query("MEAS:FALL", f"{self.__commandAddress__}"))
-	def GetPeakToPeakAmplitude(self) -> float:
-		return float(self.__parent__.Query("MEAS:VPP", f"{self.__commandAddress__}"))
+	def GetMaximum(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:VMAX", f"{self.__commandAddress__}", addToResultsList)
+	def GetMinimum(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:VMIN", f"{self.__commandAddress__}", addToResultsList)
+	def GetRange(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:VPP", f"{self.__commandAddress__}", addToResultsList)
+	def GetRiseTime(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:RIS", f"{self.__commandAddress__}", addToResultsList)
+	def GetFallTime(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:FALL", f"{self.__commandAddress__}", addToResultsList)
+	def GetPeakToPeakAmplitude(self, addToResultsList:bool=False) -> float:
+		return self.__queryMeasurement__("MEAS:VPP", f"{self.__commandAddress__}", addToResultsList)
 	
 	# AC measurements
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
 	OVER_1_CYCLE_MEASUREMENT_ARGUMENT = 'CYCL'
-	def GetAverage(self, overOnly1Cycle = False) -> float:
+	def GetAverage(self, overOnly1Cycle:bool=False, addToResultsList:bool=False) -> float:
 		savedSendValidMeas = self.__parent__.SendValidMeasurements
 		self.__parent__.SendValidMeasurements = True
-		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
-	    		self.__commandAddress__]
-		value = float(self.__parent__.Query('MEAS:VAV', ','.join(args)).split(',')[0])
+		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, self.__commandAddress__]
+		value = self.__queryMeasurement__('MEAS:VAV', ','.join(args), addToResultsList).split(',')[0]
 		if not savedSendValidMeas:
 			self.__parent__.SendValidMeasurements = False
 		return value
 	
-	def GetArea(self, overOnly1Cycle = False) -> float:
+	def GetArea(self, overOnly1Cycle:bool=False, addToResultsList:bool=False) -> float:
 		savedSendValidMeas = self.__parent__.SendValidMeasurements
 		self.__parent__.SendValidMeasurements = True
-		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
-	    		self.__commandAddress__]
-		value = float(self.__parent__.Query('MEAS:AREA', ','.join(args)).split(',')[0])
+		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, self.__commandAddress__]
+		value = self.__queryMeasurement__('MEAS:AREA', ','.join(args), addToResultsList).split(',')[0]
 		if not savedSendValidMeas:
 			self.__parent__.SendValidMeasurements = False
 		return value
 
 	WITH_DC_COMPONENT_ARGUMENT = 'DC'
 	WITHOUT_DC_COMPONENT_ARGUMENT = 'AC'
-	def GetRMS(self, overOnly1Cycle = False, removeDCComponent = True) -> float:
+	def GetRMS(self, overOnly1Cycle:bool=False, removeDCComponent:bool=True, addToResultsList:bool=False) -> float:
 		savedSendValidMeas = self.__parent__.SendValidMeasurements
 		self.__parent__.SendValidMeasurements = True
-		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT,
-	    		AnalogChannel.WITHOUT_DC_COMPONENT_ARGUMENT if removeDCComponent else AnalogChannel.WITH_DC_COMPONENT_ARGUMENT,
-	    		self.__commandAddress__]
-		value = float(self.__parent__.Query('MEAS:VRMS', ','.join(args)).split(',')[0])
+		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, AnalogChannel.WITHOUT_DC_COMPONENT_ARGUMENT if removeDCComponent else AnalogChannel.WITH_DC_COMPONENT_ARGUMENT, self.__commandAddress__]
+		value = self.__queryMeasurement__('MEAS:VRMS', ','.join(args), addToResultsList).split(',')[0]
 		if not savedSendValidMeas:
 			self.__parent__.SendValidMeasurements = False
 		return value

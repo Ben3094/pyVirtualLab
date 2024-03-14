@@ -1,10 +1,11 @@
 from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
-from aenum import Enum
+from aenum import Enum, MultiValueEnum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource
 from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
 from time import time, sleep
+from collections import namedtuple
 	
 class RunState(Enum):
 	Stop = 0
@@ -15,6 +16,15 @@ class AcquisitionState(Enum):
 	Armed = 0
 	Triggered = 1
 	Done = 3
+
+class StatisticMode(MultiValueEnum):
+	All = 'ON' 
+	OFF = 'CURR', 'OFF' 
+	Maximum = 'MAX' 
+	Mean = 'MEAN' 
+	Minimum = 'MIN' 
+	StandardDeviation = 'STDD' 
+	Count = 'COUN'
 
 class KeysightMSOS804A(Instrument):
 	def __init__(self, address: str):
@@ -142,21 +152,44 @@ class KeysightMSOS804A(Instrument):
 
 	@property
 	@GetProperty(bool, 'MEAS:SEND')
-	def SendValidMeasurements(self, getMethodReturn) -> bool:
+	def SendMeasurementState(self, getMethodReturn) -> bool:
 		return getMethodReturn
-	@SendValidMeasurements.setter
+	@SendMeasurementState.setter
 	@SetProperty(bool, 'MEAS:SEND')
-	def SendValidMeasurements(self, value: bool) -> bool:
+	def SendMeasurementState(self, value: bool) -> bool:
 		pass
 
 	@property
-	@GetProperty(bool, 'MEAS:STAT')
-	def SendMeasurementsStatistics(self, getMethodReturn) -> bool:
+	@GetProperty(StatisticMode, 'MEAS:STAT')
+	def MeasurementsStatisticsMode(self, getMethodReturn) -> StatisticMode:
 		return getMethodReturn
-	@SendMeasurementsStatistics.setter
-	@SetProperty(bool, 'MEAS:STAT')
-	def SendMeasurementsStatistics(self, value: bool) -> bool:
+	@MeasurementsStatisticsMode.setter
+	@SetProperty(StatisticMode, 'MEAS:STAT')
+	def MeasurementsStatisticsMode(self, value: StatisticMode) -> StatisticMode:
 		pass
+
+	MEASUREMENT_CURRENT_VALUE_COLUMN_NAME:str = "Value"
+	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
+	def GetMeasurementsList(self):
+		columnsNames:list[str] = [KeysightMSOS804A.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
+		if self.SendMeasurementState:
+			columnsNames.append(KeysightMSOS804A.MEASUREMENT_STATE_COLUMN_NAME)
+		match self.MeasurementsStatisticsMode:
+			case StatisticMode.All:
+				[columnsNames.append(measurementStatisticMode.name) for measurementStatisticMode in [StatisticMode.Minimum, StatisticMode.Maximum, StatisticMode.Mean, StatisticMode.StandardDeviation, StatisticMode.Count]]
+			case StatisticMode.OFF:
+				pass
+			case _:
+				columnsNames.append(self.MeasurementsStatisticsMode.name)
+
+		measurementTuple = namedtuple('Measurement', columnsNames)
+		values = self.Query('MEAS:RES').split(',')
+		measurements:dict = dict()
+		for rowIndex in range(len(values)/(len(columnsNames)+1)):
+			measurementName = values.pop(1)
+			measurements[measurementName] = measurementTuple([values.pop(1) for columnIndex in range(len(columnsNames))])
+		
+		return measurements
 
 	ANALOG_CHANNELS = 4
 	@property

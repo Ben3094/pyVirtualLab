@@ -22,7 +22,7 @@ def GetProperty(dataType: type, visaGetCommand: str):
 		__converter__ = lambda x: x
 	elif issubclass(dataType, aenum.Enum):
 		__converter__ = lambda x: dataType(x)
-	elif issubclass(dataType, enum.Enum):
+	elif issubclass(dataType, aenum.MultiValueEnum):
 		__converter__ = lambda x: dataType(x)
 	else:
 		raise Exception("No available converter")
@@ -47,7 +47,7 @@ def SetProperty(dataType: type, visaSetCommand: str):
 		__converter__ = lambda x: str(x)
 	elif issubclass(dataType, aenum.Enum):
 		__converter__ = lambda x: str(dataType(x).value)
-	elif issubclass(dataType, enum.Enum):
+	elif issubclass(dataType, aenum.MultiValueEnum):
 		__converter__ = lambda x: str(dataType(x).value)
 	else:
 		raise Exception("No available converter")
