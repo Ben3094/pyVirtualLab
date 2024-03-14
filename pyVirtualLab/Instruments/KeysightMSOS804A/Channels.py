@@ -159,7 +159,7 @@ class Channel(Source):
 			self.__parent__.Write(command, args)
 			return
 		else:
-			currentSendValidMeasurements = self.__parent__.SendValidMeasurements
+			currentSendValidMeasurements = self.__parent__.SendMeasurementState
 			self.__parent__.SendMeasurementState = True
 			values = self.__parent__.Query(command, args).split(',')
 			self.__parent__.SendMeasurementState = currentSendValidMeasurements
