@@ -170,7 +170,7 @@ class KeysightMSOS804A(Instrument):
 
 	MEASUREMENT_CURRENT_VALUE_COLUMN_NAME:str = "Value"
 	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
-	def GetMeasurementsList(self):
+	def GetMeasurements(self):
 		columnsNames:list[str] = [KeysightMSOS804A.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
 		if self.SendMeasurementState:
 			columnsNames.append(KeysightMSOS804A.MEASUREMENT_STATE_COLUMN_NAME)
@@ -185,11 +185,23 @@ class KeysightMSOS804A(Instrument):
 		measurementTuple = namedtuple('Measurement', columnsNames)
 		values = self.Query('MEAS:RES').split(',')
 		measurements:dict = dict()
-		for rowIndex in range(len(values)/(len(columnsNames)+1)):
+		for rowIndex in range(int(len(values)/(len(columnsNames)+1))):
 			measurementName = values.pop(1)
-			measurements[measurementName] = measurementTuple([values.pop(1) for columnIndex in range(len(columnsNames))])
+			measurementArgs = [values.pop(1) for columnIndex in range(len(columnsNames))]
+			measurements[measurementName] = measurementTuple(*measurementArgs)
 		
 		return measurements
+	
+	NO_MEASUREMENT_ANSWER = "no meas"
+	def GetMeasurementsNames(self) -> dict[int, str]:
+		value = dict()
+		for measurementIndex in range(Channel.MEASUREMENTS_MAX_NUMBER):
+			measurementName = self.Query('MEAS:NAME', f"MEAS{measurementIndex}")
+			if measurementName == KeysightMSOS804A.NO_MEASUREMENT_ANSWER:
+				break
+			else:
+				value[measurementIndex] = measurementName
+		return value
 
 	ANALOG_CHANNELS = 4
 	@property
