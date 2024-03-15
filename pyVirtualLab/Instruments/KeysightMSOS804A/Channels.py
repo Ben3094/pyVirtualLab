@@ -164,7 +164,7 @@ class Channel(Source):
 				raise Exception("No more measurement slots available")
 			self.__parent__.Write(command, args)
 			
-			for measurementIndex in self.__parent__.GetMeasurementsNames().keys()[::-1]:
+			for measurementIndex in list(self.__parent__.GetMeasurementsNames().keys())[::-1]:
 				if not measurementIndex in previousMeasurementsNames:
 					return measurementIndex
 			
