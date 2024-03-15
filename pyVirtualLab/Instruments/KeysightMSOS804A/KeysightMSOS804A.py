@@ -170,7 +170,7 @@ class KeysightMSOS804A(Instrument):
 
 	MEASUREMENT_CURRENT_VALUE_COLUMN_NAME:str = "Value"
 	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
-	def GetMeasurements(self):
+	def GetMeasurements(self) -> dict:
 		columnsNames:list[str] = [KeysightMSOS804A.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
 		if self.SendMeasurementState:
 			columnsNames.append(KeysightMSOS804A.MEASUREMENT_STATE_COLUMN_NAME)

@@ -157,12 +157,13 @@ class Channel(Source):
 	MEASUREMENTS_MIN_INDEX = 1
 	MEASUREMENTS_MAX_INDEX = 20
 	MEASUREMENTS_LIMITS = MEASUREMENTS_MAX_INDEX - MEASUREMENTS_MIN_INDEX
-	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> float:
+	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> str|float:
 		if addToResultsList:
 			previousMeasurements = self.__parent__.GetMeasurements()
 			if len(previousMeasurements) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
-			self.__parent__.Write(command, args)				
+			self.__parent__.Write(command, args)
+			return list(self.__parent__.GetMeasurements().keys())[0]			
 		else:
 			currentSendValidMeasurements = self.__parent__.SendMeasurementState
 			self.__parent__.SendMeasurementState = True
