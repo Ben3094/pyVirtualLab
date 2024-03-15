@@ -186,8 +186,8 @@ class KeysightMSOS804A(Instrument):
 		values = self.Query('MEAS:RES').split(',')
 		measurements:dict = dict()
 		for rowIndex in range(int(len(values)/(len(columnsNames)+1))):
-			measurementName = values.pop(1)
-			measurementArgs = [values.pop(1) for columnIndex in range(len(columnsNames))]
+			measurementName = values.pop(0)
+			measurementArgs = [values.pop(0) for columnIndex in range(len(columnsNames))]
 			measurements[measurementName] = measurementTuple(*measurementArgs)
 		
 		return measurements
