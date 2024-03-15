@@ -199,7 +199,7 @@ class KeysightMSOS804A(Instrument):
 			try:
 				measurementName = self.Query('MEAS:NAME', f"MEAS{measurementIndex}")
 			except UnicodeDecodeError as e:
-				measurementName = "Encoding error"
+				measurementName = e.object
 			if measurementName == KeysightMSOS804A.NO_MEASUREMENT_ANSWER:
 				break
 			else:
