@@ -196,7 +196,10 @@ class KeysightMSOS804A(Instrument):
 	def GetMeasurementsNames(self) -> dict[int, str]:
 		value = dict()
 		for measurementIndex in range(Channel.MEASUREMENTS_MIN_INDEX, Channel.MEASUREMENTS_MAX_INDEX + 1):
-			measurementName = self.Query('MEAS:NAME', f"MEAS{measurementIndex}")
+			try:
+				measurementName = self.Query('MEAS:NAME', f"MEAS{measurementIndex}")
+			except UnicodeDecodeError as e:
+				measurementName = "Encoding error"
 			if measurementName == KeysightMSOS804A.NO_MEASUREMENT_ANSWER:
 				break
 			else:
