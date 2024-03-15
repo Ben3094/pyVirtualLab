@@ -154,11 +154,13 @@ class Channel(Source):
 		return value
 	
 	# Measurements
-	MEASUREMENTS_MAX_NUMBER = 20
+	MEASUREMENTS_MIN_INDEX = 1
+	MEASUREMENTS_MAX_INDEX = 20
+	MEASUREMENTS_LIMITS = MEASUREMENTS_MAX_INDEX - MEASUREMENTS_MIN_INDEX
 	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> int|float:
 		if addToResultsList:
 			previousMeasurementsNames = self.__parent__.GetMeasurementsNames()
-			if len(previousMeasurementsNames) > Channel.MEASUREMENTS_MAX_NUMBER:
+			if len(previousMeasurementsNames) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
 			self.__parent__.Write(command, args)
 			

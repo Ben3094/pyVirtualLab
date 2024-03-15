@@ -195,7 +195,7 @@ class KeysightMSOS804A(Instrument):
 	NO_MEASUREMENT_ANSWER = "no meas"
 	def GetMeasurementsNames(self) -> dict[int, str]:
 		value = dict()
-		for measurementIndex in range(Channel.MEASUREMENTS_MAX_NUMBER):
+		for measurementIndex in range(Channel.MEASUREMENTS_MIN_INDEX, Channel.MEASUREMENTS_MAX_INDEX + 1):
 			measurementName = self.Query('MEAS:NAME', f"MEAS{measurementIndex}")
 			if measurementName == KeysightMSOS804A.NO_MEASUREMENT_ANSWER:
 				break
