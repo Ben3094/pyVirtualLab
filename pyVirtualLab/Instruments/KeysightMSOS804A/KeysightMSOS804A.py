@@ -191,20 +191,6 @@ class KeysightMSOS804A(Instrument):
 			measurements[measurementName] = measurementTuple(*measurementArgs)
 		
 		return measurements
-	
-	NO_MEASUREMENT_ANSWER = "no meas"
-	def GetMeasurementsNames(self) -> dict[int, str]:
-		value = dict()
-		for measurementIndex in range(Channel.MEASUREMENTS_MIN_INDEX, Channel.MEASUREMENTS_MAX_INDEX + 1):
-			try:
-				measurementName = self.Query('MEAS:NAME', f"MEAS{measurementIndex}")
-			except UnicodeDecodeError as e:
-				measurementName = e.object
-			if measurementName == KeysightMSOS804A.NO_MEASUREMENT_ANSWER:
-				break
-			else:
-				value[measurementIndex] = measurementName
-		return value
 
 	ANALOG_CHANNELS = 4
 	@property
