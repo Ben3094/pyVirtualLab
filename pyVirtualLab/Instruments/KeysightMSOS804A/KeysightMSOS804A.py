@@ -191,6 +191,44 @@ class KeysightMSOS804A(Instrument):
 			measurements[measurementName] = measurementTuple(*measurementArgs)
 		
 		return measurements
+	
+	@property
+	def IsZoomEnabled(self) -> bool:
+		return True if str(self.Query('TIM:VIEW')) == 'WIND' else False
+	@IsZoomEnabled.setter
+	def IsZoomEnabled(self, value: bool) -> bool:
+		self.Write('TIM:VIEW', 'WIND' if value else 'MAIN')
+		if self.IsZoomEnabled != value:
+			raise Exception('Error while en/dis-abling horizontal zoom')
+		return value
+
+	@property
+	@GetProperty(float, 'TIM:WIND:DEL')
+	def ZoomDelay(self, getMethodReturn) -> float:
+		return getMethodReturn
+	@ZoomDelay.setter
+	@SetProperty(float, 'TIM:WIND:DEL')
+	def ZoomDelay(self, value: float) -> float:
+		pass
+	@property
+	@GetProperty(float, 'TIM:WIND:DEL')
+	def ZoomTimeScale(self, getMethodReturn) -> float:
+		return getMethodReturn
+	@ZoomTimeScale.setter
+	@SetProperty(float, 'TIM:WIND:DEL')
+	def ZoomTimeScale(self, value: float) -> float:
+		pass
+	
+	def GetZoomedMeasurement(self, measurementIndex:int) -> bool:
+		measurementIndex = int(measurementIndex)
+		return True if str(self.Query('MEAS:WIND', f"MEAS{measurementIndex}")) == 'ZOOM' else False
+	def SetZoomedMeasurement(self, measurementIndex:int, value:bool):
+		measurementIndex = int(measurementIndex)
+		self.Write('MEAS:WIND', f"{'ZOOM' if value else 'MAIN'}, MEAS{measurementIndex}")
+		if self.GetZoomedMeasurement != value:
+			raise Exception('Error while en/dis-abling horizontal zoom')
+		return value
+		
 
 	ANALOG_CHANNELS = 4
 	@property
