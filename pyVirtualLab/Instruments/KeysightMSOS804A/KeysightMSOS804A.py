@@ -225,10 +225,9 @@ class KeysightMSOS804A(Instrument):
 	def SetZoomedMeasurement(self, measurementIndex:int, value:bool):
 		measurementIndex = int(measurementIndex)
 		self.Write('MEAS:WIND', f"{'ZOOM' if value else 'MAIN'}, MEAS{measurementIndex}")
-		if self.GetZoomedMeasurement != value:
-			raise Exception('Error while en/dis-abling horizontal zoom')
+		if self.GetZoomedMeasurement(measurementIndex) != value:
+			raise Exception(f"Error while en/dis-abling measurement {measurementIndex} on zoom")
 		return value
-		
 
 	ANALOG_CHANNELS = 4
 	@property
