@@ -81,19 +81,19 @@ class SensorWithoutEEPROM(KeysightN191XSensor):
 		super().__init__(parentKeysightN191X, address)
 
 	@property
-	def AssociatedCalibrationFactorsSetName(self) -> set:
+	def AssociatedCalibrationFactorsSetName(self) -> str:
 		name = self.__parentKeysightN191X__.Query(f"SENS{self.__address__}:CORR:CSET1:SEL")
 		if name == '':
 			return None
 		else:
 			return name
 	@AssociatedCalibrationFactorsSetName.setter
-	def AssociatedCalibrationFactorsSetName(self, value):
-		if value == None:
-			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", False)
+	def AssociatedCalibrationFactorsSetName(self, value:str):
+		if value:
+			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", '0')
 		else:
 			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", f"\"{value}\"")
-			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", True)
+			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", '1')
 
 class ASensor(SensorWithoutEEPROM):
 	def __init__(self, parentKeysightN1913A, address: int):
