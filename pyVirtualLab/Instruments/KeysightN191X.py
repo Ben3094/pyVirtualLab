@@ -89,7 +89,7 @@ class SensorWithoutEEPROM(KeysightN191XSensor):
 			return name
 	@AssociatedCalibrationFactorsSetName.setter
 	def AssociatedCalibrationFactorsSetName(self, value:str):
-		if value:
+		if not value:
 			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:STAT", '0')
 		else:
 			self.__parentKeysightN191X__.Write(f"SENS{self.__address__}:CORR:CSET1:SEL", f"\"{value}\"")
