@@ -184,14 +184,14 @@ class FFTMagnitudeFunction(Function):
 		savedPeaksAnnotation = self.PeaksAnnotation
 		self.PeaksAnnotation = True
 		
-		frequencies = self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:FREQ").strip('"').split(',')
-		frequencies = [float(peakFrequency) for peakFrequency in frequencies]
-		magnitudes = self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:MAGN").strip('"').split(',')
-		magnitudes = [float(peakMagnitude) for peakMagnitude in magnitudes]
+		peaksFrequencies = self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:FREQ").strip('"').split(',')
+		peaksFrequencies = [float(peakFrequency) for peakFrequency in peaksFrequencies if peakFrequency != '']
+		peaksMagnitudes = self.__parent__.Query(f"{self.__commandAddress__}:FFT:PEAK:MAGN").strip('"').split(',')
+		peaksMagnitudes = [float(peakMagnitude) for peakMagnitude in peaksMagnitudes if peakMagnitude != '']
 		
 		self.PeaksAnnotation = savedPeaksAnnotation
 
-		return dict(zip(frequencies, magnitudes))
+		return dict(zip(peaksFrequencies, peaksMagnitudes))
 
 	@property
 	def IsHorizontalScaleLogarithmic(self) -> bool:

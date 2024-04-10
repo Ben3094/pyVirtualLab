@@ -1,7 +1,7 @@
-import pyvisa
 import aenum
 import enum
 from re import match, Match
+from pyvisa import ResourceManager, VisaIOError
 from pyvisa.resources import Resource
 from pyvisa_py.protocols.rpc import RPCUnpackError
 from time import time, sleep
@@ -20,12 +20,8 @@ def GetProperty(dataType: type, visaGetCommand: str):
 		__converter__ = lambda x: bool(int(x))
 	elif dataType is str:
 		__converter__ = lambda x: x
-	elif issubclass(dataType, aenum.Enum):
-		__converter__ = lambda x: dataType(x)
-	elif issubclass(dataType, aenum.MultiValueEnum):
-		__converter__ = lambda x: dataType(x)
 	else:
-		raise Exception("No available converter")
+		__converter__ = lambda x: dataType(x)
 
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -50,7 +46,7 @@ def SetProperty(dataType: type, visaSetCommand: str):
 	elif issubclass(dataType, aenum.MultiValueEnum):
 		__converter__ = lambda x: str(dataType(x).value)
 	else:
-		raise Exception("No available converter")
+		__converter__ = lambda x: x.__repr__
 
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -332,7 +328,10 @@ def PARSE_ADDRESS(value:str) -> tuple[InterfaceType, dict[str, object], Resource
 
 	return interfaceType, interfaceProperties, resourceType
 
-DEFAULT_RESOURCE_MANAGER = pyvisa.ResourceManager('@py')
+try:
+	DEFAULT_RESOURCE_MANAGER = ResourceManager()
+except Exception:
+	DEFAULT_RESOURCE_MANAGER = ResourceManager('@py')
 
 class Instrument:
 	DEFAULT_VISA_TIMEOUT = 2000

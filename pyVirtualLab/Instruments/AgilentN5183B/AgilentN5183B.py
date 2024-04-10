@@ -217,18 +217,21 @@ class AgilentN5183B(Source):
 	DEFAULT_MAX_POWER = 30
 	@property
 	def MaxPower(self) -> float:
-		return float(self.Query("SOUR:POW:USER:MAX"))
+		if self.Query('SOUR:POW:USER:ENAB') == 'OFF':
+			return None
+		else:
+			return float(self.Query("SOUR:POW:USER:MAX"))
 	@MaxPower.setter
 	def MaxPower(self, value: float):
-		if value == +math.inf:
-			self.Write("SOUR:POW:USER:ENAB OFF")
+		value = None if ((value == +math.inf) | (value == None)) else float(value)
+		if value == None:
+			self.Write('SOUR:POW:USER:ENAB', 'OFF')
 		else:
+			self.Write('SOUR:POW:USER:ENAB', 'ON')
 			self.Write("SOUR:POW:USER:MAX " + str(value))
-			if self.MaxPower != float(self.DEFAULT_POWER_FORMAT.format(value)):
-				raise Exception("Error while setting the power protection value")
-			self.Write("SOUR:POW:USER:ENAB ON")
-			if not bool(int(self.Query("SOUR:POW:USER:ENAB"))):
-				raise Exception("Error while setting the power protection feature")
+			
+		if self.MaxPower != float(self.DEFAULT_POWER_FORMAT.format(value)):
+			raise Exception("Error while setting the power protection value")
 
 	@property
 	@GetProperty(float, 'SOUR:POW:LEV:IMM:AMPL')
