@@ -222,20 +222,20 @@ class Output():
 	VOLTAGE_HEADER = 'VOLT'
 	CURRENT_HEADER = 'CURR'
 	POWER_HEADER = 'POW'
-	def GetMeasuredVoltage(self, measureType:MeasureType=MeasureType.Average, whenTriggered:bool=True) -> float:
+	def GetMeasuredVoltage(self, measureType:MeasureType=MeasureType.Average, whenTriggered:bool=False) -> float:
 		return self.__getMeasuredValues__(Output.VOLTAGE_HEADER, measureType, whenTriggered, onlyLast=True)
-	def GetMeasuredCurrent(self, measureType:MeasureType=MeasureType.Average, whenTriggered:bool=True) -> float:
+	def GetMeasuredCurrent(self, measureType:MeasureType=MeasureType.Average, whenTriggered:bool=False) -> float:
 		return self.__getMeasuredValues__(Output.CURRENT_HEADER, measureType, whenTriggered, onlyLast=True)
-	def GetMeasuredPower(self, whenTriggered:bool=True) -> float:
+	def GetMeasuredPower(self, whenTriggered:bool=False) -> float:
 		measureType=MeasureType.Average
 		return self.__getMeasuredValues__(Output.POWER_HEADER, measureType, whenTriggered, onlyLast=True)
-	def GetVoltagesWaveform(self, whenTriggered:bool=True) -> list[float]:
+	def GetVoltagesWaveform(self, whenTriggered:bool=False) -> list[float]:
 		measureType=MeasureType.Average
 		return self.__getMeasuredValues__(Output.VOLTAGE_HEADER, measureType, whenTriggered, onlyLast=False)
-	def GetCurrentsWaveform(self, whenTriggered:bool=True) -> list[float]:
+	def GetCurrentsWaveform(self, whenTriggered:bool=False) -> list[float]:
 		measureType=MeasureType.Average
 		return self.__getMeasuredValues__(Output.CURRENT_HEADER, measureType, whenTriggered, onlyLast=False)
-	def GetPowersWaveform(self, whenTriggered:bool=True) -> list[float]:
+	def GetPowersWaveform(self, whenTriggered:bool=False) -> list[float]:
 		measureType=MeasureType.Average
 		return self.__getMeasuredValues__(Output.POWER_HEADER, measureType, whenTriggered, onlyLast=False)
 
