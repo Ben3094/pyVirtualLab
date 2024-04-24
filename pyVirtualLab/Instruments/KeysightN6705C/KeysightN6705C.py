@@ -48,7 +48,7 @@ class KeysightN6705C(Source):
 		value = float(value)
 		self.__parent__.Write('SENS:SWE:TINT', value)
 
-	ASCII_DATA_FORMAT = 'ASCII'
+	ASCII_DATA_FORMAT = 'ASC'
 	REAL_DATA_FORMAT = 'REAL'
 	@property
 	def __isDataASCII__(self) -> bool:
