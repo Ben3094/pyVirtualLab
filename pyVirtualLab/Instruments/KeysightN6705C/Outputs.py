@@ -214,7 +214,7 @@ class Output():
 	def __getMeasuredValues__(self, header, measureType:MeasureType, whenTriggered:bool, onlyLast:bool) -> list[float]:
 		savedASCIIFormat = self.__parent__.__isDataASCII__
 		self.__parent__.__isDataASCII__ = True
-		query = f"{'FETC' if whenTriggered else 'MEAS'}:{'SCAL' if onlyLast else 'ARR'}:{header}:{measureType} (@{self.Address})"
+		query = f"{'FETC' if whenTriggered else 'MEAS'}:{'SCAL' if onlyLast else 'ARR'}:{header}:{measureType.value} (@{self.Address})"
 		values = [float(value) for value in self.__parent__.Query(query).lstrip('[').rstrip(']').split(',')]
 		if not savedASCIIFormat:
 			self.__parent__.__isDataASCII__ = False
