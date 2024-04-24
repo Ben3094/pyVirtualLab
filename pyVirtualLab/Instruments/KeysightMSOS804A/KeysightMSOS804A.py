@@ -152,11 +152,11 @@ class KeysightMSOS804A(Instrument):
 
 	@property
 	@GetProperty(bool, 'MEAS:SEND')
-	def SendMeasurementState(self, getMethodReturn) -> bool:
+	def IsStateIncludedWithMeasurement(self, getMethodReturn) -> bool:
 		return getMethodReturn
-	@SendMeasurementState.setter
+	@IsStateIncludedWithMeasurement.setter
 	@SetProperty(bool, 'MEAS:SEND')
-	def SendMeasurementState(self, value: bool) -> bool:
+	def IsStateIncludedWithMeasurement(self, value: bool) -> bool:
 		pass
 
 	@property
@@ -172,7 +172,7 @@ class KeysightMSOS804A(Instrument):
 	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
 	def GetMeasurements(self) -> dict:
 		columnsNames:list[str] = [KeysightMSOS804A.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
-		if self.SendMeasurementState:
+		if self.IsStateIncludedWithMeasurement:
 			columnsNames.append(KeysightMSOS804A.MEASUREMENT_STATE_COLUMN_NAME)
 		match self.MeasurementsStatisticsMode:
 			case StatisticMode.All:
@@ -191,6 +191,23 @@ class KeysightMSOS804A(Instrument):
 			measurements[measurementName] = measurementTuple(*measurementArgs)
 		
 		return measurements
+	
+	def DeleteMeasurement(self, index:list[int]|int):
+		"""_summary_
+
+		Args:
+			index (int): Index of the measurement. If -1, clear all measurements.
+		"""
+		if index == -1:
+			self.Write('MEAS:CLE')
+			return
+		
+		if not type(index) is list:
+			index = [index]
+		index = [int(i) for i in index]
+		for i in index:
+			self.Write(f"MEAS{i}:CLE")
+		return
 	
 	@property
 	def IsZoomEnabled(self) -> bool:
