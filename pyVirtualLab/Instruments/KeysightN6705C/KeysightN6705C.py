@@ -26,6 +26,12 @@ class KeysightN6705C(Source):
 				except VisaIOError:
 					pass
 		return self.__outputs__
+	
+	def SetOutputsState(self, outputs:list[Output], enabled:bool):
+		self.Write('OUTP:STAT', f"{str(int(enabled))}, (@{','.join([output.Address for output in outputs])})")
+	
+	def __abort__(self):
+		self.SetOutputsState(self.Outputs, False)
 
 	LOW_INTERVAL_PARAMETER = 'RES20'
 	HIGH_INTERVAL_PARAMETER = 'RES40'

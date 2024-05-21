@@ -67,10 +67,19 @@ class Output():
 	@property
 	def Conditions(self) -> Condition:
 		return Condition(int(self.__parent__.Query("STAT:QUES:COND", f"(@{self.Address})")))
-	def __clearPreviousConditionAndCheck__(self):
+	
+	def ClearProtection(self):
 		self.__parent__.Write(f"OUTP:PROT:CLE (@{self.Address})")
+
+	@property
+	def IsProtectionRaised(self, raiseException:bool = True):
 		if self.Conditions != Condition.OK:
-			raise Exception(f"Bad condition encountered: \"{self.Conditions.value}\"")
+			if raiseException:
+				raise Exception(f"Bad condition encountered: \"{self.Conditions.value}\"")
+			else: 
+				return True
+		else:
+			return False
 
 	DEFAULT_DECIMAL_FORMAT = "{:2.6f}"
 	def CONVERT_TO_DEFAULT_DECIMAL_FORMAT(value:float) -> float:
@@ -113,7 +122,8 @@ class Output():
 	@Voltage.setter
 	def Voltage(self, value: float):
 		self.__setVoltage__(value)
-		self.__clearPreviousConditionAndCheck__()
+		self.ClearProtection()
+		self.IsProtectionRaised
 
 	def __getCurrentHighLimit__(self) -> float:
 		if self.__parent__.Query("SOUR:CURR:PROT:STAT", f"(@{self.Address})") == 'OFF':
@@ -142,7 +152,8 @@ class Output():
 	@Current.setter
 	def Current(self, value:float):
 		self.__setCurrentHighLimit__(value)
-		self.__clearPreviousConditionAndCheck__()
+		self.ClearProtection()
+		self.IsProtectionRaised
 			
 	@property
 	def LowLimit(self) -> float:
@@ -338,7 +349,8 @@ class N678XA(Output):
 			currentSetVoltage = self.__setVoltage__(value)
 		else:
 			currentSetVoltage = self.__setVoltageHighLimit__(value)
-		self.__clearPreviousConditionAndCheck__()
+		self.ClearProtection()
+		self.IsProtectionRaised
 		return currentSetVoltage
 	
 	def __getCurrent__(self):
@@ -383,7 +395,8 @@ class N678XA(Output):
 			currentSetVoltage = self.__setCurrentHighLimit__(value)
 		else:
 			currentSetVoltage = self.__setCurrent__(value)
-		self.__clearPreviousConditionAndCheck__()
+		self.ClearProtection()
+		self.IsProtectionRaised
 		return currentSetVoltage
 	
 	@property
@@ -401,7 +414,8 @@ class N678XA(Output):
 			currentNegativeLimit = self.__setVoltageLowLimit__(value)
 		else:
 			raise Exception("Only 4 quadrant emulating power source (bipolar with load) supports negative voltage limit")
-		self.__clearPreviousConditionAndCheck__()
+		self.ClearProtection()
+		self.IsProtectionRaised
 		return currentNegativeLimit
 
 class N6781A(N678XA):
