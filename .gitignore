@@ -1,1 +1,2 @@
-pyVirtualLab/Tests/*
+pyVirtualLab/Tests
+__pycache__/
