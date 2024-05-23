@@ -1,10 +1,16 @@
 from enum import Enum
+from typing import Any
 
 class Condition(Enum):
+	Unknown = -1
 	Off = 0
 	ConstantCurrentOperation = 1
 	ConstantVoltageOperation = 2
 	Faulty = 3
+
+	@classmethod
+	def _missing_(cls, value: object) -> Any:
+		return cls.Unknown
 	
 class Output():
 	def __init__(self, parentKeysightN6705C, address):
@@ -89,10 +95,23 @@ class Output():
 		self.ClearProtection()
 		self.IsProtectionRaised
 		return currentSetCurrent
+	
+	OVER_CURRENT_PROTECTION_ON_SETTING_CHANGE:str = 'SCH'
+	OVER_CURRENT_PROTECTION_ALL_TIME:str = 'CCTR'
+	@property
+	def OverCurrentProtectionOnlyOnSettingsChange(self) -> bool:
+		return self.__parent__.Query('SOUR:CURR:DEL:STAR', f"(@{self.Address})") == Output.OVER_CURRENT_PROTECTION_ON_SETTING_CHANGE
+	@OverCurrentProtectionOnlyOnSettingsChange.setter
+	def OverCurrentProtectionOnlyOnSettingsChange(self, value:bool) -> bool:
+		value = Output.OVER_CURRENT_PROTECTION_ON_SETTING_CHANGE if value else Output.OVER_CURRENT_PROTECTION_ALL_TIME
+		self.__parent__.Write(f"SOUR:CURR:DEL:STAR {value},(@{self.Address})")
+		if self.OverCurrentProtectionOnlyOnSettingsChange != value:
+			raise Exception("Error while setting over-current protection conditions")
+		return value
 		
 	@property
 	def IsOverCurrentProtectionEnabled(self) -> bool:
-		return False if self.__parent__.Query('SOUR:CURR:PROT:STAT', f"(@{self.Address})") == 'OFF' else True
+		return self.__parent__.Query('SOUR:CURR:PROT:STAT', f"(@{self.Address})") == 'ON'
 	@IsOverCurrentProtectionEnabled.setter
 	def IsOverCurrentProtectionEnabled(self, value: bool) -> bool:
 		value = bool(value)
