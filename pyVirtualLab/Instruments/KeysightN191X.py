@@ -1,7 +1,6 @@
 from collections.abc import Iterator
 from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
 from aenum import Enum
-from math import nan
 from statistics import mean
 
 class CalibrationFactorSetsDict(dict):

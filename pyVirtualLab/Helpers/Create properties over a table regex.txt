@@ -1,0 +1,8 @@
+	@property
+	@GetProperty(float, '$1')
+	def $1(self, getMethodReturn) -> float:
+		return getMethodReturn
+	@$1.setter
+	@SetProperty(float, '$1')
+	def $1(self, value: float):
+		pass\n\n

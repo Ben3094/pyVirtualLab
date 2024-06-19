@@ -1,15 +1,14 @@
-import aenum
-import enum
+from aenum import Enum, MultiValueEnum
 from re import match, Match
-from pyvisa import ResourceManager, VisaIOError
+from pyvisa import ResourceManager
 from pyvisa.resources import Resource
 from pyvisa_py.protocols.rpc import RPCUnpackError
 from time import time, sleep
-from abc import abstractmethod
 from threading import Thread
 from queue import Queue
+from logging import error
 
-def GetProperty(dataType: type, visaGetCommand: str):
+def GetProperty(dataType:type, visaGetCommand:str):
 	__converter__ = None
 
 	if dataType is float:
@@ -25,12 +24,13 @@ def GetProperty(dataType: type, visaGetCommand: str):
 
 	def decorator(func):
 		def wrapper(*args, **kwargs):
-			kwargs['getMethodReturn'] = __converter__(args[0].Query(visaGetCommand))
+			command = visaGetCommand.format(**args[0].__dict__)
+			kwargs['getMethodReturn'] = __converter__(args[0].Query(command))
 			return func(*args, **kwargs)
 		return wrapper
 	return decorator
 
-def SetProperty(dataType: type, visaSetCommand: str):
+def SetProperty(dataType:type, visaSetCommand:str):
 	__converter__ = None
 
 	if dataType is float:
@@ -41,55 +41,54 @@ def SetProperty(dataType: type, visaSetCommand: str):
 		__converter__ = lambda x: str(int(bool(x)))
 	elif dataType is str:
 		__converter__ = lambda x: str(x)
-	elif issubclass(dataType, aenum.Enum):
+	elif issubclass(dataType, Enum):
 		__converter__ = lambda x: str(dataType(x).value)
-	elif issubclass(dataType, aenum.MultiValueEnum):
+	elif issubclass(dataType, MultiValueEnum):
 		__converter__ = lambda x: str(dataType(x).value)
 	else:
 		__converter__ = lambda x: x.__repr__
 
 	def decorator(func):
 		def wrapper(*args, **kwargs):
-			args[0].Write(visaSetCommand, __converter__(args[1]))
+			command = visaSetCommand.format(**args[0].__dict__)
+			args[0].Write(command, __converter__(args[1]))
 			if getattr(args[0], func.__name__) != args[1]:
 				raise Exception(f"Error while setting \"{func.__name__}\"")
 			return func(*args, **kwargs)
 		return wrapper
 	return decorator
 
-class VirtualResource:
-	def __init__(self):
-		pass
+class VirtualResource(Resource):
+	__resource__:Resource=None
 
-	@abstractmethod
+	def __init__(self, resource:Resource):
+		self.__resource__ = resource
+
 	def write(self, value:str) -> None:
-		pass
-	@abstractmethod
+		self.__resource__.write(value)
 	def read(self) -> str:
-		pass
-	@abstractmethod
+		return self.__resource__.write()
 	def query(self, value:str) -> str:
-		pass
+		return self.__resource__.query(value)
 
 	@property
-	@abstractmethod
 	def timeout(self) -> float:
-		pass
+		return self.__resource__.timeout
 	@timeout.setter
-	@abstractmethod
 	def timeout(self, value:float):
-		pass
+		self.__resource__.timeout = value
 
 	@property
-	@abstractmethod
 	def stb(self) -> int:
-		pass
+		return int(self.__resource__.query('*STB?'))
 
+	def open(self) -> None:
+		error("Connection opening cannot be asked from a virtual resource")
 	def close(self) -> None:
-		pass
+		error("Connection closing cannot be asked from a virtual resource")
 
 # See IVI foundation VXI plug&play System Alliance VPP-9: Instrument Vendor Abbreviations
-class VendorAbbreviation(aenum.Enum):
+class VendorAbbreviation(MultiValueEnum):
 	AQ = "Acqiris"
 	AC = "Applicos BV"
 	AV = "Advantest Corporation"
@@ -100,8 +99,8 @@ class VendorAbbreviation(aenum.Enum):
 	AM = "AMP Incorporated"
 	AN = "Analogic, Corp."
 	AD = "Ando Electric Company Limited"
-	AU = "Anritsu Company"
-	AT = "Astronics Test Systems Inc."
+	AU1 = "Anritsu Company"
+	AT1 = "Astronics Test Systems Inc."
 	AO = "AOIP Instrumentation"
 	AS = "ASCOR Incorporated"
 	AP = "Audio Precision, Inc"
@@ -164,7 +163,7 @@ class VendorAbbreviation(aenum.Enum):
 	SL = "Schlumberger Technologies"
 	SC = "Scicom"
 	SR = "Scientific Research Corporation"
-	# AU = "Serendipity Systems, Inc."
+	AU2 = "Serendipity Systems, Inc."
 	SI = "SignalCraft Technologies Inc."
 	ST = "Sony/Tektronix Corporation"
 	SS = "Spectrum Signal Processing, Inc."
@@ -174,7 +173,7 @@ class VendorAbbreviation(aenum.Enum):
 	TE = "Teradyne"
 	TS = "Test & Measurement Systems Inc."
 	RF = "ThinkRF Corporation"
-	# AT = "Thurlby Thandar Instruments Limited Transmagnetics, Inc."
+	AT2 = "Thurlby Thandar Instruments Limited Transmagnetics, Inc.", "THURLBY THANDAR"
 	TM = "Transmagnetics, Inc."
 	TP = "TSE Plazotta"
 	TT = "TTI Testron, Inc."
@@ -191,10 +190,10 @@ class VendorAbbreviation(aenum.Enum):
 	ZT = "ZTEC"
 def PARSE_VENDOR(intrumentId:str, check=False) -> VendorAbbreviation | str:
 	rematch:Match = None
-	vendorID = intrumentId.split(',')[0]
+	vendorID = intrumentId.split(',')[0].lower()
 	for vendorAbbreviation in VendorAbbreviation:
 		for value in vendorAbbreviation.values:
-			rematch = vendorID.lower() == value.lower()
+			rematch = vendorID == value.lower()
 			if rematch:
 				return vendorAbbreviation
 	if check:
@@ -203,12 +202,12 @@ def PARSE_VENDOR(intrumentId:str, check=False) -> VendorAbbreviation | str:
 		
 def PARSE_MODEL_AND_FIRMWARE(instrumentId: str, instrumentVendor: str):
 	modelAndFirmware = instrumentId.removeprefix(instrumentVendor).rstrip().rstrip('\n').split(',', 2)
-	return modelAndFirmware[1], modelAndFirmware[2]
+	return modelAndFirmware[1].strip(), modelAndFirmware[2].strip()
 
 ADDRESS_GRAMMAR_SEPARATOR:str = "::"
 
 INTERFACE_TYPE_ENTRY_NAME:str = "Interface type"
-class InterfaceType(aenum.Enum):
+class InterfaceType(Enum):
 	VXI = 'VXI'
 	GPIB_VXI = 'GPIB-VXI'
 	GPIB = 'GPIB'
@@ -239,7 +238,7 @@ USB_SERIAL_NUMBER_ENTRY_NAME:str = "Serial number"
 USB_INTERFACE_NUMBER_ENTRY_NAME:str = "Interface number"
 PXI_CHASSIS_NUMBER_ENTRY_NAME:str = "Chassis number"
 
-class ResourceType(aenum.Enum):
+class ResourceType(Enum):
 	Instrument = 'INSTR'
 	MemoryAccess = 'MEMACC'
 	GPIBBus = 'INTFC'
@@ -401,7 +400,7 @@ class Instrument:
 
 	def __getConnectionStatus__(self, outValue: Queue):
 		try:
-			self.__resource__.stb
+			self.__resource__.query('*STB?')
 			outValue.put(True)
 		except RPCUnpackError:
 			outValue.put(True)
@@ -484,7 +483,7 @@ class Instrument:
 		
 	def __repr__(self) -> str:
 		if self.Vendor:
-			return self.Vendor.name + self.Model
+			return self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor + self.Model
 		else:
 			return str(self.Address)
 
@@ -502,3 +501,79 @@ def RECURSIVE_SUBCLASSES(type:type) -> list[type]:
 	for currentLevelSubclass in currentLevelSubclasses:
 		deeperLevelSubclasses = deeperLevelSubclasses + RECURSIVE_SUBCLASSES(currentLevelSubclass)
 	return currentLevelSubclasses + deeperLevelSubclasses
+
+class VirtualInstrument(Instrument):
+	__instrument__:Instrument=None
+
+	Id:str = None
+	Vendor:str = None
+	Model:str = None
+	Firmware:str = None
+
+	def __init__(self, instrument:Instrument):
+		Instrument.__init__(self)
+		self.__instrument__ = instrument
+		self.__interfaceType__: InterfaceType = None
+		self.__interfaceProperties__: dict[str, object] = dict()
+		self.__resourceType__: ResourceType = None
+
+	@property
+	def Resource(self):
+		return self.__instrument__.__resource__
+	@Resource.setter
+	def Resource(self, value):
+		error("Impossible to set ressource within a virtual instrument")
+
+	@property
+	def Address(self) -> str:
+		return self.__instrument__.__address__
+	@Address.setter
+	def Address(self, value: str) -> str:
+		pass
+	
+	@property
+	def InterfaceType(self):
+		return self.__instrument__.__interfaceType__
+	@property
+	def InterfaceProperties(self) -> dict[str, object]:
+		return self.__instrument__.__interfaceProperties__
+	@property
+	def ResourceType(self):
+		return self.__instrument__.__resourceType__
+
+	@property
+	def Timeout(self) -> int:
+		return self.__instrument__.__resource__.timeout
+	@Timeout.setter
+	def Timeout(self, value: int):
+		pass
+
+	@property
+	def IsConnected(self) -> bool:
+		return self.__instrument__.IsConnected
+	def Connect(self) -> bool:
+		error("Impossible to change connection status within a virtual instrument")
+	def Disconnect(self) -> bool:
+		error("Impossible to change connection status within a virtual instrument")
+	def close(self) -> None:
+		self.Disconnect()
+	
+	def Write(self, command: str, args:str=''):
+		return self.__instrument__.Write(command, args)
+	def Query(self, command: str, args:str=''):
+		return self.__instrument__.Query(command, args)
+	def Read(self) -> str:
+		return self.__instrument__.Read()
+	
+	def Wait(self, delay:float=0.01, timeout:float=5):
+		self.__instrument__.Wait(delay, timeout)
+	def SelfTest(self):
+		self.__instrument__.SelfTest()
+	def Reset(self):
+		self.__instrument__.Reset()
+		
+	def __repr__(self) -> str:
+		if self.Vendor:
+			return self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor + self.Model
+		else:
+			return str(self.Address)

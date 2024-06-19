@@ -123,7 +123,7 @@ class GateFunction(Function):
 	NAME = 'GAT'
 
 class PowerUnit(Enum):
-	dB='DB'
+	dB = 'DB'
 	dBmV = 'DBMV'
 	dBuV = 'DBUV'
 	Watt = 'WATT'
