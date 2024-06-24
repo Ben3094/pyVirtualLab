@@ -1,4 +1,12 @@
 from pyVirtualLab.VISAInstrument import VirtualInstrument, Source, GetProperty, SetProperty
+from collections import namedtuple
+
+Range = namedtuple("Range", "Index MaxVoltage MaxCurrent")
+RANGES:dict[int, namedtuple] = {
+	0: Range(0, 15, 5),
+	1: Range(1, 35, 3),
+	2: Range(2, 35, 0.5)
+}
 
 class Output(VirtualInstrument):
 	__outputAddress__:int = None
@@ -16,9 +24,13 @@ class Output(VirtualInstrument):
 	def Voltage(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@Voltage.setter
-	@SetProperty(float, 'V{__outputAddress__}')
 	def Voltage(self, value: float):
-		pass
+		value = float(value)
+		self.__applySuitedRange__(value, self.Current)
+		self.Write(f"V{self.__outputAddress__}", str(value))
+		if self.Voltage != value:
+			raise Exception("Error while setting voltage")
+		return value
 
 	@property
 	@GetProperty(float, 'OVP{__outputAddress__}')
@@ -34,9 +46,13 @@ class Output(VirtualInstrument):
 	def Current(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@Current.setter
-	@SetProperty(float, 'I{__outputAddress__}')
 	def Current(self, value: float):
-		pass
+		value = float(value)
+		self.__applySuitedRange__(self.Voltage, value)
+		self.Write(f"I{self.__outputAddress__}", str(value))
+		if self.Current != value:
+			raise Exception("Error while setting current")
+		return value
 
 	@property
 	@GetProperty(float, 'OCP{__outputAddress__}')
@@ -84,13 +100,43 @@ class Output(VirtualInstrument):
 		pass
 
 	@property
-	@GetProperty(int, 'OP{__outputAddress__}')
-	def IsEnabled(self, getMethodReturn) -> int:
+	@GetProperty(bool, 'OP{__outputAddress__}')
+	def IsEnabled(self, getMethodReturn) -> bool:
 		return getMethodReturn
 	@IsEnabled.setter
-	@SetProperty(int, 'OP{__outputAddress__}')
-	def IsEnabled(self, value: int):
+	@SetProperty(bool, 'OP{__outputAddress__}')
+	def IsEnabled(self, value: bool):
 		pass
+	
+	@property
+	def __range__(self):
+		return RANGES[int(self.Query(f"RANGE{self.__outputAddress__}").lstrip('R').lstrip(f"{self.__outputAddress__}").lstrip())]
+	@__range__.setter
+	def __range__(self, value):
+		self.Write(f"RANGE{self.__outputAddress__}", value.Index)
+		if self.__range__ != value:
+			raise Exception("Error while setting range value")
+		return value
+	def __applySuitedRange__(self, suitedVoltage:float, suitedCurrent:float):
+		compatibleVoltageRanges = [range for range in list(RANGES.values()) if range.MaxVoltage > suitedVoltage]
+		compatibleCurrentRanges = [range for range in list(RANGES.values()) if range.MaxCurrent > suitedCurrent]
+		compatibleRanges = list(set(compatibleVoltageRanges).intersection(compatibleCurrentRanges))
+		if not self.__range__ in compatibleRanges:
+			self.__range__ = compatibleRanges[0]
+	@property
+	def VoltageRange(self) -> float:
+		return self.__range__.MaxVoltage
+	@VoltageRange.setter
+	def VoltageRange(self, value:float) -> float:
+		self.__range__ = [couple for couple in RANGES.values() if couple.MaxVoltage == value][0]
+		return value
+	@property
+	def CurrentRange(self) -> float:
+		return self.__range__.MaxCurrent
+	@CurrentRange.setter
+	def CurrentRange(self, value:float) -> float:
+		self.__range__ = [couple for couple in RANGES.values() if couple.MaxCurrent == value][0]
+		return value
 
 	# @property
 	# @GetProperty(int, 'LSR')
@@ -155,6 +201,15 @@ class AIMTTiQL355TP(Source):
 
 	def ClearTrippedState(self, value: int):
 		self.Write('TRIPRST')
+
+	@property
+	@GetProperty(bool, 'MODE')
+	def IsNotLinked(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@IsNotLinked.setter
+	@SetProperty(bool, 'MODE')
+	def IsNotLinked(self, value: bool):
+		pass
 
 	@property
 	def Outputs(self) -> dict[int, Output]:
