@@ -8,56 +8,6 @@ from threading import Thread
 from queue import Queue
 from logging import error
 
-def GetProperty(dataType:type, visaGetCommand:str):
-	__converter__ = None
-
-	if dataType is float:
-		__converter__ = lambda x: float(x)
-	elif dataType is int:
-		__converter__ = lambda x: int(x)
-	elif dataType is bool:
-		__converter__ = lambda x: bool(int(x))
-	elif dataType is str:
-		__converter__ = lambda x: x
-	else:
-		__converter__ = lambda x: dataType(x)
-
-	def decorator(func):
-		def wrapper(*args, **kwargs):
-			command = visaGetCommand.format(**args[0].__dict__)
-			kwargs['getMethodReturn'] = __converter__(args[0].Query(command))
-			return func(*args, **kwargs)
-		return wrapper
-	return decorator
-
-def SetProperty(dataType:type, visaSetCommand:str):
-	__converter__ = None
-
-	if dataType is float:
-		__converter__ = lambda x: str(float(x))
-	elif dataType is int:
-		__converter__ = lambda x: str(int(x))
-	elif dataType is bool:
-		__converter__ = lambda x: str(int(bool(x)))
-	elif dataType is str:
-		__converter__ = lambda x: str(x)
-	elif issubclass(dataType, Enum):
-		__converter__ = lambda x: str(dataType(x).value)
-	elif issubclass(dataType, MultiValueEnum):
-		__converter__ = lambda x: str(dataType(x).value)
-	else:
-		__converter__ = lambda x: x.__repr__
-
-	def decorator(func):
-		def wrapper(*args, **kwargs):
-			command = visaSetCommand.format(**args[0].__dict__)
-			args[0].Write(command, __converter__(args[1]))
-			if getattr(args[0], func.__name__) != args[1]:
-				raise Exception(f"Error while setting \"{func.__name__}\"")
-			return func(*args, **kwargs)
-		return wrapper
-	return decorator
-
 class VirtualResource(Resource):
 	__resource__:Resource=None
 
@@ -494,13 +444,6 @@ class Source(Instrument):
 	def __init__(self, address, timeout=Instrument.DEFAULT_VISA_TIMEOUT):
 		Instrument.__init__(self, address, timeout)
 		self.Abort = self.__abort__
-
-def RECURSIVE_SUBCLASSES(type:type) -> list[type]:
-	currentLevelSubclasses = type.__subclasses__()
-	deeperLevelSubclasses:list = list()
-	for currentLevelSubclass in currentLevelSubclasses:
-		deeperLevelSubclasses = deeperLevelSubclasses + RECURSIVE_SUBCLASSES(currentLevelSubclass)
-	return currentLevelSubclasses + deeperLevelSubclasses
 
 class VirtualInstrument(Instrument):
 	__instrument__:Instrument=None

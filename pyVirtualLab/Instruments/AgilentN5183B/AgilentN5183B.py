@@ -1,7 +1,8 @@
 import math
 from aenum import Enum
 from numpy import log10, linspace, logspace
-from pyVirtualLab.VISAInstrument import Instrument, Source, VirtualResource, InterfaceType, GetProperty, SetProperty, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME, ETHERNET_DEVICE_NAME_ENTRY_NAME
+from pyVirtualLab.VISAInstrument import Instrument, Source, VirtualResource, InterfaceType, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME, ETHERNET_DEVICE_NAME_ENTRY_NAME
+from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .ExternalPowerMeter import ExternalPowerMeter
 
 class OutSignal(Enum):

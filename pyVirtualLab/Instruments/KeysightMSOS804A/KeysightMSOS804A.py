@@ -1,4 +1,5 @@
-from pyVirtualLab.VISAInstrument import Instrument, GetProperty, SetProperty
+from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab.Helpers import GetProperty, SetProperty
 from aenum import Enum, MultiValueEnum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource

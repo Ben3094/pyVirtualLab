@@ -1,4 +1,5 @@
-from pyVirtualLab.VISAInstrument import VirtualInstrument, Source, GetProperty, SetProperty
+from pyVirtualLab.VISAInstrument import VirtualInstrument, Source
+from pyVirtualLab.Helpers import GetProperty, SetProperty
 from collections import namedtuple
 
 Range = namedtuple("Range", "Index MaxVoltage MaxCurrent")

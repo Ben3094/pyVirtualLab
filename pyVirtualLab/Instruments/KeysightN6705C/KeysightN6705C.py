@@ -1,4 +1,5 @@
-from pyVirtualLab.VISAInstrument import Source, GetProperty
+from pyVirtualLab.VISAInstrument import Source
+from pyVirtualLab.Helpers import GetProperty
 from pyVirtualLab.Instruments.KeysightN6705C.Outputs import *
 from pyvisa import VisaIOError
 

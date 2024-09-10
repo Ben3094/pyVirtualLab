@@ -1,0 +1,2 @@
+(\w+), ?((?:[A-Z]|\:)+(?:[A-Z]))
+\tSELECT_MODE_COMMAND:str = 'INST:SEL'\n\t@property\n\t@GetProperty(Mode, SELECT_MODE_COMMAND)\n\tdef Mode(self, getMethodReturn) -> Mode:\n\t\treturn getMethodReturn\n\t@Mode.setter\n\t@SetProperty(Mode, SELECT_MODE_COMMAND)\n\tdef Mode(self, value:Mode):\n\t\tpass\n\n

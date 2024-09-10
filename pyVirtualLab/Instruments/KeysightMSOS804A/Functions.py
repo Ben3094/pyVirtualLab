@@ -1,5 +1,5 @@
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, VerticalMeasurePossibleChannel
-from pyVirtualLab.VISAInstrument import RECURSIVE_SUBCLASSES
+from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
 from aenum import Enum
 import re
 
