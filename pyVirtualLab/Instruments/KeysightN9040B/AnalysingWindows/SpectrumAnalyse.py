@@ -1,6 +1,7 @@
 from ..AnalysingWindow import AnalysingWindow
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES, GetProperty, SetProperty, logLinStringToBoolConverter, boolToLogLinStringConverter
 from enum import unique, Enum
+from ...KeysightN9040B import DataFormat
 
 @unique
 class PowerUnit(Enum):
@@ -283,11 +284,11 @@ class SpectrumAnalyse(AnalysingWindow):
 		pass
 	VIDEO_BANDWIDTH_RATIO_COMMAND:str = 'SENS:BWID:VID:RAT'
 	@property
-	@GetProperty(float, VIDEO_BANDWIDTH_RATIO_COMMAND, booleanStatePropertyName='__autoBandwidthRatio__', offStateValue=None)
+	@GetProperty(float, VIDEO_BANDWIDTH_RATIO_COMMAND, booleanStatePropertyName='__autoVideoBandwidthRatio__', offStateValue=None)
 	def VideoBandwidthRatio(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@VideoBandwidthRatio.setter
-	@SetProperty(float, VIDEO_BANDWIDTH_RATIO_COMMAND, rounding=lambda x: round(x, 5), booleanStatePropertyName='__autoBandwidthRatio__', offStateValue=None)
+	@SetProperty(float, VIDEO_BANDWIDTH_RATIO_COMMAND, rounding=lambda x: round(x, 5), booleanStatePropertyName='__autoVideoBandwidthRatio__', offStateValue=None)
 	def VideoBandwidthRatio(self, value:float) -> float:
 		pass
 
@@ -336,7 +337,17 @@ class SpectrumAnalyse(AnalysingWindow):
 	@SetProperty(float, STOP_FREQUENCY_COMMAND)
 	def StopFrequency(self, value:float) -> float:
 		pass
-
+	
+	CONTINUOUS_SWEEP_COMMAND:str = 'INIT:CONT'
+	@property
+	@GetProperty(bool, CONTINUOUS_SWEEP_COMMAND)
+	def IsAcquisitionRunning(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@IsAcquisitionRunning.setter
+	@SetProperty(bool, CONTINUOUS_SWEEP_COMMAND)
+	def IsAcquisitionRunning(self, value:bool) -> bool:
+		pass
+	
 	AVERAGE_NUMBER_COMMAND:str = 'SENS:AVER:COUN'
 	@property
 	@GetProperty(int, AVERAGE_NUMBER_COMMAND)
@@ -365,6 +376,16 @@ class SpectrumAnalyse(AnalysingWindow):
 	@SetProperty(Average, AVERAGE_TYPE_COMMAND, booleanStatePropertyName='__autoAverageType__', offStateValue=None)
 	def AverageType(self, value:Average) -> Average:
 		pass
+
+	GET_SPECTRUM_COMMAND:str = 'FETC:SAN'
+	def GetSpectrum(self) -> dict[float, float]:
+		dataFormatSavedState = self.__parent__.__dataFormat__
+		self.__parent__.__dataFormat__ = DataFormat.ASCII
+		data = self.Query(SpectrumAnalyse.GET_SPECTRUM_COMMAND)
+		data = data.split(',')
+		data = dict(zip(data[::2], data[1::2]))
+		self.__parent__.__dataFormat__ = dataFormatSavedState
+		return data
 	
 	__viewRegistry__:SpectrumAnalyseView = None
 	@property

@@ -3,33 +3,7 @@ from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .AnalysingWindows import AnalysingWindow, ANALYSING_WINDOWS_NAMES
 from .AnalysingWindows.SpectrumAnalyse import SpectrumAnalyse
 from re import match
-from enum import Enum, unique
-
-@unique
-class CalibrationAlignementMode(Enum):
-	Automatic = 'ON'
-	Light = 'LIGH'
-	Partial = 'PART'
-	Disabled = "OFF"
-
-@unique
-class InputPort(Enum):
-	RFPort = 'RF'
-	ExternalMixerPort = 'EMIX'
-	IQPort = "AIQ"
-
-@unique
-class MixerPath(Enum):
-	Normal = 'NORM'
-	DualConversion = 'DUAL'
-	AuxiliaryEquipment = 'AUX'
-
-@unique
-class MixerSignalIdentificationMode(Enum):
-	Disabled = 'OFF'
-	Suppress = 'ISUP'
-	Shift = 'ISH'
-
+from ..KeysightN9040B import DataFormat, CalibrationAlignementMode, InputPort, MixerPath, MixerSignalIdentificationMode
 class KeysightN9040B(Instrument):
 	def __init__(self, address):
 		super(KeysightN9040B, self).__init__(address)
@@ -37,6 +11,30 @@ class KeysightN9040B(Instrument):
 	RESET_COMMAND:str = 'SYST:DEF'
 	def Reset(self):
 		self.Write(KeysightN9040B.RESET_COMMAND)
+
+	BYTE_ORDER_COMMAND:str = 'FORM:BORD'
+	MSB_BYTE_ORDER_ARGUMENT:str = 'NORM'
+	LSB_BYTE_ORDER_ARGUMENT:str = 'SWAP'
+	boolToByteOrderStringConverter = lambda x: KeysightN9040B.MSB_BYTE_ORDER_ARGUMENT if x else KeysightN9040B.LSB_BYTE_ORDER_ARGUMENT
+	byteOrderStringToBoolConverter = lambda x: x == KeysightN9040B.MSB_BYTE_ORDER_ARGUMENT
+	@property
+	@GetProperty(bool, BYTE_ORDER_COMMAND, converter=byteOrderStringToBoolConverter)
+	def __isByteOrderMSB__(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@__isByteOrderMSB__.setter
+	@SetProperty(bool, BYTE_ORDER_COMMAND, converter=boolToByteOrderStringConverter)
+	def __isByteOrderMSB__(self, value:bool) -> bool:
+		pass
+	
+	DATA_FORMAT_COMMAND:str = 'FORM:TRAC:DATA'
+	@property
+	@GetProperty(DataFormat, DATA_FORMAT_COMMAND)
+	def __dataFormat__(self, getMethodReturn) -> DataFormat:
+		return getMethodReturn
+	@__dataFormat__.setter
+	@SetProperty(DataFormat, DATA_FORMAT_COMMAND)
+	def __dataFormat__(self, value:DataFormat) -> DataFormat:
+		pass
 
 	#TODO: Get available modes and revision and option for each (using SYST:APPL:CAT:REV)
 	__availableModes__:list[type] = None

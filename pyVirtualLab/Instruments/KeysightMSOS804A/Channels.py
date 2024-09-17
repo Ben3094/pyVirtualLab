@@ -123,7 +123,7 @@ class Channel(Source):
 		xOrigin = float(self.__parent__.Query("WAV:XOR"))
 		savedTimeout = self.__parent__.VISATimeout
 		self.__parent__.VISATimeout = 200000
-		data = self.__parent__.__instr__.query_binary_values("WAV:DATA?", datatype='h', is_big_endian=False)
+		data = self.__parent__.__resource__.query_binary_values("WAV:DATA?", datatype='h', is_big_endian=False)
 		data = [yIncrement * float(result) + yOrigin for result in data]
 		abscissae = range(0, len(data))
 		abscissae = [xIncrement * float(abscissa) + xOrigin for abscissa in abscissae]
