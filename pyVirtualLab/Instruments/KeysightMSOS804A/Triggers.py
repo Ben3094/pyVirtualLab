@@ -1,5 +1,5 @@
 from aenum import Enum
-from pyVirtualLab.VISAInstrument import RECURSIVE_SUBCLASSES
+from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
 import pyVirtualLab.Instruments.KeysightMSOS804A.Channels as Channels
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
 

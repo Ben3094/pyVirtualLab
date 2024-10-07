@@ -1,6 +1,7 @@
 from aenum import Enum, MultiValueEnum
 from re import match, Match
 from pyvisa import ResourceManager
+from pyvisa.constants import AccessModes
 from pyvisa.resources import Resource
 from pyvisa_py.protocols.rpc import RPCUnpackError
 from time import time, sleep
@@ -371,7 +372,7 @@ class Instrument:
 	def Connect(self) -> bool:
 		try:
 			if not issubclass(type(self.__resource__), VirtualResource):
-				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__)
+				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__, access_mode=AccessModes.exclusive_lock)
 			self.Id = self.__updateId__()
 			self.Vendor = PARSE_VENDOR(self.Id)
 			self.Model, self.Firmware = PARSE_MODEL_AND_FIRMWARE(self.Id, self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor)
