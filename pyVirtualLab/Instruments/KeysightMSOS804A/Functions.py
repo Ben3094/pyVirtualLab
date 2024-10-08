@@ -73,10 +73,11 @@ class AddFunction(Function):
 		self.SetParam('SecondOperand', value.__commandAddress__)
 		if self.SecondOperand.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting second operand channel")
+		
 class EnvelopeFunction(Function):
 	NAME = 'ENV'
 	INIT_PARAMS = 'CHAN1'
-	PARAMS_STRING_FORMAT = "(?P<Source>[A-Z]\d+)"
+	PARAMS_STRING_FORMAT = "(?P<Source>[A-Z]+\d+)"
 
 	@property
 	def Source(self) -> Channel:
