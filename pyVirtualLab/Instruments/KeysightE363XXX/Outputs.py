@@ -83,6 +83,10 @@ class Output():
 		return currentSetVoltage
 	
 	@property
+	def Current(self) -> float:
+		return float(self.__parent__.Query('MEAS:SCAL:CURR:DC', f"CH{self.Address}"))
+	
+	@property
 	def MaxCurrent(self) -> float:
 		return float(self.__parent__.Query("SOUR:CURR:LEV:IMM:AMPL", f"(@{self.Address})"))
 	@MaxCurrent.setter

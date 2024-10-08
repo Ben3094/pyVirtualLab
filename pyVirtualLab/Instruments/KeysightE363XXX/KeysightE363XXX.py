@@ -1,7 +1,6 @@
 from pyVirtualLab.VISAInstrument import Source
 from pyVirtualLab.Helpers import GetProperty
 from pyVirtualLab.Instruments.KeysightE363XXX.Outputs import *
-from pyvisa import VisaIOError
 
 OUTPUTS_NUMBER:int = 3
 OUTPUTS_START_INDEX:int = 1
