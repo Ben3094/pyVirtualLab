@@ -27,9 +27,11 @@ class StatisticMode(MultiValueEnum):
 	StandardDeviation = 'STDD' 
 	Count = 'COUN'
 
+DEFAULT_TIMEOUT:int = 5000
+
 class KeysightMSOS804A(Instrument):
 	def __init__(self, address: str):
-		super(KeysightMSOS804A, self).__init__(address)
+		super(KeysightMSOS804A, self).__init__(address, timeout=DEFAULT_TIMEOUT)
 		self.__analogChannels__ = dict()
 		self.__digitalChannels__ = dict()
 		self.__waveformMemoryChannels__ = dict()
