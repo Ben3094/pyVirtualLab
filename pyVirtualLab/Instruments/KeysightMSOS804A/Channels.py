@@ -165,10 +165,10 @@ class Channel(Source):
 			self.__parent__.Write(command, args)
 			return list(self.__parent__.GetMeasurements().keys())[0]			
 		else:
-			currentSendValidMeasurements = self.__parent__.SendMeasurementState
-			self.__parent__.SendMeasurementState = True
+			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
+			self.__parent__.IsStateIncludedWithMeasurement = True
 			values = self.__parent__.Query(command, args).split(',')
-			self.__parent__.SendMeasurementState = currentSendValidMeasurements
+			self.__parent__.IsStateIncludedWithMeasurement = currentSendValidMeasurements
 			return float(values[0])
 	
 	def GetFrequency(self, addToResultsList:bool=False) -> float:
