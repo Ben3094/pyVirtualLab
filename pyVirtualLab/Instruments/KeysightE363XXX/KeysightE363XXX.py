@@ -20,7 +20,7 @@ class KeysightE363XXX(Source):
 		return self.__outputs__
 	
 	def SetOutputsState(self, outputs:list[Output], enabled:bool):
-		self.Write('OUTP:STAT', f"{str(int(enabled))}, (@{','.join([output.Address for output in outputs])})")
+		self.Write('OUTP:STAT', f"{str(int(enabled))}, (@{','.join([output for output in outputs])})")
 	
 	def __abort__(self):
 		self.SetOutputsState(self.Outputs, False)
