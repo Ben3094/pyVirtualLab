@@ -76,7 +76,8 @@ class LeveledSourceTrigger(SourcedTrigger):
 			raise Exception("Error while setting the trigger level")
 		return value
 	
-	# TODO: Add automatic mid-level
+	def AutoLevel(self):
+		self.__parent__.Write('TRIG:LEV:FIFT')
 	
 class EdgeCoupling(Enum):
 	AC = 'AC'

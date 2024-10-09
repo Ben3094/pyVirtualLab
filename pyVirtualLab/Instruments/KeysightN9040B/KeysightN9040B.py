@@ -36,7 +36,7 @@ class KeysightN9040B(Instrument):
 	def __dataFormat__(self, value:DataFormat) -> DataFormat:
 		pass
 
-	#TODO: Get available modes and revision and option for each (using SYST:APPL:CAT:REV)
+	# TODO: Get available modes and revision and option for each (using SYST:APPL:CAT:REV)
 	__availableModes__:list[type] = None
 	@property
 	def AvailableModes(self) -> list[type]:
