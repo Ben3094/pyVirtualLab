@@ -333,25 +333,27 @@ class AgilentN5183B(Source):
 	def PulsePeriod(self) -> float:
 		return float(self.Query('SOUR:PULM:INT:PER'))
 	@PulsePeriod.setter
-	def PulsePeriod(self, value: float):
-		value = float(value)
+	def PulsePeriod(self, value: float) -> float:
+		value = round(float(value), log10(1e-8))
 		if value <= self.PulseWidth:
 			raise Exception("Pulse width must be inferior to pulse period")
 		self.Write('SOUR:PULM:INT:PER', str(value))
 		if self.PulsePeriod != value:
 			raise Exception("Error while setting the pulse period")
+		return value
 
 	@property
 	def PulseWidth(self) -> float:
 		return float(self.Query('SOUR:PULM:INT:PWID'))
 	@PulseWidth.setter
-	def PulseWidth(self, value: float):
-		value = float(value)
+	def PulseWidth(self, value: float) -> float:
+		value = round(float(value), log10(1e-8))
 		if value >= self.PulsePeriod:
 			raise Exception("Pulse width must be inferior to pulse period")
 		self.Write('SOUR:PULM:INT:PWID', str(value))
 		if self.PulseWidth != value:
 			raise Exception("Error while setting the pulse width")
+		return value
 	
 	EXTERNAL_PULSE_SOURCE = str(PulseType.External.value)
 	INTERNAL_PULSE_SOURCE = 'INT'
