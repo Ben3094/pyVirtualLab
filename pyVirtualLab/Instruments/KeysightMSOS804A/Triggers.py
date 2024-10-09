@@ -76,6 +76,8 @@ class LeveledSourceTrigger(SourcedTrigger):
 			raise Exception("Error while setting the trigger level")
 		return value
 	
+	# TODO: Add automatic mid-level
+	
 class EdgeCoupling(Enum):
 	AC = 'AC'
 	DC = 'DC'
