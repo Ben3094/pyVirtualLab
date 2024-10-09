@@ -334,7 +334,7 @@ class AgilentN5183B(Source):
 		return float(self.Query('SOUR:PULM:INT:PER'))
 	@PulsePeriod.setter
 	def PulsePeriod(self, value: float) -> float:
-		value = round(float(value), math.log10(1e-8))
+		value = round(float(value), 8)
 		if value <= self.PulseWidth:
 			raise Exception("Pulse width must be inferior to pulse period")
 		self.Write('SOUR:PULM:INT:PER', str(value))
@@ -347,7 +347,7 @@ class AgilentN5183B(Source):
 		return float(self.Query('SOUR:PULM:INT:PWID'))
 	@PulseWidth.setter
 	def PulseWidth(self, value: float) -> float:
-		value = round(float(value), math.log10(1e-8))
+		value = round(float(value), 8)
 		if value >= self.PulsePeriod:
 			raise Exception("Pulse width must be inferior to pulse period")
 		self.Write('SOUR:PULM:INT:PWID', str(value))
