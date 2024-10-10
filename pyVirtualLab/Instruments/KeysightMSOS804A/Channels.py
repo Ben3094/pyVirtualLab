@@ -1,5 +1,6 @@
 from aenum import Enum
 from typing import Callable
+from collections import namedtuple
 
 class ResultState(Enum):
 	Correct = 0
@@ -154,10 +155,13 @@ class Channel(Source):
 		return value
 	
 	# Measurements
+	MEASUREMENT_NAMEDTUPLE_NAME:str = "Measurement"
+	MEASUREMENT_CURRENT_VALUE_COLUMN_NAME:str = "Value"
+	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
 	MEASUREMENTS_MIN_INDEX = 1
 	MEASUREMENTS_MAX_INDEX = 20
 	MEASUREMENTS_LIMITS = MEASUREMENTS_MAX_INDEX - MEASUREMENTS_MIN_INDEX
-	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> str|float:
+	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> namedtuple:
 		if addToResultsList:
 			previousMeasurements = self.__parent__.GetMeasurements()
 			if len(previousMeasurements) > Channel.MEASUREMENTS_LIMITS:
@@ -169,7 +173,8 @@ class Channel(Source):
 			self.__parent__.IsStateIncludedWithMeasurement = True
 			values = self.__parent__.Query(command, args).split(',')
 			self.__parent__.IsStateIncludedWithMeasurement = currentSendValidMeasurements
-			return float(values[0])
+			measurementTuple = namedtuple(Channel.MEASUREMENT_NAMEDTUPLE_NAME, [Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME, Channel.MEASUREMENT_STATE_COLUMN_NAME])
+			return measurementTuple(values)
 	
 	def GetFrequency(self, addToResultsList:bool=False) -> float:
 		return self.__queryMeasurement__("MEAS:FREQ", f"{self.__commandAddress__}", addToResultsList)

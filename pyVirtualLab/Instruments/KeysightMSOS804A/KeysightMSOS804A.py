@@ -171,12 +171,10 @@ class KeysightMSOS804A(Instrument):
 	def MeasurementsStatisticsMode(self, value: StatisticMode) -> StatisticMode:
 		pass
 
-	MEASUREMENT_CURRENT_VALUE_COLUMN_NAME:str = "Value"
-	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
 	def GetMeasurements(self) -> dict:
-		columnsNames:list[str] = [KeysightMSOS804A.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
+		columnsNames:list[str] = [Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
 		if self.IsStateIncludedWithMeasurement:
-			columnsNames.append(KeysightMSOS804A.MEASUREMENT_STATE_COLUMN_NAME)
+			columnsNames.append(Channel.MEASUREMENT_STATE_COLUMN_NAME)
 		match self.MeasurementsStatisticsMode:
 			case StatisticMode.All:
 				[columnsNames.append(measurementStatisticMode.name) for measurementStatisticMode in [StatisticMode.Minimum, StatisticMode.Maximum, StatisticMode.Mean, StatisticMode.StandardDeviation, StatisticMode.Count]]
@@ -185,7 +183,7 @@ class KeysightMSOS804A(Instrument):
 			case _:
 				columnsNames.append(self.MeasurementsStatisticsMode.name)
 
-		measurementTuple = namedtuple('Measurement', columnsNames)
+		measurementTuple = namedtuple(Channel.MEASUREMENT_NAMEDTUPLE_NAME, columnsNames)
 		values = self.Query('MEAS:RES').split(',')
 		measurements:dict = dict()
 		for rowIndex in range(int(len(values)/(len(columnsNames)+1))):
