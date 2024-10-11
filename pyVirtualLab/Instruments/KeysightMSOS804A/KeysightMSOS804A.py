@@ -2,7 +2,7 @@ from pyVirtualLab.VISAInstrument import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from aenum import Enum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource, StatisticMode
+from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource, StatisticMode, Measurement
 from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
 from time import time, sleep
@@ -162,8 +162,8 @@ class KeysightMSOS804A(Instrument):
 	def MeasurementsStatisticsMode(self, value: StatisticMode) -> StatisticMode:
 		pass
 
-	def GetMeasurements(self) -> dict:
-		columnsNames:list[str] = [Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
+	def GetMeasurements(self) -> list:
+		columnsNames:list[str] = [Channel.MEASUREMENT_NAME_COLUMN_NAME, Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
 		if self.IsStateIncludedWithMeasurement:
 			columnsNames.append(Channel.MEASUREMENT_STATE_COLUMN_NAME)
 		match self.MeasurementsStatisticsMode:
@@ -174,13 +174,12 @@ class KeysightMSOS804A(Instrument):
 			case _:
 				columnsNames.append(self.MeasurementsStatisticsMode.name)
 
-		measurementTuple = namedtuple(Channel.MEASUREMENT_NAMEDTUPLE_NAME, columnsNames)
 		values = self.Query('MEAS:RES').split(',')
-		measurements:dict = dict()
-		for rowIndex in range(int(len(values)/(len(columnsNames)+1))):
-			measurementName = values.pop(0)
-			measurementArgs = [values.pop(0) for columnIndex in range(len(columnsNames))]
-			measurements[measurementName] = measurementTuple(*measurementArgs)
+		measurements:list = list()
+		columnsNamesLength = len(columnsNames)
+		for rowIndex in range(int(len(values)/(columnsNamesLength+1))):
+			measurementArgs = dict(zip(columnsNames, [values.pop(0) for columnIndex in range(columnsNamesLength)]))
+			measurements.append(Measurement(measurementArgs))
 		
 		return measurements
 	

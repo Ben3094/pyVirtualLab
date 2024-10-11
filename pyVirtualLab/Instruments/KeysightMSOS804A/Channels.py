@@ -83,6 +83,8 @@ class Measurement():
 	def __init__(self, values:dict[str, str]):
 		for value in values:
 			match value:
+				case Channel.MEASUREMENT_NAME_COLUMN_NAME:
+					self.__name__ = str(values[value])
 				case StatisticMode.Value.name:
 					self.__value__ = float(values[value])
 				case Channel.MEASUREMENT_STATE_COLUMN_NAME:
@@ -97,6 +99,11 @@ class Measurement():
 					self.__standardDeviation__ = float(values[value])
 				case StatisticMode.Count.name:
 					self.__count__ = int(values[value])
+	
+	__name__:str = None
+	@property
+	def Name(self) -> str:
+		return self.__name__
 
 	__value__:float = None
 	@property
@@ -128,9 +135,9 @@ class Measurement():
 	def StandardDeviation(self) -> float:
 		return self.__standardDeviation__
 	
-	__count__:float = None
+	__count__:int = None
 	@property
-	def Count(self) -> float:
+	def Count(self) -> int:
 		return self.__count__
 
 	def __float__(self):
@@ -220,7 +227,7 @@ class Channel(Source):
 		return value
 	
 	# Measurements
-	MEASUREMENT_NAMEDTUPLE_NAME:str = "Measurement"
+	MEASUREMENT_NAME_COLUMN_NAME:str = "Name"
 	MEASUREMENT_CURRENT_VALUE_COLUMN_NAME:str = "Value"
 	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
 	MEASUREMENTS_MIN_INDEX = 1
@@ -232,18 +239,15 @@ class Channel(Source):
 			if len(previousMeasurements) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
 			self.__parent__.Write(command, args)
-			measurement = list(self.__parent__.GetMeasurements().values())[0]
-			measurement.Value = float(measurement.Value)
-			measurement.Count = int(measurement.Count)
-			return measurement
+			lastMeasurement = self.__parent__.GetMeasurements()[0]
+			return float(lastMeasurement)
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
 			self.__parent__.IsStateIncludedWithMeasurement = True
 			values = self.__parent__.Query(command, args).split(',')
-			values[0] = float(values[0])
 			self.__parent__.IsStateIncludedWithMeasurement = currentSendValidMeasurements
-			measurementTuple = namedtuple(Channel.MEASUREMENT_NAMEDTUPLE_NAME, [Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME, Channel.MEASUREMENT_STATE_COLUMN_NAME])
-			return measurementTuple(values)
+			measurement = Measurement(dict(zip([Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME, Channel.MEASUREMENT_STATE_COLUMN_NAME], values)))
+			return float(measurement)
 	
 	def GetFrequency(self, addToResultsList:bool=False) -> float:
 		return self.__queryMeasurement__("MEAS:FREQ", f"{self.__commandAddress__}", addToResultsList)
