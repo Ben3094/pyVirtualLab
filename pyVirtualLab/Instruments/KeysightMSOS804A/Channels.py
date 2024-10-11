@@ -1,5 +1,4 @@
-from aenum import Enum
-from typing import Callable
+from aenum import Enum, MultiValueEnum
 from collections import namedtuple
 
 class ResultState(Enum):
@@ -58,6 +57,15 @@ class ResultState(Enum):
 	InvalidEdgePolarity = 65
 	CarrierFrequencyNotFound = 66
 
+class StatisticMode(MultiValueEnum):
+	All = 'ON' 
+	Value = 'CURR', 'OFF' 
+	Maximum = 'MAX' 
+	Mean = 'MEAN' 
+	Minimum = 'MIN' 
+	StandardDeviation = 'STDD' 
+	Count = 'COUN'
+
 def MeasurementMethod(command:str, commandArgs:str):
 	def decorator(func):
 		def wrapper(*args, **kwargs):
@@ -70,6 +78,63 @@ def MeasurementMethod(command:str, commandArgs:str):
 			return func(*args, **kwargs)
 		return wrapper
 	return decorator
+
+class Measurement():
+	def __init__(self, values:dict[str, str]):
+		for value in values:
+			match value:
+				case StatisticMode.Value.name:
+					self.__value__ = float(values[value])
+				case Channel.MEASUREMENT_STATE_COLUMN_NAME:
+					self.__state__ = ResultState(values[value])
+				case StatisticMode.Minimum.name:
+					self.__minimum__ = float(values[value])
+				case StatisticMode.Maximum.name:
+					self.__maximum__ = float(values[value])
+				case StatisticMode.Mean.name:
+					self.__mean__ = float(values[value])
+				case StatisticMode.StandardDeviation.name:
+					self.__standardDeviation__ = float(values[value])
+				case StatisticMode.Count.name:
+					self.__count__ = int(values[value])
+
+	__value__:float = None
+	@property
+	def Value(self) -> float:
+		return self.__value__
+
+	__state__:ResultState = None
+	@property
+	def State(self) -> ResultState:
+		return self.__state__
+
+	__minimum__:float = None
+	@property
+	def Minimum(self) -> float:
+		return self.__minimum__
+	
+	__maximum__:float = None
+	@property
+	def Maximum(self) -> float:
+		return self.__maximum__
+		
+	__mean__:float = None
+	@property
+	def Mean(self) -> float:
+		return self.__mean__
+	
+	__standardDeviation__:float = None
+	@property
+	def StandardDeviation(self) -> float:
+		return self.__standardDeviation__
+	
+	__count__:float = None
+	@property
+	def Count(self) -> float:
+		return self.__count__
+
+	def __float__(self):
+		return self.__value__
 
 class Source():
 	TYPE_COMMAND_HEADER = None
@@ -169,7 +234,7 @@ class Channel(Source):
 			self.__parent__.Write(command, args)
 			measurement = list(self.__parent__.GetMeasurements().values())[0]
 			measurement.Value = float(measurement.Value)
-			measurement.Count = float(measurement.Count)
+			measurement.Count = int(measurement.Count)
 			return measurement
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement

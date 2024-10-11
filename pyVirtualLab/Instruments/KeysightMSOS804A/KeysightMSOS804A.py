@@ -1,8 +1,8 @@
 from pyVirtualLab.VISAInstrument import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty
-from aenum import Enum, MultiValueEnum
+from aenum import Enum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource
+from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource, StatisticMode
 from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
 from time import time, sleep
@@ -17,15 +17,6 @@ class AcquisitionState(Enum):
 	Armed = 0
 	Triggered = 1
 	Done = 3
-
-class StatisticMode(MultiValueEnum):
-	All = 'ON' 
-	OFF = 'CURR', 'OFF' 
-	Maximum = 'MAX' 
-	Mean = 'MEAN' 
-	Minimum = 'MIN' 
-	StandardDeviation = 'STDD' 
-	Count = 'COUN'
 
 DEFAULT_TIMEOUT:int = 5000
 
@@ -178,7 +169,7 @@ class KeysightMSOS804A(Instrument):
 		match self.MeasurementsStatisticsMode:
 			case StatisticMode.All:
 				[columnsNames.append(measurementStatisticMode.name) for measurementStatisticMode in [StatisticMode.Minimum, StatisticMode.Maximum, StatisticMode.Mean, StatisticMode.StandardDeviation, StatisticMode.Count]]
-			case StatisticMode.OFF:
+			case StatisticMode.Value:
 				pass
 			case _:
 				columnsNames.append(self.MeasurementsStatisticsMode.name)
