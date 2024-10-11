@@ -88,7 +88,7 @@ class Measurement():
 				case StatisticMode.Value.name:
 					self.__value__ = float(values[value])
 				case Channel.MEASUREMENT_STATE_COLUMN_NAME:
-					self.__state__ = ResultState(values[value])
+					self.__state__ = ResultState(int(values[value]))
 				case StatisticMode.Minimum.name:
 					self.__minimum__ = float(values[value])
 				case StatisticMode.Maximum.name:
@@ -98,7 +98,7 @@ class Measurement():
 				case StatisticMode.StandardDeviation.name:
 					self.__standardDeviation__ = float(values[value])
 				case StatisticMode.Count.name:
-					self.__count__ = int(values[value])
+					self.__count__ = int(float(values[value]))
 	
 	__name__:str = None
 	@property
@@ -233,47 +233,47 @@ class Channel(Source):
 	MEASUREMENTS_MIN_INDEX = 1
 	MEASUREMENTS_MAX_INDEX = 20
 	MEASUREMENTS_LIMITS = MEASUREMENTS_MAX_INDEX - MEASUREMENTS_MIN_INDEX
-	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> namedtuple:
+	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> Measurement:
 		if addToResultsList:
 			previousMeasurements = self.__parent__.GetMeasurements()
 			if len(previousMeasurements) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
 			self.__parent__.Write(command, args)
 			lastMeasurement = self.__parent__.GetMeasurements()[0]
-			return float(lastMeasurement)
+			return lastMeasurement
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
 			self.__parent__.IsStateIncludedWithMeasurement = True
 			values = self.__parent__.Query(command, args).split(',')
 			self.__parent__.IsStateIncludedWithMeasurement = currentSendValidMeasurements
 			measurement = Measurement(dict(zip([Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME, Channel.MEASUREMENT_STATE_COLUMN_NAME], values)))
-			return float(measurement)
+			return measurement
 	
-	def GetFrequency(self, addToResultsList:bool=False) -> float:
+	def GetFrequency(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:FREQ", f"{self.__commandAddress__}", addToResultsList)
-	def GetPeriod(self, addToResultsList:bool=False) -> float:
+	def GetPeriod(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:PER", f"{self.__commandAddress__}", addToResultsList)
-	def GetPositiveWidth(self, addToResultsList:bool=False) -> float:
+	def GetPositiveWidth(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:PWID", f"{self.__commandAddress__}", addToResultsList)
-	def GetNegativeWidth(self, addToResultsList:bool=False) -> float:
+	def GetNegativeWidth(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:NWID", f"{self.__commandAddress__}", addToResultsList)
 	RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'RIS'
 	FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT = 'FALL'
-	def GetDutyCycle(self, onDownState:bool=False, addToResultsList:bool=False) -> float:
+	def GetDutyCycle(self, onDownState:bool=False, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:DUTY", f"{self.__commandAddress__},{Channel.FALLING_DUTY_CYCLE_MEASUREMENT_ARGUMENT if onDownState else Channel.RISING_DUTY_CYCLE_MEASUREMENT_ARGUMENT}", addToResultsList)
 	
 class VerticalMeasurePossibleChannel(Channel):
-	def GetMaximum(self, addToResultsList:bool=False) -> float:
+	def GetMaximum(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:VMAX", f"{self.__commandAddress__}", addToResultsList)
-	def GetMinimum(self, addToResultsList:bool=False) -> float:
+	def GetMinimum(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:VMIN", f"{self.__commandAddress__}", addToResultsList)
-	def GetRange(self, addToResultsList:bool=False) -> float:
+	def GetRange(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:VPP", f"{self.__commandAddress__}", addToResultsList)
-	def GetRiseTime(self, addToResultsList:bool=False) -> float:
+	def GetRiseTime(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:RIS", f"{self.__commandAddress__}", addToResultsList)
-	def GetFallTime(self, addToResultsList:bool=False) -> float:
+	def GetFallTime(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:FALL", f"{self.__commandAddress__}", addToResultsList)
-	def GetPeakToPeakAmplitude(self, addToResultsList:bool=False) -> float:
+	def GetPeakToPeakAmplitude(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:VPP", f"{self.__commandAddress__}", addToResultsList)
 	
 	# AC measurements

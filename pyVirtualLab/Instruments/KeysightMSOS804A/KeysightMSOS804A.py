@@ -177,7 +177,7 @@ class KeysightMSOS804A(Instrument):
 		values = self.Query('MEAS:RES').split(',')
 		measurements:list = list()
 		columnsNamesLength = len(columnsNames)
-		for rowIndex in range(int(len(values)/(columnsNamesLength+1))):
+		for rowIndex in range(int(len(values)/columnsNamesLength)):
 			measurementArgs = dict(zip(columnsNames, [values.pop(0) for columnIndex in range(columnsNamesLength)]))
 			measurements.append(Measurement(measurementArgs))
 		
