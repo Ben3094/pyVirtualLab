@@ -169,6 +169,7 @@ class Channel(Source):
 			self.__parent__.Write(command, args)
 			measurement = list(self.__parent__.GetMeasurements().values())[0]
 			measurement.Value = float(measurement.Value)
+			measurement.Count = float(measurement.Count)
 			return measurement
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
