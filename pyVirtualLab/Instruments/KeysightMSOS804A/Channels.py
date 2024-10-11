@@ -167,11 +167,14 @@ class Channel(Source):
 			if len(previousMeasurements) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
 			self.__parent__.Write(command, args)
-			return list(self.__parent__.GetMeasurements().values())[0]
+			measurement = list(self.__parent__.GetMeasurements().values())[0]
+			measurement.Value = float(measurement.Value)
+			return measurement
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
 			self.__parent__.IsStateIncludedWithMeasurement = True
 			values = self.__parent__.Query(command, args).split(',')
+			values[0] = float(values[0])
 			self.__parent__.IsStateIncludedWithMeasurement = currentSendValidMeasurements
 			measurementTuple = namedtuple(Channel.MEASUREMENT_NAMEDTUPLE_NAME, [Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME, Channel.MEASUREMENT_STATE_COLUMN_NAME])
 			return measurementTuple(values)
