@@ -167,7 +167,7 @@ class Channel(Source):
 			if len(previousMeasurements) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
 			self.__parent__.Write(command, args)
-			return list(self.__parent__.GetMeasurements().values())[0].Value
+			return list(self.__parent__.GetMeasurements().values())[0]
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
 			self.__parent__.IsStateIncludedWithMeasurement = True
