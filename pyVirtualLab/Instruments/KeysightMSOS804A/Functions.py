@@ -55,7 +55,7 @@ class Function(VerticalMeasurePossibleChannel):
 		self.__parent__.Write(f"{self.__commandAddress__}:VERT:RANG", str(value * 10)) # TODO: Check number of reticules
 		if self.Scale != value:
 			raise Exception("Error while setting scale")
-		
+	
 	@property
 	def Offset(self) -> float:
 		return float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:OFFS"))
@@ -71,8 +71,8 @@ class Function(VerticalMeasurePossibleChannel):
 		max = self.GetMaximum(addToResultsList=False)
 		if any([extreme.State != MeasurementState.Correct for extreme in [min, max]]):
 			raise Exception(f"Function {self.Address} signal exceed screen limits")
-		self.Scale = (max - max) * 12
-		self.Offset = (max + min) / 2
+		self.Scale = (max.Value - max.Value) * 12
+		self.Offset = (max.Value + min.Value) / 2
 		
 class AbsoluteFunction(Function):
 	NAME = 'ABS'
