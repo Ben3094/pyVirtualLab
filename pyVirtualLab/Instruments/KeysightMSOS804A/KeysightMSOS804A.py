@@ -27,6 +27,7 @@ class KeysightMSOS804A(Instrument):
 		self.__digitalChannels__ = dict()
 		self.__waveformMemoryChannels__ = dict()
 		self.__functions__ = dict()
+		self.__measurements__:dict[tuple[str, str], str] = dict()
 		self.AuxSource:AuxSource = AuxSource()
 		self.LineSource:LineSource = LineSource()
 

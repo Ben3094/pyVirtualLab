@@ -66,19 +66,6 @@ class StatisticMode(MultiValueEnum):
 	StandardDeviation = 'STDD' 
 	Count = 'COUN'
 
-def MeasurementMethod(command:str, commandArgs:str):
-	def decorator(func):
-		def wrapper(*args, **kwargs):
-			if kwargs['addToResultsList']:
-				args[0].__parent__.Write(command, commandArgs)
-				return
-			else:
-				return args[0].__queryMeasurement__(command, args)[0]
-			kwargs['addToResultsList'] = __converter__(args[0].Query(visaGetCommand))
-			return func(*args, **kwargs)
-		return wrapper
-	return decorator
-
 class Measurement():
 	def __init__(self, values:dict[str, str]):
 		for value in values:
@@ -235,12 +222,13 @@ class Channel(Source):
 	MEASUREMENTS_LIMITS = MEASUREMENTS_MAX_INDEX - MEASUREMENTS_MIN_INDEX
 	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> Measurement:
 		if addToResultsList:
-			previousMeasurements = self.__parent__.GetMeasurements()
-			if len(previousMeasurements) > Channel.MEASUREMENTS_LIMITS:
+			measurements = self.__parent__.GetMeasurements()
+			if len(measurements) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
-			self.__parent__.Write(command, args)
-			lastMeasurement = self.__parent__.GetMeasurements()[0]
-			return lastMeasurement
+			if not ((command, args) in self.__parent__.__measurements__):
+				self.__parent__.Write(command, args)
+				measurements = self.__parent__.GetMeasurements()
+			return next(measurement for measurements in measurements if measurement.Name == self.__parent__.__measurements__[(command, args)])
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
 			self.__parent__.IsStateIncludedWithMeasurement = True
