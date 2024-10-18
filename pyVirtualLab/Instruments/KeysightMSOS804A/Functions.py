@@ -1,4 +1,4 @@
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, VerticalMeasurePossibleChannel
+from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, VerticalMeasurePossibleChannel, MeasurementState
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
 from aenum import Enum
 import re
@@ -33,6 +33,46 @@ class Function(VerticalMeasurePossibleChannel):
 		currentValue = match.group(name)
 		response = str(response).replace(currentValue, value)
 		self.__parent__.Write(self.__commandAddress__ + response)
+
+	AUTO_SCALE_ON_ARGUMENT = 'AUTO'
+	AUTO_SCALE_OFF_ARGUMENT = 'MAN'
+	@property
+	def IsAutoScaleEnabled(self) -> bool:
+		return self.__parent__.Query(f"{self.__commandAddress__}:VERT") == Function.AUTO_SCALE_ON_ARGUMENT
+	@IsAutoScaleEnabled.setter
+	def IsAutoScaleEnabled(self, value:bool) -> bool:
+		value = bool(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:VERT", Function.AUTO_SCALE_ON_ARGUMENT if value else Function.AUTO_SCALE_OFF_ARGUMENT)
+		if self.IsAutoScaleEnabled != value:
+			raise Exception("Error while setting auto scale")
+		
+	@property
+	def Scale(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:RANG")) / 10 # TODO: Check number of reticules
+	@Scale.setter
+	def Scale(self, value:float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:VERT:RANG", str(value * 10)) # TODO: Check number of reticules
+		if self.Scale != value:
+			raise Exception("Error while setting scale")
+		
+	@property
+	def Offset(self) -> float:
+		return float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:OFFS"))
+	@Offset.setter
+	def Offset(self, value:float) -> float:
+		value = float(value)
+		self.__parent__.Write(f"{self.__commandAddress__}:VERT:OFFS", str(value))
+		if self.Offset != value:
+			raise Exception("Error while setting offset")
+
+	def DefineMaxScale(self):
+		min = self.GetMinimum(addToResultsList=False)
+		max = self.GetMaximum(addToResultsList=False)
+		if any([extreme.State != MeasurementState.Correct for extreme in [min, max]]):
+			raise Exception(f"Function {self.Address} signal exceed screen limits")
+		self.Scale = (max - max) * 12
+		self.Offset = (max + min) / 2
 		
 class AbsoluteFunction(Function):
 	NAME = 'ABS'

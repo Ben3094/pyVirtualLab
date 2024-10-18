@@ -1,7 +1,7 @@
 from aenum import Enum, MultiValueEnum
 from collections import namedtuple
 
-class ResultState(Enum):
+class MeasurementState(Enum):
 	Correct = 0
 	Questionable = 1
 	Less = 2
@@ -88,7 +88,7 @@ class Measurement():
 				case StatisticMode.Value.name:
 					self.__value__ = float(values[value])
 				case Channel.MEASUREMENT_STATE_COLUMN_NAME:
-					self.__state__ = ResultState(int(values[value]))
+					self.__state__ = MeasurementState(int(values[value]))
 				case StatisticMode.Minimum.name:
 					self.__minimum__ = float(values[value])
 				case StatisticMode.Maximum.name:
@@ -110,9 +110,9 @@ class Measurement():
 	def Value(self) -> float:
 		return self.__value__
 
-	__state__:ResultState = None
+	__state__:MeasurementState = None
 	@property
-	def State(self) -> ResultState:
+	def State(self) -> MeasurementState:
 		return self.__state__
 
 	__minimum__:float = None
@@ -369,6 +369,9 @@ class AnalogChannel(VerticalMeasurePossibleChannel):
 				self.__parent__.Write(f"{self.__commandAddress__}:UNIT WATT")
 			case ChannelUnit.Unknown:
 				self.__parent__.Write(f"{self.__commandAddress__}:UNIT UNKN")
+
+	def AutoScale(self):
+		self.__parent__.Write('AUT:VERT', self.__commandAddress__)
 
 class DigitalChannel(Channel):
 	TYPE_COMMAND_HEADER = 'DIG'
