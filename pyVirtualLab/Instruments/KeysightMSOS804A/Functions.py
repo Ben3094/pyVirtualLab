@@ -71,7 +71,7 @@ class Function(VerticalMeasurePossibleChannel):
 		max = self.GetMaximum(addToResultsList=False)
 		if any([extreme.State != MeasurementState.Correct for extreme in [min, max]]):
 			raise Exception(f"Function {self.Address} signal exceed screen limits")
-		self.Scale = (max.Value - max.Value) * 12
+		self.Scale = (max.Value - min.Value) * 12
 		self.Offset = (max.Value + min.Value) / 2
 		
 class AbsoluteFunction(Function):

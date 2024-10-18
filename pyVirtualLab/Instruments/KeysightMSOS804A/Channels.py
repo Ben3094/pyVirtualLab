@@ -229,7 +229,7 @@ class Channel(Source):
 				self.__parent__.Write(command, args)
 				measurements = self.__parent__.GetMeasurements()
 				self.__parent__.__measurements__[(command, args)] = measurements[0].Name
-			return next(measurement for measurements in measurements if measurement.Name == self.__parent__.__measurements__[(command, args)])
+			return next(measurement for measurement in measurements if measurement.Name == self.__parent__.__measurements__[(command, args)])
 		else:
 			currentSendValidMeasurements = self.__parent__.IsStateIncludedWithMeasurement
 			self.__parent__.IsStateIncludedWithMeasurement = True
