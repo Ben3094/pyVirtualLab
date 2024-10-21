@@ -48,30 +48,33 @@ class Function(VerticalMeasurePossibleChannel):
 		
 	@property
 	def Scale(self) -> float:
-		return float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:RANG")) / 10 # TODO: Check number of reticules
+		return round(float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:RANG")) / 10, 8) # TODO: Check number of reticules
 	@Scale.setter
 	def Scale(self, value:float) -> float:
-		value = float(value)
+		value = round(float(value), 8)
 		self.__parent__.Write(f"{self.__commandAddress__}:VERT:RANG", str(value * 10)) # TODO: Check number of reticules
 		if self.Scale != value:
 			raise Exception("Error while setting scale")
 	
 	@property
 	def Offset(self) -> float:
-		return float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:OFFS"))
+		return round(float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:OFFS")), 7)
 	@Offset.setter
 	def Offset(self, value:float) -> float:
-		value = float(value)
+		value = round(float(value), 7)
 		self.__parent__.Write(f"{self.__commandAddress__}:VERT:OFFS", str(value))
 		if self.Offset != value:
 			raise Exception("Error while setting offset")
 
-	def DefineMaxScale(self):
+	def DefineMaxScale(self, extraGap:float=0.5):
+		'''
+		extraGap: Factor to extend scale to be sure that all signal is displayed
+		'''
 		min = self.GetMinimum(addToResultsList=False)
 		max = self.GetMaximum(addToResultsList=False)
 		if any([extreme.State != MeasurementState.Correct for extreme in [min, max]]):
 			raise Exception(f"Function {self.Address} signal exceed screen limits")
-		self.Scale = (max.Value - min.Value) * 12
+		self.Scale = (max.Value - min.Value) / 10 * (1 + extraGap)
 		self.Offset = (max.Value + min.Value) / 2
 		
 class AbsoluteFunction(Function):
