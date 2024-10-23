@@ -48,11 +48,11 @@ class Function(VerticalMeasurePossibleChannel):
 		
 	@property
 	def Scale(self) -> float:
-		return round(float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:RANG")) / 10, 8) # TODO: Check number of reticules
+		return round(float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:RANG")) / 10, 7) # TODO: Check number of reticules
 	@Scale.setter
 	def Scale(self, value:float) -> float:
-		value = round(float(value), 8)
-		self.__parent__.Write(f"{self.__commandAddress__}:VERT:RANG", str(round(value * 10, 8))) # TODO: Check number of reticules
+		value = round(float(value), 7)
+		self.__parent__.Write(f"{self.__commandAddress__}:VERT:RANG", str(round(value * 10, 7))) # TODO: Check number of reticules
 		if self.Scale != value:
 			raise Exception("Error while setting scale")
 	
