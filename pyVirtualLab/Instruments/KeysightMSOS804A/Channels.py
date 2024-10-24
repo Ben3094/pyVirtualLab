@@ -268,6 +268,8 @@ class VerticalMeasurePossibleChannel(Channel):
 		return self.__queryMeasurement__("MEAS:VBAS", f"{self.__commandAddress__}", addToResultsList)
 	def GetTop(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:VTOP", f"{self.__commandAddress__}", addToResultsList)
+	def GetMeasurementAt(self, time:float, addToResultsList:bool=False) -> Measurement:
+		return self.__queryMeasurement__("MEAS:VTIM", f"{float(time)},{self.__commandAddress__}", addToResultsList)
 	
 	# AC measurements
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
