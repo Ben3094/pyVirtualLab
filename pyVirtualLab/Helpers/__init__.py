@@ -71,5 +71,5 @@ logLinStringToBoolConverter = lambda x: x == LOG_FORMAT_ARGUMENT
 from math import floor, log10
 @staticmethod
 def roundScientificNumber(number:float, decimalToKeep:int):
-	power = floor(log10(number))
+	power = floor(log10(abs(number)))
 	return round(number * pow(10, -power), decimalToKeep) * pow(10, power)
