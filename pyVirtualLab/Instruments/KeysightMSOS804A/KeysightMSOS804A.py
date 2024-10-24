@@ -1,5 +1,5 @@
 from pyVirtualLab.VISAInstrument import Instrument
-from pyVirtualLab.Helpers import GetProperty, SetProperty
+from pyVirtualLab.Helpers import GetProperty, SetProperty, roundScientificNumber
 from aenum import Enum
 from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
 from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource, StatisticMode, Measurement
@@ -132,7 +132,7 @@ class KeysightMSOS804A(Instrument):
 	def TimeScale(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@TimeScale.setter
-	@SetProperty(float, 'TIM:SCAL', rounding=lambda x: round(x, 9))
+	@SetProperty(float, 'TIM:SCAL', rounding=lambda x : roundScientificNumber(x, 2))
 	def TimeScale(self, value: float) -> float:
 		pass
 

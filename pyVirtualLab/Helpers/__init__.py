@@ -67,3 +67,9 @@ LOG_FORMAT_ARGUMENT:str = 'LOG'
 LINEAR_FORMAT_ARGUMENT:str = 'LIN'
 boolToLogLinStringConverter = lambda x: LOG_FORMAT_ARGUMENT if x else LINEAR_FORMAT_ARGUMENT
 logLinStringToBoolConverter = lambda x: x == LOG_FORMAT_ARGUMENT
+
+from math import floor, log10
+@staticmethod
+def roundScientificNumber(number:float, decimalToKeep:int):
+	power = floor(log10(number))
+	return round(number * pow(10, -power), decimalToKeep) * pow(10, power)
