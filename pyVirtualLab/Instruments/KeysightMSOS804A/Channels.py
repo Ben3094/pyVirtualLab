@@ -264,6 +264,10 @@ class VerticalMeasurePossibleChannel(Channel):
 		return self.__queryMeasurement__("MEAS:FALL", f"{self.__commandAddress__}", addToResultsList)
 	def GetPeakToPeakAmplitude(self, addToResultsList:bool=False) -> Measurement:
 		return self.__queryMeasurement__("MEAS:VPP", f"{self.__commandAddress__}", addToResultsList)
+	def GetBase(self, addToResultsList:bool=False) -> Measurement:
+		return self.__queryMeasurement__("MEAS:VBAS", f"{self.__commandAddress__}", addToResultsList)
+	def GetTop(self, addToResultsList:bool=False) -> Measurement:
+		return self.__queryMeasurement__("MEAS:VTOP", f"{self.__commandAddress__}", addToResultsList)
 	
 	# AC measurements
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
