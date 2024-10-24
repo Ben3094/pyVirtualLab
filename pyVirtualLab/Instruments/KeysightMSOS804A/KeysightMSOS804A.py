@@ -132,7 +132,7 @@ class KeysightMSOS804A(Instrument):
 	def TimeScale(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@TimeScale.setter
-	@SetProperty(float, 'TIM:SCAL', rounding=lambda x : roundScientificNumber(x, 2))
+	@SetProperty(float, 'TIM:SCAL', rounding=lambda x : round(roundScientificNumber(x, 2), 12))
 	def TimeScale(self, value: float) -> float:
 		pass
 
