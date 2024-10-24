@@ -141,7 +141,7 @@ class KeysightMSOS804A(Instrument):
 	def Delay(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@Delay.setter
-	@SetProperty(float, 'TIM:POS')
+	@SetProperty(float, 'TIM:POS', rounding=lambda x : round(roundScientificNumber(x, 2), 12))
 	def Delay(self, value: float) -> float:
 		pass
 
