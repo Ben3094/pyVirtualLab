@@ -278,7 +278,7 @@ class VerticalMeasurePossibleChannel(Channel):
 		savedSendValidMeas = self.__parent__.IsStateIncludedWithMeasurement
 		self.__parent__.IsStateIncludedWithMeasurement = True
 		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, self.__commandAddress__]
-		value = self.__queryMeasurement__('MEAS:VAV', ','.join(args), addToResultsList).split(',')[0]
+		value = self.__queryMeasurement__('MEAS:VAV', ','.join(args), addToResultsList).Value
 		if not savedSendValidMeas:
 			self.__parent__.IsStateIncludedWithMeasurement = False
 		return value
@@ -287,7 +287,7 @@ class VerticalMeasurePossibleChannel(Channel):
 		savedSendValidMeas = self.__parent__.IsStateIncludedWithMeasurement
 		self.__parent__.IsStateIncludedWithMeasurement = True
 		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, self.__commandAddress__]
-		value = self.__queryMeasurement__('MEAS:AREA', ','.join(args), addToResultsList).split(',')[0]
+		value = self.__queryMeasurement__('MEAS:AREA', ','.join(args), addToResultsList).Value
 		if not savedSendValidMeas:
 			self.__parent__.IsStateIncludedWithMeasurement = False
 		return value
@@ -298,7 +298,7 @@ class VerticalMeasurePossibleChannel(Channel):
 		savedSendValidMeas = self.__parent__.IsStateIncludedWithMeasurement
 		self.__parent__.IsStateIncludedWithMeasurement = True
 		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, AnalogChannel.WITHOUT_DC_COMPONENT_ARGUMENT if removeDCComponent else AnalogChannel.WITH_DC_COMPONENT_ARGUMENT, self.__commandAddress__]
-		value = self.__queryMeasurement__('MEAS:VRMS', ','.join(args), addToResultsList).split(',')[0]
+		value = self.__queryMeasurement__('MEAS:VRMS', ','.join(args), addToResultsList).Value
 		if not savedSendValidMeas:
 			self.__parent__.IsStateIncludedWithMeasurement = False
 		return value
