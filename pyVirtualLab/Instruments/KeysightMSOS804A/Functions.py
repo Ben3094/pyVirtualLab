@@ -58,10 +58,10 @@ class Function(VerticalMeasurePossibleChannel):
 	
 	@property
 	def Offset(self) -> float:
-		return round(float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:OFFS")), 7)
+		return round(float(self.__parent__.Query(f"{self.__commandAddress__}:VERT:OFFS")), 6)
 	@Offset.setter
 	def Offset(self, value:float) -> float:
-		value = round(float(value), 7)
+		value = round(float(value), 6)
 		self.__parent__.Write(f"{self.__commandAddress__}:VERT:OFFS", str(value))
 		if self.Offset != value:
 			raise Exception("Error while setting offset")
@@ -193,6 +193,8 @@ class FFTMagnitudeFunction(Function):
 		self.SetParam('Operand', value.__commandAddress__)
 		if self.Operand != value:
 			raise Exception("Error while setting operand channel")
+		
+	#TODO: Add offset
 
 	@property
 	def PeaksAnnotation(self) -> bool:
