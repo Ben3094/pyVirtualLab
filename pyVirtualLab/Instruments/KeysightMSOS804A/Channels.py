@@ -355,6 +355,7 @@ class AnalogChannel(VerticalMeasurePossibleChannel):
 
 	def AutoScale(self):
 		self.__parent__.Write('AUT:VERT', self.__commandAddress__)
+		self.__parent__.Wait()
 
 class DigitalChannel(Channel):
 	TYPE_COMMAND_HEADER = 'DIG'
