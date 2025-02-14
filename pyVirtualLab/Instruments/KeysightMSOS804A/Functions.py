@@ -134,6 +134,21 @@ class EnvelopeFunction(Function):
 		self.SetParam('Source', value.__commandAddress__, commandAddressSubstitution=EnvelopeFunction.SET_COMMAND_NAME)
 		if self.Source.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting source channel")
+		
+class AnalogDemodulationFunction(EnvelopeFunction):
+	NAME = 'ADEM'
+	INIT_PARAMS = 'CHAN1'
+	PARAMS_STRING_FORMAT = "(?P<Source>[A-Z]+\d+)"
+
+	@property
+	def Source(self) -> Channel:
+		params = self.GetParams()
+		return self.__parent__.StringToChannel(params['Source'])
+	@Source.setter
+	def Source(self, value: Channel):
+		self.SetParam('Source', value.__commandAddress__, commandAddressSubstitution=EnvelopeFunction.SET_COMMAND_NAME)
+		if self.Source.__commandAddress__ != value.__commandAddress__:
+			raise Exception("Error while setting source channel")
 
 class AverageFunction(Function):
 	NAME = 'AVER'
