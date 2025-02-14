@@ -414,9 +414,13 @@ class Instrument:
 			raise Exception("The instrument is not connected")
 	
 	def Wait(self, delay:float=0.01, timeout:float=5):
+		def isNotAvailable():
+			try: return self.Query('*OPC') != '1'
+			except: return True
+
 		startTime:float = time()
 		stopTime = startTime+timeout
-		while (time() < stopTime) & (self.Query('*OPC') != '1'):
+		while (time() < stopTime) & isNotAvailable():
 			sleep(delay)
 
 	def SelfTest(self):
