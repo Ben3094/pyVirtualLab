@@ -24,7 +24,9 @@ class Function(VerticalMeasurePossibleChannel):
 		match = re.match(f":{self.NAME} {self.PARAMS_STRING_FORMAT}", response)
 		return match.groupdict()
 
-	def SetParam(self, name: str, value: str) -> str:
+	def SetParam(self, name: str, value: str, commandAddressSubstitution:str=None) -> str:
+		if commandAddressSubstitution == None:
+			commandAddressSubstitution = self.__commandAddress__
 		savedReturnHeader = self.__parent__.ReturnHeader
 		self.__parent__.ReturnHeader = True
 		response = self.__parent__.Query(self.__commandAddress__)
@@ -32,7 +34,7 @@ class Function(VerticalMeasurePossibleChannel):
 		match = re.match(f":{self.NAME} {self.PARAMS_STRING_FORMAT}", response)
 		currentValue = match.group(name)
 		response = str(response).replace(currentValue, value)
-		self.__parent__.Write(self.__commandAddress__ + response)
+		self.__parent__.Write(commandAddressSubstitution + response)
 
 	AUTO_SCALE_ON_ARGUMENT = 'AUTO'
 	AUTO_SCALE_OFF_ARGUMENT = 'MAN'
@@ -119,6 +121,7 @@ class AddFunction(Function):
 		
 class EnvelopeFunction(Function):
 	NAME = 'ENV'
+	SET_COMMAND_NAME = 'ADEM'
 	INIT_PARAMS = 'CHAN1'
 	PARAMS_STRING_FORMAT = "(?P<Source>[A-Z]+\d+)"
 
@@ -128,7 +131,7 @@ class EnvelopeFunction(Function):
 		return self.__parent__.StringToChannel(params['Source'])
 	@Source.setter
 	def Source(self, value: Channel):
-		self.SetParam('Source', value.__commandAddress__)
+		self.SetParam('Source', value.__commandAddress__, commandAddressSubstitution=EnvelopeFunction.SET_COMMAND_NAME)
 		if self.Source.__commandAddress__ != value.__commandAddress__:
 			raise Exception("Error while setting source channel")
 

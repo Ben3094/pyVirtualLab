@@ -274,33 +274,21 @@ class VerticalMeasurePossibleChannel(Channel):
 	# AC measurements
 	OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT = 'DISP'
 	OVER_1_CYCLE_MEASUREMENT_ARGUMENT = 'CYCL'
-	def GetAverage(self, overOnly1Cycle:bool=False, addToResultsList:bool=False) -> float:
-		savedSendValidMeas = self.__parent__.IsStateIncludedWithMeasurement
-		self.__parent__.IsStateIncludedWithMeasurement = True
+	def GetAverage(self, overOnly1Cycle:bool=False, addToResultsList:bool=False) -> Measurement:
 		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, self.__commandAddress__]
-		value = self.__queryMeasurement__('MEAS:VAV', ','.join(args), addToResultsList).Value
-		if not savedSendValidMeas:
-			self.__parent__.IsStateIncludedWithMeasurement = False
+		value = self.__queryMeasurement__('MEAS:VAV', ','.join(args), addToResultsList)
 		return value
 	
-	def GetArea(self, overOnly1Cycle:bool=False, addToResultsList:bool=False) -> float:
-		savedSendValidMeas = self.__parent__.IsStateIncludedWithMeasurement
-		self.__parent__.IsStateIncludedWithMeasurement = True
+	def GetArea(self, overOnly1Cycle:bool=False, addToResultsList:bool=False) -> Measurement:
 		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, self.__commandAddress__]
-		value = self.__queryMeasurement__('MEAS:AREA', ','.join(args), addToResultsList).Value
-		if not savedSendValidMeas:
-			self.__parent__.IsStateIncludedWithMeasurement = False
+		value = self.__queryMeasurement__('MEAS:AREA', ','.join(args), addToResultsList)
 		return value
 
 	WITH_DC_COMPONENT_ARGUMENT = 'DC'
 	WITHOUT_DC_COMPONENT_ARGUMENT = 'AC'
-	def GetRMS(self, overOnly1Cycle:bool=False, removeDCComponent:bool=True, addToResultsList:bool=False) -> float:
-		savedSendValidMeas = self.__parent__.IsStateIncludedWithMeasurement
-		self.__parent__.IsStateIncludedWithMeasurement = True
+	def GetRMS(self, overOnly1Cycle:bool=False, removeDCComponent:bool=True, addToResultsList:bool=False) -> Measurement:
 		args = [AnalogChannel.OVER_1_CYCLE_MEASUREMENT_ARGUMENT if overOnly1Cycle else AnalogChannel.OVER_ALL_DISPLAYED_MEASUREMENTS_ARGUMENT, AnalogChannel.WITHOUT_DC_COMPONENT_ARGUMENT if removeDCComponent else AnalogChannel.WITH_DC_COMPONENT_ARGUMENT, self.__commandAddress__]
-		value = self.__queryMeasurement__('MEAS:VRMS', ','.join(args), addToResultsList).Value
-		if not savedSendValidMeas:
-			self.__parent__.IsStateIncludedWithMeasurement = False
+		value = self.__queryMeasurement__('MEAS:VRMS', ','.join(args), addToResultsList)
 		return value
 
 class AnalogChannelConfiguration(Enum):
