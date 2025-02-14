@@ -357,7 +357,7 @@ class Instrument:
 			outValue.put(True)
 		except Exception as e:
 			outValue.put(False)
-	STB_QUERY_TIMEOUT:float = 3
+	STB_QUERY_TIMEOUT:float = 5
 	@property
 	def IsConnected(self) -> bool:
 		outValue = Queue()
