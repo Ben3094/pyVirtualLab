@@ -68,7 +68,7 @@ class StatisticMode(MultiValueEnum):
 
 class Measurement():
 	def __init__(self, values:dict[str, str]):
-		self.__string__ = str(value)
+		self.__string__ = str(values)
 
 		for value in values:
 			match value:
