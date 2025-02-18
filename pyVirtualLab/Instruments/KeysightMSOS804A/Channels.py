@@ -369,7 +369,8 @@ class DigitalChannel(Channel):
 
 class WaveformMemoryChannel(VerticalMeasurePossibleChannel):
 	TYPE_COMMAND_HEADER = 'WMEM'
-	def Save(self, channel:Channel):
+	def Save(self, channel:Channel, isDisplayed:bool=True):
 		self.__parent__.Write(f"{self.__commandAddress__}:SAVE", channel.__commandAddress__)
+		self.IsEnabled = isDisplayed
 	def Clear(self):
 		self.__parent__.Write(f"{self.__commandAddress__}:CLE")
