@@ -371,3 +371,5 @@ class WaveformMemoryChannel(VerticalMeasurePossibleChannel):
 	TYPE_COMMAND_HEADER = 'WMEM'
 	def Save(self, channel:Channel):
 		self.__parent__.Write(f"{self.__commandAddress__}:SAVE", channel.__commandAddress__)
+	def Clear(self):
+		self.__parent__.Write(f"{self.__commandAddress__}:CLE")
