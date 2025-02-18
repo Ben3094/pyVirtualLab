@@ -216,15 +216,15 @@ class KeysightMSOS804A(Instrument):
 		return value
 
 	@property
-	@GetProperty(float, 'TIM:WIND:DEL')
+	@GetProperty(float, 'TIM:WIND:POS')
 	def ZoomDelay(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@ZoomDelay.setter
-	@SetProperty(float, 'TIM:WIND:DEL', rounding=lambda x : round(roundScientificNumber(x, 5), 12))
+	@SetProperty(float, 'TIM:WIND:POS', rounding=lambda x : round(roundScientificNumber(x, 5), 12))
 	def ZoomDelay(self, value: float) -> float:
 		pass
 	@property
-	@GetProperty(float, 'TIM:WIND:DEL')
+	@GetProperty(float, 'TIM:WIND:SCAL')
 	def ZoomTimeScale(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@ZoomTimeScale.setter
