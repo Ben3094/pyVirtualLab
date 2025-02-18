@@ -228,7 +228,7 @@ class KeysightMSOS804A(Instrument):
 	def ZoomTimeScale(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@ZoomTimeScale.setter
-	@SetProperty(float, 'TIM:WIND:DEL', rounding=lambda x : round(roundScientificNumber(x, 5), 12))
+	@SetProperty(float, 'TIM:WIND:SCAL', rounding=lambda x : round(roundScientificNumber(x, 5), 12))
 	def ZoomTimeScale(self, value: float) -> float:
 		pass
 	
