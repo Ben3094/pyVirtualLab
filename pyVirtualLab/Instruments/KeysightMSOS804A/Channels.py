@@ -144,10 +144,19 @@ class Source():
 
 	def __init__(self):
 		self.__commandAddress__ = self.TYPE_COMMAND_HEADER
+
+class DummySource(Source):
+	def __eq__(self, value):
+		if hasattr(value, 'TYPE_COMMAND_HEADER'):
+			return self.TYPE_COMMAND_HEADER == value.TYPE_COMMAND_HEADER
+		else: return False
+
 class AuxSource(Source):
 	TYPE_COMMAND_HEADER = 'AUX'
+	
 class LineSource(Source):
 	TYPE_COMMAND_HEADER = 'LINE'
+
 class ChannelUnit(Enum):
 	Volt = 0
 	Ampere = 1
@@ -227,12 +236,12 @@ class Channel(Source):
 	MEASUREMENTS_MIN_INDEX = 1
 	MEASUREMENTS_MAX_INDEX = 20
 	MEASUREMENTS_LIMITS = MEASUREMENTS_MAX_INDEX - MEASUREMENTS_MIN_INDEX
-	def __queryMeasurement__(self, command, args, addToResultsList:bool) -> Measurement:
+	def __queryMeasurement__(self, command, args, addToResultsList:bool, forceDuplication:bool=False) -> Measurement:
 		if addToResultsList:
 			measurements = self.__parent__.GetMeasurements()
 			if len(measurements) > Channel.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
-			if not ((command, args) in self.__parent__.__measurements__):
+			if (not ((command, args) in self.__parent__.__measurements__)) or forceDuplication:
 				self.__parent__.Write(command, args)
 				measurements = self.__parent__.GetMeasurements()
 				self.__parent__.__measurements__[(command, args)] = measurements[0].Name
