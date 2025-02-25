@@ -23,7 +23,7 @@ class AnalysingWindow:
 	def Read(self) -> str:
 		self.__parent__.FocusedAnalysingWindowName = self.Name
 		return self.__parent__.Read()
-	def Write(self, command:str, arguments:str) -> str:
+	def Write(self, command:str, arguments:str='') -> str:
 		self.__parent__.FocusedAnalysingWindowName = self.Name
 		return self.__parent__.Write(command, arguments)
 	def Query(self, command:str, arguments:str='') -> str:
