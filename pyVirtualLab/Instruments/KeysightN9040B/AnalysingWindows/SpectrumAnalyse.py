@@ -387,6 +387,38 @@ class SpectrumAnalyse(AnalysingWindow):
 		self.__parent__.__dataFormat__ = dataFormatSavedState
 		return data
 	
+	MAX_PEAK_SEARCH_COMMAND_FORMAT:str = 'CALC:MARK{markerIndex}:MAX'
+	@property
+	def MaxPeakSearch(self, markerIndex:int=None) -> float:
+		value = self.Query(SpectrumAnalyse.MAX_PEAK_SEARCH_COMMAND_FORMAT.format(markerIndex if markerIndex else ''))
+		return float(value)
+	@MaxPeakSearch.setter
+	def SetMaxPeakSearch(self, value:float, markerIndex:int=None) -> float:
+		value = float(value)
+		self.Write(SpectrumAnalyse.MAX_PEAK_SEARCH_COMMAND_FORMAT.format(markerIndex if markerIndex else ''), str(int(value)))
+		if self.MaxPeakSearch != value:
+			raise Exception('Error while setting continuous peak search')
+		return value
+
+	GET_MARKER_FREQUENCY_COMMAND_FORMAT:str = 'CALC:MARK{markerIndex}:Y'
+	@property
+	def MarkerFrequency(self, markerIndex:int=None) -> float:
+		value = self.Query(SpectrumAnalyse.GET_MARKER_FREQUENCY_COMMAND_FORMAT.format(markerIndex if markerIndex else ''))
+		return float(value)
+	
+	CONTINUOUS_PEAK_SEARCH_COMMAND:str = 'CALC:MARK{markerIndex}:CPS'
+	@property
+	def ContinuousPeakSearch(self, markerIndex:int=None) -> bool:
+		value = self.Query(SpectrumAnalyse.CONTINUOUS_PEAK_SEARCH_COMMAND.format(markerIndex if markerIndex else ''))
+		return bool(int(value))
+	@ContinuousPeakSearch.setter
+	def SetContinuousPeakSearch(self, value:bool, markerIndex:int=None) -> bool:
+		value = bool(value)
+		self.Write(SpectrumAnalyse.CONTINUOUS_PEAK_SEARCH_COMMAND.format(markerIndex if markerIndex else ''), str(int(value)))
+		if self.ContinuousPeakSearch != value:
+			raise Exception('Error while setting continuous peak search')
+		return value
+
 	__viewRegistry__:SpectrumAnalyseView = None
 	@property
 	def View(self) -> SpectrumAnalyseView:
