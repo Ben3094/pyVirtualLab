@@ -1,36 +1,6 @@
 from ..AnalysingWindow import AnalysingWindow
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES, GetProperty, SetProperty, logLinStringToBoolConverter, boolToLogLinStringConverter
-from enum import unique, Enum
-from ...KeysightN9040B import DataFormat
-
-@unique
-class PowerUnit(Enum):
-	dBm = 'DBM'
-	dBmV = 'DBMV'
-	dBmA = 'DBMA'
-	Volt = 'V'
-	Watt = 'W'
-	Ampere = 'A'
-	dBµV = 'DBUV'
-	dBµA = 'DBUA'
-	dBpW = 'DBPW'
-	dBµVPerMeter = 'DBUVM'
-	dBµAPerMeter = 'DBUAM'
-	dBpT = 'DBPT'
-	dBG = 'DBG'
-
-@unique
-class Path(Enum):
-	Standard = 'STD'
-	LowNoise ='LNP'
-	µWPreselectorBypass = 'MPB'
-	FullBypass = 'FULL'
-
-@unique
-class Average(Enum):
-	LogPower = 'LOG'
-	Power = 'RMS'
-	Voltage = 'SCAL'
+from .. import PowerUnit, Path, Average, DataFormat
 
 class SpectrumAnalyseView:
 	VIEW_NAME:str = None

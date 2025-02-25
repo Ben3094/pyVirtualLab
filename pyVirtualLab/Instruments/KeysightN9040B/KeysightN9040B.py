@@ -3,7 +3,8 @@ from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .AnalysingWindows import AnalysingWindow, ANALYSING_WINDOWS_NAMES
 from .AnalysingWindows.SpectrumAnalyse import SpectrumAnalyse
 from re import match
-from ..KeysightN9040B import DataFormat, CalibrationAlignementMode, InputPort, MixerPath, MixerSignalIdentificationMode
+from . import DataFormat, CalibrationAlignementMode, InputPort, MixerPath, MixerSignalIdentificationMode
+
 class KeysightN9040B(Instrument):
 	def __init__(self, address):
 		super(KeysightN9040B, self).__init__(address)
