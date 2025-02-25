@@ -357,24 +357,25 @@ class SpectrumAnalyse(AnalysingWindow):
 		self.__parent__.__dataFormat__ = dataFormatSavedState
 		return data
 	
-	MAX_PEAK_SEARCH_COMMAND_FORMAT:str = 'CALC:MARK{markerIndex}:MAX'
-	@property
-	def MaxPeakSearch(self, markerIndex:int=None) -> float:
-		value = self.Query(SpectrumAnalyse.MAX_PEAK_SEARCH_COMMAND_FORMAT.format(markerIndex = markerIndex if markerIndex else ''))
-		return float(value)
-	@MaxPeakSearch.setter
-	def SetMaxPeakSearch(self, value:float, markerIndex:int=None) -> float:
-		value = float(value)
-		self.Write(SpectrumAnalyse.MAX_PEAK_SEARCH_COMMAND_FORMAT.format(markerIndex = markerIndex if markerIndex else ''), str(int(value)))
-		if self.MaxPeakSearch != value:
-			raise Exception('Error while setting continuous peak search')
-		return value
-
-	GET_MARKER_FREQUENCY_COMMAND_FORMAT:str = 'CALC:MARK{markerIndex}:Y'
+	MARKER_X_POSITION_COMMAND_FORMAT:str = 'CALC:MARK{markerIndex}:X'
 	@property
 	def MarkerFrequency(self, markerIndex:int=None) -> float:
-		value = self.Query(SpectrumAnalyse.GET_MARKER_FREQUENCY_COMMAND_FORMAT.format(markerIndex = markerIndex if markerIndex else ''))
+		value = self.Query(SpectrumAnalyse.MARKER_X_POSITION_COMMAND_FORMAT.format(markerIndex = markerIndex if markerIndex else ''))
 		return float(value)
+	MARKER_Y_POSITION_COMMAND_FORMAT:str = 'CALC:MARK{markerIndex}:Y'
+	@property
+	def MarkerAmplitude(self, markerIndex:int=None) -> float:
+		value = self.Query(SpectrumAnalyse.MARKER_Y_POSITION_COMMAND_FORMAT.format(markerIndex = markerIndex if markerIndex else ''))
+		return float(value)
+	@property
+	def MarkerPosition(self, markerIndex:int=None) -> list[float, float]:
+		return [self.MarkerFrequency, self.MarkerAmplitude] # TODO: Add support for other markers
+	
+	MAX_PEAK_SEARCH_COMMAND_FORMAT:str = 'CALC:MARK{markerIndex}:MAX'
+	@property
+	def MaxPeakSearch(self, markerIndex:int=None) -> list[float, float]:
+		self.Write(SpectrumAnalyse.MAX_PEAK_SEARCH_COMMAND_FORMAT.format(markerIndex = markerIndex if markerIndex else ''))
+		return self.MarkerPosition
 	
 	CONTINUOUS_PEAK_SEARCH_COMMAND:str = 'CALC:MARK{markerIndex}:CPS'
 	@property
