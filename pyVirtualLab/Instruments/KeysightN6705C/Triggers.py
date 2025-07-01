@@ -1,5 +1,5 @@
 from re import match
-from pyVirtualLab.VISAInstrument import RECURSIVE_SUBCLASSES
+from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
 
 SOURCE_PATTERN = '([A-Z]+)(\\d+)?'
 

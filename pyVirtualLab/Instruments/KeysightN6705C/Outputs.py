@@ -1,5 +1,8 @@
 from aenum import Flag, unique, Enum
-from pyVirtualLab.Instruments.KeysightN6705C.Triggers import Trigger, NAMES, SOURCE_PATTERN
+from pyVirtualLab.Instruments.KeysightN6705C.Triggers import Trigger, SOURCE_PATTERN
+from pyVirtualLab.Instruments.KeysightN6705C.Triggers import NAMES as TRIGGERS_NAMES
+from pyVirtualLab.Instruments.KeysightN6705C.Signals import Signal
+from pyVirtualLab.Instruments.KeysightN6705C.Signals import NAMES as SIGNALS_NAMES
 from re import match, Match
 
 @unique
@@ -208,19 +211,20 @@ class Output():
 	@property
 	def Trigger(self) -> Trigger:
 		reply:Match = match(SOURCE_PATTERN, self.__parent__.Query('TRIG:ACQ:SOUR', f"(@{self.Address})"))
-		if type(self.__trigger__) != NAMES[reply[1]]:
+		if type(self.__trigger__) != TRIGGERS_NAMES[reply[1]]:
 			if self.__trigger__:
 				self.__trigger__.__parent__ = None # Unlink old trigger object
-			self.__trigger__ = NAMES[reply[1]](self)
+			self.__trigger__ = TRIGGERS_NAMES[reply[1]](self)
 		return self.__trigger__
 	@Trigger.setter
 	def Trigger(self, value:Trigger) -> Trigger:
 		self.__parent__.Write('TRIG:ACQ:SOUR', f"{value.__name__}, (@{self.Address})")
-		self.__trigger__ = value
 		currentTrigger = self.Trigger
 		if currentTrigger != value:
 			raise Exception("Error while setting trigger mode")
-		return currentTrigger
+		else:
+			self.__trigger__ = value
+			return currentTrigger
 
 	def __getMeasuredValues__(self, header, measureType:MeasureType, whenTriggered:bool, onlyLast:bool) -> list[float]:
 		savedASCIIFormat = self.__parent__.__isDataASCII__
@@ -249,6 +253,26 @@ class Output():
 	def GetPowersWaveform(self, whenTriggered:bool=False) -> list[float]:
 		measureType=MeasureType.Average
 		return self.__getMeasuredValues__(Output.POWER_HEADER, measureType, whenTriggered, onlyLast=False)
+
+	__signal__ = None
+	SIGNAL_COMMAND:str = 'SOUR:ARB:FUNC:SHAP'
+	@property
+	def Signal(self) -> Signal:
+		reply:Match = match(SOURCE_PATTERN, self.__parent__.Query(self.SIGNAL_COMMAND, f"(@{self.Address})"))
+		if type(self.__signal__) != SIGNALS_NAMES[reply[1]]:
+			if self.__signal__:
+				self.__signal__.__parent__ = None # Unlink old signal object
+			self.__signal__ = SIGNALS_NAMES[reply[1]](self)
+		return self.__signal__
+	@Signal.setter
+	def Signal(self, value:Signal) -> Signal:
+		self.__parent__.Write(self.SIGNAL_COMMAND, f"{value.__name__}, (@{self.Address})")
+		currentSignal = self.Signal
+		if currentSignal != value:
+			raise Exception("Error while setting signal type")
+		else:
+			self.__signal__ = value
+			return currentSignal
 
 class N6734B(Output):
 	def __init__(self, parentKeysightN6705C, address):
