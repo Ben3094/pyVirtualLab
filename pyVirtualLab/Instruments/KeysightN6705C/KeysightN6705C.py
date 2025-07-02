@@ -1,7 +1,14 @@
 from pyVirtualLab.VISAInstrument import Source
-from pyVirtualLab.Helpers import GetProperty
+from pyVirtualLab.Helpers import GetProperty, SetProperty
 from pyVirtualLab.Instruments.KeysightN6705C.Outputs import *
 from pyvisa import VisaIOError
+from aenum import Flag, unique, Enum
+
+@unique
+class SignalTrigger(Enum):
+	ArbButton = 'IMM'
+	Pin = 'BUS'
+	TriggerInConnector = 'EXT'
 
 class KeysightN6705C(Source):
 	def __init__(self, address):
@@ -67,3 +74,13 @@ class KeysightN6705C(Source):
 		if self.__isDataASCII__ != value:
 			raise Exception("Error while setting data format")
 		return value
+	
+	TRIGGER_COMMAND:str = "TRIG:ARB:SOUR"
+	@property
+	@GetProperty(SignalTrigger, TRIGGER_COMMAND)
+	def ArbSignalTrigger(self, getMethodReturn) -> SignalTrigger:
+		return getMethodReturn
+	@ArbSignalTrigger.setter
+	@SetProperty(SignalTrigger, TRIGGER_COMMAND)
+	def ArbSignalTrigger(self, value:SignalTrigger) -> SignalTrigger:
+		pass

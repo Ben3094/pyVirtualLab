@@ -255,24 +255,21 @@ class Output():
 		return self.__getMeasuredValues__(Output.POWER_HEADER, measureType, whenTriggered, onlyLast=False)
 
 	__signal__ = None
-	SIGNAL_COMMAND:str = 'SOUR:ARB:FUNC:SHAP'
+	GET_SIGNAL_COMMAND:str = 'SOUR:ARB:FUNC:SHAP'
 	@property
 	def Signal(self) -> Signal:
-		reply:Match = match(SOURCE_PATTERN, self.__parent__.Query(self.SIGNAL_COMMAND, f"(@{self.Address})"))
+		reply:Match = match(SOURCE_PATTERN, self.__parent__.Query(self.GET_SIGNAL_COMMAND, f"(@{self.Address})"))
 		if type(self.__signal__) != SIGNALS_NAMES[reply[1]]:
 			if self.__signal__:
 				self.__signal__.__parent__ = None # Unlink old signal object
 			self.__signal__ = SIGNALS_NAMES[reply[1]](self)
 		return self.__signal__
+	SET_SIGNAL_COMMAND:str = 'SOUR:ARB:{0}:SHAP'
 	@Signal.setter
 	def Signal(self, value:Signal) -> Signal:
-		self.__parent__.Write(self.SIGNAL_COMMAND, f"{value.__name__}, (@{self.Address})")
-		currentSignal = self.Signal
-		if currentSignal != value:
-			raise Exception("Error while setting signal type")
-		else:
-			self.__signal__ = value
-			return currentSignal
+		self.__parent__.Write(self.SET_SIGNAL_COMMAND.format(value.Type.value), f"{value.__name__}, (@{self.Address})")
+		self.__signal__ = value
+		return self.__signal__
 
 class N6734B(Output):
 	def __init__(self, parentKeysightN6705C, address):
