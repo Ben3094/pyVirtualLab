@@ -3,12 +3,6 @@ from abc import ABC
 from pyVirtualLab.Helpers import GetProperty, SetProperty, RECURSIVE_SUBCLASSES
 
 @unique
-class SignalTrigger(Enum):
-	ArbButton = 'IMM'
-	Pin = 'BUS'
-	TriggerInConnector = 'EXT'
-
-@unique
 class SignalType(Enum):
 	Voltage = 'VOLT'
 	Current = 'CURR'
@@ -17,25 +11,18 @@ class Signal(ABC):
 	DEFAULT_NAME:str = 'NONE'
 	__parent__ = None
 	__name__:str = None
-	def __init__(self, parentOutput):
+	__type__:SignalType = None
+	def __init__(self, parentOutput, type:SignalType=SignalType.Voltage):
 		self.__parent__ = parentOutput
+		self.__name__ = self.DEFAULT_NAME
+		self.__type__ = type
 	
 	def Read(self) -> str:
 		return self.__parent__.__parent__.Read()
 	def Write(self, command:str, arguments:str='') -> str:
 		return self.__parent__.__parent__.Write(command, arguments + f", (@{self.__parent__.__address__})")
 	def Query(self, command:str, arguments:str='') -> str:
-		return self.__parent__.__parent__.Query(command, ', '.join(arguments + f"(@{self.__parent__.__address__})"))
-
-	TRIGGER_COMMAND:str = "TRIG:ARB:SOUR"
-	@property
-	@GetProperty(SignalTrigger, TRIGGER_COMMAND)
-	def Trigger(self, getMethodReturn) -> SignalTrigger:
-		return getMethodReturn
-	@Trigger.setter
-	@SetProperty(SignalTrigger, TRIGGER_COMMAND)
-	def Trigger(self, value:SignalTrigger) -> SignalTrigger:
-		pass
+		return self.__parent__.__parent__.Query(command, ('' if arguments == '' else (arguments + ', ')) + f"(@{self.__parent__.__address__})")
 
 	TYPE_COMMAND:str = "SOUR:ARB:FUNC:TYPE"
 	@property
@@ -45,41 +32,41 @@ class Signal(ABC):
 	@Type.setter
 	@SetProperty(SignalType, TYPE_COMMAND)
 	def Type(self, value:SignalType) -> SignalType:
-		pass
+		self.__type__ = value
 
 	KEEP_LAST_VALUE_COMMAND:str = "SOUR:ARB:TERM:LAST"
 	@property
-	@GetProperty(SignalType, KEEP_LAST_VALUE_COMMAND)
+	@GetProperty(bool, KEEP_LAST_VALUE_COMMAND)
 	def KeepLastValue(self, getMethodReturn) -> bool:
 		return getMethodReturn
 	@KeepLastValue.setter
-	@SetProperty(SignalType, KEEP_LAST_VALUE_COMMAND)
+	@SetProperty(bool, KEEP_LAST_VALUE_COMMAND)
 	def KeepLastValue(self, value:bool) -> bool:
 		pass
 
 class ConstantSignal(Signal):
-	def __init__(self, parent) -> None:
-		super().__init__(parent)
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput)
 class StepSignal(Signal):
 	DEFAULT_NAME:str = 'STEP'
-	def __init__(self, parent) -> None:
-		super().__init__(parent)
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput)
 class RampSignal(Signal):
 	DEFAULT_NAME:str = 'RAMP'
-	def __init__(self, parent) -> None:
-		super().__init__(parent) 
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput) 
 class StaircaseSignal(Signal):
 	DEFAULT_NAME:str = 'STA'
-	def __init__(self, parent) -> None:
-		super().__init__(parent) 
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput) 
 class SinusoidSignal(Signal):
 	DEFAULT_NAME:str = 'SIN'
-	def __init__(self, parent) -> None:
-		super().__init__(parent) 
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput) 
 class PulseSignal(Signal):
 	DEFAULT_NAME:str = 'PULS'
-	def __init__(self, parent) -> None:
-		super().__init__(parent)
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput)
 
 	LOW_VOLTAGE_COMMAND:str = "SOUR:ARB:VOLT:PULS:STAR:LEV"
 	@property
@@ -130,23 +117,23 @@ class PulseSignal(Signal):
 	
 class TrapezoidSignal(Signal):
 	DEFAULT_NAME:str = 'TRAP'
-	def __init__(self, parent) -> None:
-		super().__init__(parent) 
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput) 
 class ExponentialSignal(Signal):
 	DEFAULT_NAME:str = 'EXP'
-	def __init__(self, parent) -> None:
-		super().__init__(parent) 
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput) 
 class UserDefinedSignal(Signal):
 	DEFAULT_NAME:str = 'UDEF'
-	def __init__(self, parent) -> None:
-		super().__init__(parent) 
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput) 
 class ConstantDwellSignal(Signal):
 	DEFAULT_NAME:str = 'CDW'
-	def __init__(self, parent) -> None:
-		super().__init__(parent) 
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput) 
 class SequenceSignal(Signal):
 	DEFAULT_NAME:str = 'SEQ'
-	def __init__(self, parent) -> None:
-		super().__init__(parent)
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput)
 
 NAMES = dict([(subclass.DEFAULT_NAME, subclass) for subclass in RECURSIVE_SUBCLASSES(Signal)])
