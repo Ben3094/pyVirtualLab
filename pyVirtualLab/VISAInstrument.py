@@ -255,7 +255,8 @@ def PARSE_ADDRESS(value:str) -> tuple[InterfaceType, dict[str, object], Resource
 				if resourceType == ResourceType.Socket:
 					interfaceProperties[ETHERNET_PORT_ENTRY_NAME] = int(value[2])
 				else:
-					interfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME] = value[2]
+					if len(value) > 2:
+						interfaceProperties[ETHERNET_DEVICE_NAME_ENTRY_NAME] = value[2]
 					if len(value) > 3:
 						interfaceProperties[ETHERNET_PORT_ENTRY_NAME] = int(value[3])	
 
@@ -373,6 +374,7 @@ class Instrument:
 		try:
 			if not issubclass(type(self.__resource__), VirtualResource):
 				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__, access_mode=AccessModes.exclusive_lock)
+			self.Write('COMM_HEADER', 'OFF')
 			self.Id = self.__updateId__()
 			self.Vendor = PARSE_VENDOR(self.Id)
 			self.Model, self.Firmware = PARSE_MODEL_AND_FIRMWARE(self.Id, self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor)
@@ -394,6 +396,7 @@ class Instrument:
 		else:
 			raise Exception("The instrument is not connected")
 
+	# TODO: Support commmand header check
 	def Query(self, command: str, args:str=''):
 		args = str(args)
 		if self.IsConnected:
@@ -435,6 +438,12 @@ class Instrument:
 			self.__resource__.write('*RST')
 		else:
 			raise Exception("The instrument is not connected")
+	
+	GET_OPTIONS_COMMAND:str = "*OPT"
+	OPTIONS_SEPARATOR:str = ','
+	@property
+	def Options(self) -> list:
+		return self.Query(self.GET_OPTIONS_COMMAND).split(self.OPTIONS_SEPARATOR)
 		
 	def __repr__(self) -> str:
 		if self.Vendor:
