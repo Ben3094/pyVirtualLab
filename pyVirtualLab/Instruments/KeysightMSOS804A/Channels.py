@@ -1,141 +1,5 @@
-from aenum import Enum, MultiValueEnum
-from collections import namedtuple
-
-class MeasurementState(Enum):
-	Correct = 0
-	Questionable = 1
-	Less = 2
-	Greater = 3
-	Invalid = 4
-	EdgeNotFound = 5
-	MaxNotFound = 6
-	MinNotFound = 7
-	TimeNotFound = 8
-	VoltageNotFound = 9
-	TopEqualsBase = 10
-	TooSmall = 11
-	LowerNotFoung = 12
-	UpperNotFound = 13
-	UpperCloseToLower = 14
-	TopNotFound = 15
-	BaseNotFound = 16
-	CompletionCriteriaNotReached = 17
-	Impossible = 18
-	WaveformNotDisplayed = 19
-	HighWaveformClipped = 20
-	LowWaveformClipped = 21
-	HighAndLowClippedWaveform = 22
-	DataContainsHoles = 23
-	DataNotFound = 24
-	FFTPeakNotFound = 29
-	EyePatternNotFound = 30
-	NRZEyeNotFound = 31
-	ExtinctionRatioInvalid = 32
-	MoreThanOneSource = 33
-	SignalTooSmall = 35
-	AverageWaitToComplete = 36
-	WaitingForClock = 38
-	NeedJitterMode = 39
-	MeasurementNotOnScreen = 40
-	ClockRecoveryImpossible = 41
-	PLLLoopBandwidthTooHigh = 42
-	RJDJNotFound = 43
-	ClockRecoveryProhibited = 45
-	JitterPreventRJDJSeparation = 46
-	SampleRatesDifferent = 52
-	SignalsDoNotCross = 53
-	SignalTooPeriodic = 54
-	OutOfComputingMemory = 55
-	LowerThresholdNotFound = 56
-	UpperThresholdNotFound = 57
-	TooMuchNoise = 59
-	NotSuitedMeasurement = 60
-	NoOpenEyeFound = 61
-	NotSuitedConfiguration = 62
-	NotSuitedResponsivity = 63
-	CrossCorrelationTimeTooBig = 64
-	InvalidEdgePolarity = 65
-	CarrierFrequencyNotFound = 66
-
-class StatisticMode(MultiValueEnum):
-	All = 'ON' 
-	Value = 'CURR', 'OFF' 
-	Maximum = 'MAX' 
-	Mean = 'MEAN' 
-	Minimum = 'MIN' 
-	StandardDeviation = 'STDD' 
-	Count = 'COUN'
-
-class Measurement():
-	def __init__(self, values:dict[str, str]):
-		self.__string__ = str(values)
-
-		for value in values:
-			match value:
-				case Channel.MEASUREMENT_NAME_COLUMN_NAME:
-					self.__name__ = str(values[value])
-				case StatisticMode.Value.name:
-					self.__value__ = float(values[value])
-				case Channel.MEASUREMENT_STATE_COLUMN_NAME:
-					self.__state__ = MeasurementState(int(values[value]))
-				case StatisticMode.Minimum.name:
-					self.__minimum__ = float(values[value])
-				case StatisticMode.Maximum.name:
-					self.__maximum__ = float(values[value])
-				case StatisticMode.Mean.name:
-					self.__mean__ = float(values[value])
-				case StatisticMode.StandardDeviation.name:
-					self.__standardDeviation__ = float(values[value])
-				case StatisticMode.Count.name:
-					self.__count__ = int(float(values[value]))
-
-	__string__:str = None
-	
-	__name__:str = None
-	@property
-	def Name(self) -> str:
-		return self.__name__
-
-	__value__:float = None
-	@property
-	def Value(self) -> float:
-		return self.__value__
-
-	__state__:MeasurementState = None
-	@property
-	def State(self) -> MeasurementState:
-		return self.__state__
-
-	__minimum__:float = None
-	@property
-	def Minimum(self) -> float:
-		return self.__minimum__
-	
-	__maximum__:float = None
-	@property
-	def Maximum(self) -> float:
-		return self.__maximum__
-		
-	__mean__:float = None
-	@property
-	def Mean(self) -> float:
-		return self.__mean__
-	
-	__standardDeviation__:float = None
-	@property
-	def StandardDeviation(self) -> float:
-		return self.__standardDeviation__
-	
-	__count__:int = None
-	@property
-	def Count(self) -> int:
-		return self.__count__
-
-	def __float__(self):
-		return self.__value__
-	
-	def __repr__(self):
-		return self.__string__
+from aenum import Enum
+from .Measurements import *
 
 class Source():
 	TYPE_COMMAND_HEADER = None
@@ -230,16 +94,10 @@ class Channel(Source):
 		return value
 	
 	# Measurements
-	MEASUREMENT_NAME_COLUMN_NAME:str = "Name"
-	MEASUREMENT_CURRENT_VALUE_COLUMN_NAME:str = "Value"
-	MEASUREMENT_STATE_COLUMN_NAME:str = "State"
-	MEASUREMENTS_MIN_INDEX = 1
-	MEASUREMENTS_MAX_INDEX = 20
-	MEASUREMENTS_LIMITS = MEASUREMENTS_MAX_INDEX - MEASUREMENTS_MIN_INDEX
 	def __queryMeasurement__(self, command, args, addToResultsList:bool, forceDuplication:bool=False) -> Measurement:
 		if addToResultsList:
 			measurements = self.__parent__.GetMeasurements()
-			if len(measurements) > Channel.MEASUREMENTS_LIMITS:
+			if len(measurements) > Measurement.MEASUREMENTS_LIMITS:
 				raise Exception("No more measurement slots available")
 			if (not ((command, args) in self.__parent__.__measurements__)) or forceDuplication:
 				self.__parent__.Write(command, args)
@@ -251,7 +109,7 @@ class Channel(Source):
 			self.__parent__.IsStateIncludedWithMeasurement = True
 			values = self.__parent__.Query(command, args).split(',')
 			self.__parent__.IsStateIncludedWithMeasurement = currentSendValidMeasurements
-			measurement = Measurement(dict(zip([Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME, Channel.MEASUREMENT_STATE_COLUMN_NAME], values)))
+			measurement = Measurement(dict(zip([Measurement.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME, Measurement.MEASUREMENT_STATE_COLUMN_NAME], values)))
 			return measurement
 	
 	def GetFrequency(self, addToResultsList:bool=False) -> Measurement:
@@ -307,7 +165,7 @@ class VerticalMeasurePossibleChannel(Channel):
 		value = self.__queryMeasurement__('MEAS:VRMS', ','.join(args), addToResultsList)
 		return value
 
-class AnalogChannelConfiguration(Enum):
+class Coupling(Enum):
 	OneMegaOhmImpedance = 'DC'
 	FiftyOhmImpedance = 'DC50'
 	AC = 'AC'
@@ -315,11 +173,11 @@ class AnalogChannelConfiguration(Enum):
 	LowFrequencyReject2 = 'LFR2'
 class AnalogChannel(VerticalMeasurePossibleChannel):
 	@property
-	def Configuration(self) -> AnalogChannelConfiguration:
-		return AnalogChannelConfiguration(self.__parent__.Query(f"{self.__commandAddress__}:INP"))
+	def Configuration(self) -> Coupling:
+		return Coupling(self.__parent__.Query(f"{self.__commandAddress__}:INP"))
 	@Configuration.setter
-	def Configuration(self, value:AnalogChannelConfiguration) -> AnalogChannelConfiguration:
-		value = AnalogChannelConfiguration(value)
+	def Configuration(self, value:Coupling) -> Coupling:
+		value = Coupling(value)
 		self.__parent__.Write(f"{self.__commandAddress__}:INP {value.value}")
 		if self.Configuration != value:
 			raise Exception(f"Error while setting channel {self.Address} configuration")

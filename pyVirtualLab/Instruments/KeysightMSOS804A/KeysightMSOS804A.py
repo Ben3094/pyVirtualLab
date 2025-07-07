@@ -167,10 +167,10 @@ class KeysightMSOS804A(Instrument):
 	def MeasurementsStatisticsMode(self, value: StatisticMode) -> StatisticMode:
 		pass
 
-	def GetMeasurements(self) -> list:
-		columnsNames:list[str] = [Channel.MEASUREMENT_NAME_COLUMN_NAME, Channel.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
+	def GetMeasurements(self) -> list[Measurement]:
+		columnsNames:list[str] = [Measurement.MEASUREMENT_NAME_COLUMN_NAME, Measurement.MEASUREMENT_CURRENT_VALUE_COLUMN_NAME]
 		if self.IsStateIncludedWithMeasurement:
-			columnsNames.append(Channel.MEASUREMENT_STATE_COLUMN_NAME)
+			columnsNames.append(Measurement.MEASUREMENT_STATE_COLUMN_NAME)
 		match self.MeasurementsStatisticsMode:
 			case StatisticMode.All:
 				[columnsNames.append(measurementStatisticMode.name) for measurementStatisticMode in [StatisticMode.Minimum, StatisticMode.Maximum, StatisticMode.Mean, StatisticMode.StandardDeviation, StatisticMode.Count]]
@@ -250,11 +250,11 @@ class KeysightMSOS804A(Instrument):
 				self.__analogChannels__[address] = AnalogChannel(self, address)
 		return self.__analogChannels__
 
-	SINGLE_OSCILLOSCOPE_MEMORIES = 4
+	WAVEFORM_MEMORIES = 4
 	@property
 	def WaveformMemoryChannels(self) -> dict[int, WaveformMemoryChannel]:
 		if len(self.__waveformMemoryChannels__) < 1:
-			for address in range(1, self.SINGLE_OSCILLOSCOPE_MEMORIES+1):
+			for address in range(1, self.WAVEFORM_MEMORIES+1):
 				self.__waveformMemoryChannels__[address] = WaveformMemoryChannel(self, address)
 		return self.__waveformMemoryChannels__
 
