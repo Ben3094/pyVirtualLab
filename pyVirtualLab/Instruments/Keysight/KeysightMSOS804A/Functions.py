@@ -386,7 +386,7 @@ class SideFilterFunction(Function):
 class HighPassFunction(SideFilterFunction):
 	NAME = 'HIGH'
 class LowPassFunction(SideFilterFunction):
-	NAME = 'LOW'
+	NAME = 'LOWP'
 class IntegrateFunction(Function):
 	NAME = 'INT'
 class InvertFunction(Function):
