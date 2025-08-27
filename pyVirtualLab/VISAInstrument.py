@@ -373,7 +373,7 @@ class Instrument:
 	def Connect(self) -> bool:
 		try:
 			if not issubclass(type(self.__resource__), VirtualResource):
-				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__, access_mode=AccessModes.exclusive_lock)
+				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__)
 			self.Write('COMM_HEADER', 'OFF')
 			self.Id = self.__updateId__()
 			self.Vendor = PARSE_VENDOR(self.Id)

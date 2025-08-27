@@ -1,7 +1,5 @@
-from aenum import Enum, MultiValueEnum
-from pyVirtualLab.Helpers import GetProperty, SetProperty
+from aenum import Enum
 from .Measurements import *
-from re import sub
 					
 class Source():
 	TYPE_COMMAND_HEADER = None
@@ -114,7 +112,7 @@ class Channel(Source):
 		self.__parent__.Write(self.SET_MEASUREMENT_COMMAND, f"1,{measurementType.value},{args}")
 		if index == -1:
 			index = next(measurement[0] for measurement in self.__parent__.Measurements if measurement[1] == (measurementType, self))
-		return self.__parent__.GetMeasurement(index)
+		return self.__parent__.GetMeasurement(index) #TODO: Support adding statistic
 	
 	def GetFrequency(self) -> Measurement:
 		return self.__queryMeasurement__(MeasurementType.Frequency, args=f"{self.__commandAddress__}")

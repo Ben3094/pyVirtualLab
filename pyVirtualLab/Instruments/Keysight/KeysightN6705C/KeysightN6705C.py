@@ -2,7 +2,7 @@ from pyVirtualLab.VISAInstrument import Source
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from pyVirtualLab.Instruments.KeysightN6705C.Outputs import *
 from pyvisa import VisaIOError
-from aenum import Flag, unique, Enum
+from aenum import unique, Enum
 
 @unique
 class SignalTrigger(Enum):
