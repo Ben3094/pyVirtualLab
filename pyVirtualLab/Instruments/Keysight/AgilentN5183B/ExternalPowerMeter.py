@@ -1,4 +1,4 @@
-from ...VISAInstrument import Instrument, VirtualResource, InterfaceType, ETHERNET_DEVICE_NAME_ENTRY_NAME, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME
+from pyVirtualLab.VISAInstrument import Instrument, VirtualResource, InterfaceType, ETHERNET_DEVICE_NAME_ENTRY_NAME, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME
 
 class ExternalPowerMeterResource(VirtualResource):
 	def __init__(self, parentPowerMeter):
