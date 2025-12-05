@@ -6,7 +6,6 @@ from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSo
 from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
 from time import time, sleep
-from collections import namedtuple
 	
 class RunState(Enum):
 	Stop = 0
@@ -136,7 +135,7 @@ class KeysightMSOS804A(Instrument):
 	def TimeScale(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@TimeScale.setter
-	@SetProperty(float, 'TIM:SCAL', rounding=lambda x : round(roundScientificNumber(x, 2), 12))
+	@SetProperty(float, 'TIM:SCAL', rounding=lambda x : roundScientificNumber(x, 2))
 	def TimeScale(self, value: float) -> float:
 		pass
 
@@ -145,7 +144,7 @@ class KeysightMSOS804A(Instrument):
 	def Delay(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@Delay.setter
-	@SetProperty(float, 'TIM:POS', rounding=lambda x : round(roundScientificNumber(x, 2), 12))
+	@SetProperty(float, 'TIM:POS', rounding=lambda x : roundScientificNumber(x, 2))
 	def Delay(self, value: float) -> float:
 		pass
 
@@ -220,7 +219,7 @@ class KeysightMSOS804A(Instrument):
 	def ZoomDelay(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@ZoomDelay.setter
-	@SetProperty(float, 'TIM:WIND:POS', rounding=lambda x : round(roundScientificNumber(x, 5), 12))
+	@SetProperty(float, 'TIM:WIND:POS', rounding=lambda x : roundScientificNumber(x, 5))
 	def ZoomDelay(self, value: float) -> float:
 		pass
 	@property
@@ -228,7 +227,7 @@ class KeysightMSOS804A(Instrument):
 	def ZoomTimeScale(self, getMethodReturn) -> float:
 		return getMethodReturn
 	@ZoomTimeScale.setter
-	@SetProperty(float, 'TIM:WIND:SCAL', rounding=lambda x : round(roundScientificNumber(x, 5), 12))
+	@SetProperty(float, 'TIM:WIND:SCAL', rounding=lambda x : roundScientificNumber(x, 5))
 	def ZoomTimeScale(self, value: float) -> float:
 		pass
 	

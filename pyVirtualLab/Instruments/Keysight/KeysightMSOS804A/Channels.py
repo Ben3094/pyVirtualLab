@@ -9,7 +9,6 @@ class Source():
 	def __init__(self):
 		self.__commandAddress__ = self.TYPE_COMMAND_HEADER
 
-class DummySource(Source):
 	def __eq__(self, value):
 		if hasattr(value, 'TYPE_COMMAND_HEADER'):
 			return self.TYPE_COMMAND_HEADER == value.TYPE_COMMAND_HEADER

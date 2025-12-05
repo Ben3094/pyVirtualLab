@@ -74,4 +74,4 @@ def roundScientificNumber(number:float, decimalToKeep:int):
 	if number == 0:
 		return number
 	power = floor(log10(abs(number)))
-	return round(number * pow(10, -power), decimalToKeep) * pow(10, power)
+	return round(round(number * pow(10, -power), decimalToKeep) * pow(10, power), 21)

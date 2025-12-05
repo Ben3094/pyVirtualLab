@@ -1,4 +1,4 @@
-from aenum import Flag, unique, Enum
+from aenum import unique, Enum
 from abc import ABC
 from pyVirtualLab.Helpers import GetProperty, SetProperty, RECURSIVE_SUBCLASSES
 

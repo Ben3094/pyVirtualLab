@@ -1,8 +1,8 @@
 from aenum import Flag, unique, Enum
-from pyVirtualLab.Instruments.Keysight.KeysightN6705C.Triggers import Trigger, SOURCE_PATTERN
-from pyVirtualLab.Instruments.Keysight.KeysightN6705C.Triggers import NAMES as TRIGGERS_NAMES
-from pyVirtualLab.Instruments.Keysight.KeysightN6705C.Signals import Signal
-from pyVirtualLab.Instruments.Keysight.KeysightN6705C.Signals import NAMES as SIGNALS_NAMES
+from .Triggers import Trigger, SOURCE_PATTERN
+from .Triggers import NAMES as TRIGGERS_NAMES
+from .Signals import Signal
+from .Signals import NAMES as SIGNALS_NAMES
 from re import match, Match
 
 @unique

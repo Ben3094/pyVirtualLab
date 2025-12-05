@@ -1,6 +1,6 @@
 from pyVirtualLab.VISAInstrument import Source
 from pyVirtualLab.Helpers import GetProperty, SetProperty
-from pyVirtualLab.Instruments.Keysight.KeysightN6705C.Outputs import *
+from .Outputs import *
 from pyvisa import VisaIOError
 from aenum import unique, Enum
 

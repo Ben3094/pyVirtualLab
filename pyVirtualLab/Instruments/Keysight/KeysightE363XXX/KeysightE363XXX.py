@@ -1,5 +1,5 @@
 from pyVirtualLab.VISAInstrument import Source
-from pyVirtualLab.Instruments.Keysight.KeysightE363XXX.Outputs import *
+from .Outputs import *
 
 OUTPUTS_NUMBER:int = 3
 OUTPUTS_START_INDEX:int = 1

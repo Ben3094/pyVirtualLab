@@ -416,9 +416,12 @@ class Instrument:
 		else:
 			raise Exception("The instrument is not connected")
 	
+	OPERATION_COMPLETE_COMMAND:str = '*OPC'
+	BLOCKING_WAIT_COMMAND:str = '*WAI'
+	__defaultWaitCommand__:str = OPERATION_COMPLETE_COMMAND
 	def Wait(self, delay:float=0.01, timeout:float=5):
 		def isNotAvailable():
-			try: return self.Query('*OPC') != '1'
+			try: return self.Query(self.__defaultWaitCommand__) != '1'
 			except: return True
 
 		startTime:float = time()
