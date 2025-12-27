@@ -48,11 +48,16 @@ We invite developers that create a ```Source```-based driver to customize the ``
 
 All provided drivers are located in ```pyVirtualLab.Instruments```.
 
-As of now, this library provides few Keysight instrument drivers:
-- ```AgilentE3642A```: Keysight E3642A compatible driver
-- ```AgilentN5183B```: Keysight N5183B compatible driver
-- ```KeysightN191X```: Keysight N191X series compatible driver
-- ```KeysightN6705C```: Keysight N6705C compatible driver
-- ```KeysightMSOS804A```: Keysight MSOS804A compatible driver
+As of now, this library provides few instrument drivers:
+- ```Keysight.E3642A```: Agilent E3642A power source
+- ```Keysight.N5183B```: Agilent N5183B synthesizer
+- ```Keysight.N191X```: Keysight N191X power meter series
+- ```Keysight.N6705C```: Keysight N6705C multiple power supply
+- ```Keysight.MSOS804A```: Keysight MSOS804A oscilloscope
+- ```Keysight.E363XXX```: Keysight E363XXX multiple power supply series
+- ```Keysight.G_33210A```: Agilent 33210A function generator
+- ```Keysight.N9040B```: Keysight N9040B signal analyser
+- ```LeCroy.2610N```: LeCroy 2610N oscilloscope series
+- ```RohdeAndSchwarz.RTB2XXX```: Rohde & Schwarz RTB2XXX oscilloscope series
 
-Except ```KeysightN191X```, all other drivers have not been tested for close, and maybe compatible, instruments.
+Except ```Keysight.N191X```, all other drivers have not been tested for close, and maybe compatible, instruments.
