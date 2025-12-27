@@ -1,8 +1,11 @@
 from pyVirtualLab.VISAInstrument import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty, roundScientificNumber
 from time import time, sleep
+import re
 from .Triggers import Trigger, TRIGGERS_NAMES
-from .Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel, WaveformMemoryChannel
+from .Channels import Source, AuxSource, LineSource, AnalogChannel, DigitalChannel, WaveformMemoryChannel
+from . import Measurements as m
+from .Helpers import DataFormat
 
 DEFAULT_TIMEOUT:int = 5000
 
@@ -13,7 +16,7 @@ class RTB2XXX(Instrument):
 		self.__digitalChannels__ = dict()
 		self.__waveformMemoryChannels__ = dict()
 		self.__functions__ = dict()
-		self.__measurements__:dict[tuple[str, str], str] = dict()
+		self.__measurements__:dict[int, m.Measurement] = dict()
 		self.AuxSource:AuxSource = AuxSource()
 		self.LineSource:LineSource = LineSource()
 
@@ -118,6 +121,7 @@ class RTB2XXX(Instrument):
 	def ReturnHeader(self, value: bool):
 		self.Write('SYST:HEAD', str(int(bool(value))))
 
+
 	#region TRIGGER
 
 	TRIGGER_MODE_COMMAND:str = 'TRIG:A:MODE'
@@ -202,8 +206,43 @@ class RTB2XXX(Instrument):
 			for address in range(0, self.DIGITAL_CHANNELS):
 				self.__digitalChannels__[address] = DigitalChannel(self, address)
 		return self.__digitalChannels__
+
+	def StringToChannel(self, value) -> Source:
+		match = re.match('([A-Z]+)(\d+)?', value)
+		match match.groups(0)[0]:
+			case AnalogChannel.ARGUMENT_COMMAND_HEADER:
+				return self.AnalogChannels[int(match.groups(0)[1])]
+
+			case DigitalChannel.ARGUMENT_COMMAND_HEADER:
+				return self.DigitalChannels[int(match.groups(0)[1])]
+
+			# case Function.ARGUMENT_COMMAND_HEADER:
+			# 	return self.__functions__[int(match.groups(0)[1])]
+
+			case WaveformMemoryChannel.ARGUMENT_COMMAND_HEADER:
+				return self.WaveformMemoryChannels[int(match.groups(0)[1])]
+			
+			case AuxSource.ARGUMENT_COMMAND_HEADER:
+				return self.AuxSource
+			
+			case LineSource.ARGUMENT_COMMAND_HEADER:
+				return self.LineSource
 		
 	#endregion
+
+
+	#region MEASUREMENTS
+
+	MEASUREMENTS = 8
+	@property
+	def Measurements(self) -> dict[int, m.Measurement]:
+		if len(self.__measurements__) < 1:
+			for address in range(1, self.MEASUREMENTS+1):
+				self.__measurements__[address] = m.Measurement(self,  address)
+		return self.__measurements__
+
+	#endregion
+
 
 	#region SAMPLE RATES
 
@@ -245,5 +284,29 @@ class RTB2XXX(Instrument):
 				self.__isAutoAnalogSampleRateEnabled__ = False
 			self.Write(RTB2XXX.SAMPLE_RATE_COMMAND, str(value))
 			return self.SampleRate
-		
+
 	#endregion
+
+	FORMAT_COMMAND:str = "FORM:DATA"
+	@property
+	@GetProperty(DataFormat, FORMAT_COMMAND)
+	def Format(self, getMethodReturn) -> DataFormat:
+		return getMethodReturn
+	@Format.setter
+	@SetProperty(DataFormat, FORMAT_COMMAND)
+	def Format(self, value:DataFormat) -> DataFormat:
+		pass
+	
+	BYTE_ORDER_COMMAND:str = "FORM:BORD"
+	BIG_ENDIAN_BYTE_ORDER:str = 'MSBF'
+	LITTLE_ENDIAN_BYTE_ORDER:str = 'LSBF'
+	BYTE_ORDER_TO_BOOLEAN = lambda x: True if x == RTB2XXX.BIG_ENDIAN_BYTE_ORDER else False
+	BOOLEAN_TO_BYTE_ORDER = lambda x: RTB2XXX.BIG_ENDIAN_BYTE_ORDER if x else RTB2XXX.LITTLE_ENDIAN_BYTE_ORDER
+	@property
+	@GetProperty(bool, BYTE_ORDER_COMMAND, BYTE_ORDER_TO_BOOLEAN)
+	def IsDataBigEndian(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@IsDataBigEndian.setter
+	@SetProperty(bool, BYTE_ORDER_COMMAND, converter=BOOLEAN_TO_BYTE_ORDER)
+	def IsDataBigEndian(self, value: bool) -> bool:
+		pass

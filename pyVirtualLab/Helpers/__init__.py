@@ -75,3 +75,19 @@ def roundScientificNumber(number:float, decimalToKeep:int):
 		return number
 	power = floor(log10(abs(number)))
 	return round(round(number * pow(10, -power), decimalToKeep) * pow(10, power), 21)
+
+def CreateReadOnlyProperty(parent, dataType:type, visaGetCommand:str, converter:Converter=None, booleanStatePropertyName:str=None, offStateValue=None):
+	if converter == None:
+		if dataType in ConvertersRegistry:
+			converter = ConvertersRegistry[dataType].Get
+		else:
+			converter = lambda x: dataType(x)
+	
+	def getter(self):
+		if (booleanStatePropertyName != None) and (not getattr(parent, booleanStatePropertyName)):
+				return offStateValue
+		else:
+			command = visaGetCommand.format(**parent.__dict__)
+			return converter(parent.Query(command))
+	
+	return property(getter)

@@ -3,6 +3,7 @@ from aenum import Enum
 from pyVirtualLab.VISAInstrument import Instrument, Source
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from . import Functions
+from . import Modulations
 
 class AmplitudeUnit(Enum):
 	PeakPeakVoltage = 'VPP'
@@ -110,7 +111,7 @@ class G_33210A(Source):
 			raise Exception('Error while setting inversion')
 		return value
 
-	ENABLE_SYNC_COMMAND:str = 'OUT:SYNC'
+	ENABLE_SYNC_COMMAND:str = 'OUTP:SYNC'
 	@property
 	@GetProperty(bool, ENABLE_SYNC_COMMAND)
 	def IsSyncEnabled(self, getMethodReturn) -> bool:
@@ -137,7 +138,7 @@ class G_33210A(Source):
 	@property
 	def Function(self) -> Functions.Function:
 		reply:str = self.Query(Functions.FUNCTION_COMMAND)
-		if self.__function__ is not Functions.FUNCTIONS_NAMES[reply]:
+		if type(self.__function__) is not Functions.FUNCTIONS_NAMES[reply]:
 			if self.__function__:
 				self.__function__.__parent__ = None # Unlink old trigger object
 			self.__function__ = Functions.FUNCTIONS_NAMES[reply]()
@@ -147,9 +148,43 @@ class G_33210A(Source):
 	def Function(self, value:Functions.Function) -> Functions.Function:
 		self.Write(Functions.FUNCTION_COMMAND, value.NAME)
 		self.__function__ = value
+		self.__function__.__parent__ = self
 		currentFunction = self.Function
-		if value == currentFunction:
+		if value != currentFunction:
 			raise Exception("Error while setting the function")
 		return currentFunction
+	
+	# endregion
+
+	# region MODULATION
+
+	__modulation__ = None
+	@property
+	def Modulation(self) -> Modulations.Modulation:
+		if self.__modulation__:
+			if self.__modulation__.IsEnabled:
+				return self.__modulation__
+		modulationInstance:Modulations.Modulation = None
+		for modulation in Modulations.MODULATIONS_NAMES:
+			modulationType:type = Modulations.MODULATIONS_NAMES[modulation]
+			modulationInstance:Modulations.Modulation = modulationType()
+			modulationInstance.__parent__ = self
+			if modulationInstance.IsEnabled:
+				return modulationInstance
+		return None
+	@Modulation.setter
+	def Modulation(self, value:Modulations.Modulation) -> Modulations.Modulation:
+		previousModulation = self.Modulation
+		if Modulations.Modulation.__subclasscheck__(type(value)):
+			value.__parent__ = self
+			value.IsEnabled = True
+		else:
+			value = None
+		self.__modulation__ = value
+		if value != self.Modulation:
+			raise Exception("Error while setting the modulation")
+		if previousModulation:
+			previousModulation.__parent__ = None # Make an orphan...
+		return value
 	
 	# endregion

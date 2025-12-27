@@ -13,8 +13,11 @@ class Function:
 	def Query(self, command:str, arguments:str='') -> str:
 		return self.__parent__.Query(f"{FUNCTION_COMMAND}:{self.NAME}:{command}", arguments)
 
-class SinusFunction(Function):
+class SineFunction(Function):
 	NAME:str = 'SIN'
+
+class SquareFunction(Function):
+	NAME:str = 'SQU'
 
 	DUTY_CYCLE_COMMAND:str = 'DCYC'
 	@property
@@ -25,9 +28,6 @@ class SinusFunction(Function):
 	@SetProperty(float, DUTY_CYCLE_COMMAND)
 	def DutyCycle(self, value:float) -> float:
 		pass
-
-class SquareFunction(Function):
-	NAME:str = 'SQU'
 
 class RampFunction(Function):
 	NAME:str = 'RAMP'
@@ -69,18 +69,6 @@ class PulseFunction(Function):
 		self.Write(PulseFunction.PULSE_WIDTH_HOLD_COMMAND, PulseFunction.PULSE_WIDTH_HOLD if value else PulseFunction.DUTY_CYCLE_HOLD)
 		if self.IsWidtHoldWithPeriod != value:
 			raise Exception('Error while setting the hold parameter')
-		return value
-
-	PULSE_WIDTH_HOLD_COMMAND:str = 'HOLD'
-	@property
-	def Period(self) -> float:
-		return float(self.__parent__.Query(PulseFunction.PERIOD_COMMAND))
-	@Period.setter
-	def Period(self, value:float) -> float:
-		value = float(value)
-		self.__parent__.Write(PulseFunction.PERIOD_COMMAND, str(value))
-		if self.Period != value:
-			raise Exception('Error while setting pulse period')
 		return value
 
 	WIDTH_COMMAND:str = 'WIDT'
