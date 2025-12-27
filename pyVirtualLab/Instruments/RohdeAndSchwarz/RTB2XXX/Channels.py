@@ -1,8 +1,10 @@
 from aenum import Enum
-from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
+from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES, GetProperty, SetProperty
+from .Helpers import DataFormat
 
 class Source():
 	TYPE_COMMAND_HEADER = None
+	ARGUMENT_COMMAND_HEADER = None
 	
 	__commandAddress__:str = None
 
@@ -40,9 +42,9 @@ class Channel(Source):
 	__parent__ = None
 	__address__:str = None
 
-	def __init__(self, parentKeysightMSOS804A, address):
+	def __init__(self, parent, address):
 		super().__init__()
-		self.__parent__ = parentKeysightMSOS804A
+		self.__parent__ = parent
 		self.__address__ = address
 		self.__commandAddress__ = f"{self.__commandAddress__}{self.__address__}"
 
@@ -50,33 +52,50 @@ class Channel(Source):
 	def Address(self) -> float:
 		return self.__address__
 
-	@property
-	def IsEnabled(self) -> bool:
-		return bool(int(self.__parent__.Query(f"{self.__commandAddress__}:DISP")))
-	@IsEnabled.setter
-	def IsEnabled(self, value: bool) -> bool:
-		value = bool(value)
-		self.__parent__.Write(f"{self.__commandAddress__}:DISP {int(value)}")
-		if self.IsEnabled != value:
-			raise Exception(f"Error when en/dis-able {self.__commandAddress__}")
-		return value
+	def Read(self) -> str:
+		return self.__parent__.Read()
+	def Write(self, command:str, arguments:str='') -> str:
+		return self.__parent__.Write(f"{self.__commandAddress__}:{command}", arguments)
+	def Query(self, command:str, arguments:str='') -> str:
+		return self.__parent__.Query(f"{self.__commandAddress__}:{command}", arguments)
 
+	STATE_COMMAND:str = 'STAT'
+	@property
+	@GetProperty(bool, STATE_COMMAND)
+	def IsEnabled(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@IsEnabled.setter
+	@SetProperty(bool, STATE_COMMAND)
+	def IsEnabled(self, value:bool) -> bool:
+		pass
+
+	GET_WAVEFORM_COMMAND_FORMAT:str = 'CHAN{0}:DATA?'
+	X_INCREMENT_COMMAND:str = 'DATA:XINC'
+	Y_INCREMENT_COMMAND:str = 'DATA:YINC'
+	X_ORIGIN_COMMAND:str = 'DATA:XOR'
+	Y_ORIGIN_COMMAND:str = 'DATA:YOR'
 	def GetWaveform(self) -> dict[float, float]:
-		self.__parent__.Write("WAV:SOUR", self.__commandAddress__)
-		self.__parent__.Write("WAV:BYT LSBF")
-		self.__parent__.Write("WAV:FORM WORD")
-		yIncrement = float(self.__parent__.Query("WAV:YINC"))
-		yOrigin = float(self.__parent__.Query("WAV:YOR"))
-		xIncrement = float(self.__parent__.Query("WAV:XINC"))
-		xOrigin = float(self.__parent__.Query("WAV:XOR"))
+		yIncrement = float(self.Query(Channel.Y_INCREMENT_COMMAND))
+		yOrigin = float(self.Query(Channel.Y_ORIGIN_COMMAND))
+		xIncrement = float(self.Query(Channel.X_INCREMENT_COMMAND))
+		xOrigin = float(self.Query(Channel.X_ORIGIN_COMMAND))
+
+		savedIsDataBigEndian = self.__parent__.IsDataBigEndian
+		savedFormat = self.__parent__.Format
+		self.__parent__.IsDataBigEndian = False
+		self.__parent__.Format = DataFormat.UnsignedInteger32its
 		savedTimeout = self.__parent__.Timeout
 		self.__parent__.Timeout = 200000
-		data = self.__parent__.__resource__.query_binary_values("WAV:DATA?", datatype='h', is_big_endian=False)
+
+		data = self.__parent__.__resource__.query_binary_values(Channel.GET_WAVEFORM_COMMAND_FORMAT.format(self.Address), datatype='L', is_big_endian=True)
 		data = [yIncrement * float(result) + yOrigin for result in data]
 		abscissae = range(0, len(data))
 		abscissae = [xIncrement * float(abscissa) + xOrigin for abscissa in abscissae]
 		data = dict(zip(abscissae, data))
+
 		self.__parent__.Timeout = savedTimeout
+		self.__parent__.IsDataBigEndian = savedIsDataBigEndian
+		self.__parent__.Format = savedFormat
 		return data
 	
 	@property
@@ -103,11 +122,14 @@ class Channel(Source):
 	
 class AnalogChannel(Channel):
 	NAME:str = 'CH'
+	ARGUMENT_COMMAND_HEADER = 'CH'
 
 class DigitalChannel(Channel):
 	NAME:str = 'D'
+	ARGUMENT_COMMAND_HEADER = 'D'
 
 class WaveformMemoryChannel(Channel):
 	NAME:str = 'W'
+	ARGUMENT_COMMAND_HEADER = 'RE'
 	
 CHANNELS_NAMES = dict([(subclass.NAME, subclass) for subclass in RECURSIVE_SUBCLASSES(Channel)])
