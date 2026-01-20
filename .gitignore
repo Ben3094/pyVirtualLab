@@ -1,3 +1,4 @@
 pyVirtualLab/Tests/*
 Tests/*
 __pycache__/
+.vscode
