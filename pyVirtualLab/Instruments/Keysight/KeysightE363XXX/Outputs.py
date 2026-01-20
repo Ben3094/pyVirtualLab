@@ -56,13 +56,14 @@ class Output():
 		if self.MaxVoltage != Output.CONVERT_TO_DEFAULT_DECIMAL_FORMAT(value):
 			raise Exception("Error while setting the voltage protection value")
 
+	STATE_COMMAND:str = "OUTP:STAT"
 	@property
 	def IsEnabled(self) -> bool:
-		return bool(int(self.__parent__.Query("OUTP:STAT", f"(@{self.Address})")))
+		return bool(int(self.__parent__.Query(Output.STATE_COMMAND, f"(@{self.Address})")))
 	@IsEnabled.setter
 	def IsEnabled(self, value) -> bool:
 		value = bool(value)
-		self.__parent__.Write(f"OUTP:STAT {str(int(value))}", f",(@{self.Address})")
+		self.__parent__.Write(f"{Output.STATE_COMMAND} {str(int(value))}", f",(@{self.Address})")
 		newValue = self.IsEnabled
 		if newValue != value:
 			raise Exception("Error while en/dis-abling source")
@@ -82,6 +83,12 @@ class Output():
 		self.IsProtectionRaised
 		return currentSetVoltage
 	
+	GET_MEASURED_VOLTAGE:str = "MEAS:SCAL:VOLT:DC"
+	@property
+	def MeasuredVoltage(self) -> float:
+		return float(self.__parent__.Query(Output.GET_MEASURED_VOLTAGE, f"CH{self.Address}"))
+	
+	GET_MEASURED_CURRENT:str = "MEAS:SCAL:CURR:DC"
 	@property
 	def Current(self) -> float:
 		return float(self.__parent__.Query('MEAS:SCAL:CURR:DC', f"CH{self.Address}"))
