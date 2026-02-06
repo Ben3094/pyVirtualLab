@@ -7,6 +7,7 @@ class Condition(Enum):
 	ConstantCurrentOperation = 1
 	ConstantVoltageOperation = 2
 	Faulty = 3
+	OverCurrentProtectionRaised = 8
 
 	@classmethod
 	def _missing_(cls, value: object) -> Any:
@@ -24,14 +25,14 @@ class Output():
 	
 	@property
 	def Conditions(self) -> Condition:
-		return Condition(int(self.__parent__.Query(f"STAT:QUES:INST:ISUM{self.Address}:EVEN")))
+		return Condition(int(self.__parent__.Query(f"STAT:QUES:INST:ISUM{self.Address}:COND")))
 	
 	def ClearProtection(self):
 		self.__parent__.Write(f"OUTP:PROT:CLE (@{self.Address})")
 
 	@property
 	def IsProtectionRaised(self, raiseException:bool = True):
-		if self.Conditions == Condition.Faulty:
+		if self.Conditions == Condition.OverCurrentProtectionRaised:
 			if raiseException:
 				raise Exception(f"Faulty output")
 			else: 
