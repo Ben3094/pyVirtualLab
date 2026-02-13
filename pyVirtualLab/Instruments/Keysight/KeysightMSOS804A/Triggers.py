@@ -1,7 +1,7 @@
 from aenum import Enum
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
-import Channels
-from Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
+from . import Channels
+from .Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
 
 class Trigger:
 	NAME:str = None
