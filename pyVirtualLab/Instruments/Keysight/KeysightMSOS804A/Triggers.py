@@ -1,7 +1,7 @@
 from aenum import Enum
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
-import pyVirtualLab.Instruments.KeysightMSOS804A.Channels as Channels
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
+import Channels
+from Channels import AuxSource, LineSource, AnalogChannel, DigitalChannel
 
 class Trigger:
 	NAME:str = None

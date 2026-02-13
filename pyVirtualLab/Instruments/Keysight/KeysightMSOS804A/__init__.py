@@ -1,9 +1,9 @@
 from pyVirtualLab.VISAInstrument import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty, roundScientificNumber
 from aenum import Enum
-from pyVirtualLab.Instruments.KeysightMSOS804A.Functions import Function, FUNCTIONS_NAMES
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource, StatisticMode, Measurement
-from pyVirtualLab.Instruments.KeysightMSOS804A.Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
+from .Functions import Function, FUNCTIONS_NAMES
+from .Channels import AuxSource, LineSource, Channel, AnalogChannel, DigitalChannel, WaveformMemoryChannel, AuxSource, LineSource, StatisticMode, Measurement
+from .Triggers import Trigger, AdvancedTrigger, TRIGGERS_NAMES
 import re
 from time import time, sleep
 	
