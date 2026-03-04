@@ -14,15 +14,29 @@ class TriggerState(Enum):
 
 # If you use an ethernet connection, you must set LeCroy MAUI-based oscilloscope to use LXI.
 class LeCroy2610N(Instrument):
+	HEADER_COMMAND:str = "COMM_HEADER"
+	HEADER_OFF_RESPONSE:str = "OFF"
+	HEADER_SHORT_RESPONSE:str = "SHORT"
+	@property
+	def ReturnHeader(self) -> bool:
+		return True if self.Query(LeCroy2610N.HEADER_COMMAND) != LeCroy2610N.HEADER_OFF_RESPONSE else False
+	@ReturnHeader.setter
+	def ReturnHeader(self, value:bool) -> bool:
+		value = bool(value)
+		self.Write(LeCroy2610N.HEADER_COMMAND, LeCroy2610N.HEADER_SHORT_RESPONSE if value else LeCroy2610N.HEADER_OFF_RESPONSE)
+		if self.ReturnHeader != value:
+			raise Exception("Error while setting header in response")
+		return value
+	def __setHeader__(self, value:bool):
+		self.ReturnHeader = value
+		return self.ReturnHeader
+
 	def __init__(self, address: str):
 		super(LeCroy2610N, self).__init__(address)
 		self.__analogChannels__ = dict()
 		self.__waveformMemoryChannels__ = dict()
 		self.__functions__ = dict()
 		self.Timeout = 10000
-
-	def Connect(self):
-		connectionStatus = super().Connect()
 
 	TIME_SCALE_COMMAND:str = 'TDIV'
 	@property

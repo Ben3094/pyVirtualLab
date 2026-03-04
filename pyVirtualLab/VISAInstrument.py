@@ -369,12 +369,15 @@ class Instrument:
 			return outValue.get()
 		else:
 			return False
+	
+	def __setHeader__(self, value:bool) -> bool:
+		return value
 		
 	def Connect(self) -> bool:
 		try:
 			if not issubclass(type(self.__resource__), VirtualResource):
 				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__)
-			self.Write('COMM_HEADER', 'OFF')
+			self.__setHeader__(False)
 			self.Id = self.__updateId__()
 			self.Vendor = PARSE_VENDOR(self.Id)
 			self.Model, self.Firmware = PARSE_MODEL_AND_FIRMWARE(self.Id, self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor)
