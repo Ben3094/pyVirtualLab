@@ -14,7 +14,7 @@ class TriggerState(Enum):
 
 # If you use an ethernet connection, you must set LeCroy MAUI-based oscilloscope to use LXI.
 class LeCroy2610N(Instrument):
-	HEADER_COMMAND:str = "COMM_HEADER"
+	HEADER_COMMAND:str = "CHDR"
 	HEADER_OFF_RESPONSE:str = "OFF"
 	HEADER_SHORT_RESPONSE:str = "SHORT"
 	@property
@@ -56,16 +56,6 @@ class LeCroy2610N(Instrument):
 	@Delay.setter
 	@SetProperty(float, DELAY_PARAMETER, check=False)
 	def Delay(self, value:float) -> float:
-		pass
-
-	HEADER_COMMAND:str = 'CHDR'
-	@property
-	@GetProperty(bool, HEADER_COMMAND)
-	def ReturnHeader(self, getMethodReturn) -> bool:
-		return getMethodReturn
-	@ReturnHeader.setter
-	@SetProperty(bool, HEADER_COMMAND, check=False)
-	def ReturnHeader(self, value:bool) -> bool:
 		pass
 	
 	CLEAR_ALL_PARAMETERS_COMMAND:str = 'PACL'

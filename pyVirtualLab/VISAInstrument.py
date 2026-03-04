@@ -453,7 +453,7 @@ class Instrument:
 		
 	def __repr__(self) -> str:
 		if self.Vendor:
-			return self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor + self.Model
+			return f"{self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor} {self.Model}"
 		else:
 			return str(self.Address)
 
@@ -534,9 +534,3 @@ class VirtualInstrument(Instrument):
 		self.__instrument__.SelfTest()
 	def Reset(self):
 		self.__instrument__.Reset()
-		
-	def __repr__(self) -> str:
-		if self.Vendor:
-			return f"{self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor} {self.Model}"
-		else:
-			return str(self.Address)
