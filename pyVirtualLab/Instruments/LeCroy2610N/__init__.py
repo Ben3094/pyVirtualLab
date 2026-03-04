@@ -21,6 +21,9 @@ class LeCroy2610N(Instrument):
 		self.__functions__ = dict()
 		self.Timeout = 10000
 
+	def Connect(self):
+		connectionStatus = super().Connect()
+
 	TIME_SCALE_COMMAND:str = 'TDIV'
 	@property
 	@GetProperty(float, TIME_SCALE_COMMAND)

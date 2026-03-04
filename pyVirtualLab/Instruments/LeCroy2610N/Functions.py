@@ -1,4 +1,4 @@
-from pyVirtualLab.Instruments.KeysightMSOS804A.Channels import Channel, VerticalMeasurePossibleChannel, MeasurementState
+from .Channels import Channel, VerticalMeasurePossibleChannel, MeasurementState
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
 from aenum import Enum
 import re
