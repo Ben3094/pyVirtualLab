@@ -49,7 +49,9 @@ def SetProperty(dataType:type, visaSetCommand:str, check:bool=True, converter:Co
 	def decorator(func):
 		def wrapper(*args, **kwargs):
 			state = True
-			value = rounding(args[1])
+			try:
+				value = rounding(args[1])
+			except TypeError: value = args[1] # Ignore rounding if fail
 			if booleanStatePropertyName != None:
 				state = value != offStateValue
 				setattr(args[0], booleanStatePropertyName, state)

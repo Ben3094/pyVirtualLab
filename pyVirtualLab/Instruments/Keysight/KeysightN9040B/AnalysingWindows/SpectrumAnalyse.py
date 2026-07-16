@@ -1,6 +1,12 @@
 from ..AnalysingWindow import AnalysingWindow
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES, GetProperty, SetProperty, logLinStringToBoolConverter, boolToLogLinStringConverter
 from .. import PowerUnit, Path, Average, DataFormat
+from aenum import Enum
+
+class PeakSorting(Enum):
+	Amplitude = 'AMPL'
+	Frequency = 'FREQ'
+	DeltaToLimit = 'DELT'
 
 class SpectrumAnalyseView:
 	VIEW_NAME:str = None
@@ -311,12 +317,16 @@ class SpectrumAnalyse(AnalysingWindow):
 	CONTINUOUS_SWEEP_COMMAND:str = 'INIT:CONT'
 	@property
 	@GetProperty(bool, CONTINUOUS_SWEEP_COMMAND)
-	def IsAcquisitionRunning(self, getMethodReturn) -> bool:
+	def IsAcquisitionContinuous(self, getMethodReturn) -> bool:
 		return getMethodReturn
-	@IsAcquisitionRunning.setter
+	@IsAcquisitionContinuous.setter
 	@SetProperty(bool, CONTINUOUS_SWEEP_COMMAND)
-	def IsAcquisitionRunning(self, value:bool) -> bool:
+	def IsAcquisitionContinuous(self, value:bool) -> bool:
 		pass
+
+	RESET_SWEEP_COMMAND:str = "INIT:IMM"
+	def ResetSweep(self):
+		self.Write(self.RESET_SWEEP_COMMAND)
 	
 	AVERAGE_NUMBER_COMMAND:str = 'SENS:AVER:COUN'
 	@property
@@ -389,6 +399,38 @@ class SpectrumAnalyse(AnalysingWindow):
 		if self.ContinuousPeakSearch != value:
 			raise Exception('Error while setting continuous peak search')
 		return value
+	
+	PEAKS_TABLE_COMMAND:str = 'CALC:MARK:PEAK:TABL:STAT'
+	@property
+	@GetProperty(bool, PEAKS_TABLE_COMMAND)
+	def IsPeaksTableEnabled(self, getMethodReturn) -> bool:
+		return getMethodReturn
+	@IsPeaksTableEnabled.setter
+	@SetProperty(bool, PEAKS_TABLE_COMMAND)
+	def IsPeaksTableEnabled(self, value:bool) -> bool:
+		pass
+	PEAKS_SORT_COMMAND:str = 'CALC:MARK:PEAK:SORT'
+	@property
+	@GetProperty(PeakSorting, PEAKS_SORT_COMMAND)
+	def PeaksSortingType(self, getMethodReturn) -> PeakSorting:
+		return getMethodReturn
+	@PeaksSortingType.setter
+	@SetProperty(PeakSorting, PEAKS_SORT_COMMAND)
+	def PeaksSortingType(self, value:PeakSorting) -> PeakSorting:
+		pass
+	PEAK_TABLE_NUMBER_COMMAND:str = 'CALC:MARK:PEAK:MPE'
+	@property
+	@GetProperty(int, PEAK_TABLE_NUMBER_COMMAND)
+	def PeaksTableNumber(self, getMethodReturn) -> int:
+		return getMethodReturn
+	@PeaksTableNumber.setter
+	@SetProperty(int, PEAK_TABLE_NUMBER_COMMAND)
+	def PeaksTableNumber(self, value:int) -> int:
+		pass
+	GET_PEAKS_COMMAND:str = 'TRAC:MATH:PEAK:DATA'
+	def GetPeaks(self) -> [str]:
+		data = [float(value) for value in self.Query(self.GET_PEAKS_COMMAND).split(',')]
+		return dict(zip(data[::2], data[1::2]))
 
 	__viewRegistry__:SpectrumAnalyseView = None
 	@property
