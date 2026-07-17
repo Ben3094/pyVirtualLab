@@ -5,7 +5,8 @@ def RECURSIVE_SUBCLASSES(type:type) -> list[type]:
 		deeperLevelSubclasses = deeperLevelSubclasses + RECURSIVE_SUBCLASSES(currentLevelSubclass)
 	return currentLevelSubclasses + deeperLevelSubclasses
 
-from aenum import Enum, MultiValueEnum
+from enum import Enum
+from aenum import MultiValueEnum
 from collections import namedtuple
 from typing import Callable
 
