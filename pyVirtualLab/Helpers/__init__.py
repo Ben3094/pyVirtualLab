@@ -71,6 +71,11 @@ LINEAR_FORMAT_ARGUMENT:str = 'LIN'
 boolToLogLinStringConverter = lambda x: LOG_FORMAT_ARGUMENT if x else LINEAR_FORMAT_ARGUMENT
 logLinStringToBoolConverter = lambda x: x == LOG_FORMAT_ARGUMENT
 
+ON_STRING:str = 'ON'
+OFF_STRING:str = 'OFF'
+onOffStringToBoolConverter = lambda x: True if x == ON_STRING else False
+boolToOnOffStringConverter = lambda x: ON_STRING if x else OFF_STRING
+
 from math import floor, log10
 @staticmethod
 def roundScientificNumber(number:float, decimalToKeep:int):

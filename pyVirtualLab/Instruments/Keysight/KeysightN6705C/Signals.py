@@ -122,11 +122,7 @@ class TrapezoidSignal(Signal):
 class ExponentialSignal(Signal):
 	DEFAULT_NAME:str = 'EXP'
 	def __init__(self, parentOutput) -> None:
-		super().__init__(parentOutput) 
-class UserDefinedSignal(Signal):
-	DEFAULT_NAME:str = 'UDEF'
-	def __init__(self, parentOutput) -> None:
-		super().__init__(parentOutput) 
+		super().__init__(parentOutput)
 class ConstantDwellSignal(Signal):
 	DEFAULT_NAME:str = 'CDW'
 	def __init__(self, parentOutput) -> None:
@@ -135,5 +131,77 @@ class SequenceSignal(Signal):
 	DEFAULT_NAME:str = 'SEQ'
 	def __init__(self, parentOutput) -> None:
 		super().__init__(parentOutput)
+
+	REPEAT_COUNT_COMMAND:str = "SOUR:ARB:SEQ:COUN"
+	@property
+	@GetProperty(int, REPEAT_COUNT_COMMAND)
+	def RepeatCount(self, getMethodReturn) -> int:
+		return getMethodReturn
+	@RepeatCount.setter
+	@SetProperty(int, REPEAT_COUNT_COMMAND)
+	def RepeatCount(self, value:int) -> int:
+		self.__type__ = value
+
+	STEPS_LENGTH_COMMAND:str = "SOUR:ARB:SEQ:LEN"
+	@property
+	@GetProperty(int, STEPS_LENGTH_COMMAND)
+	def Steps(self, getMethodReturn) -> int:
+		return getMethodReturn
+	@Steps.setter
+	@SetProperty(int, STEPS_LENGTH_COMMAND)
+	def Steps(self, value:int) -> int:
+		self.__type__ = value
+
+	RESET_COMMAND:str = 'SOUR:ARB:SEQ:RES'
+	def Reset(self):
+		self.Write(SequenceSignal.RESET_COMMAND)
+
+class UserDefinedSignal(Signal):
+	DEFAULT_NAME:str = 'UDEF'
+	def __init__(self, parentOutput) -> None:
+		super().__init__(parentOutput)
+
+	STEPS_LENGTH_COMMAND:str = "SOUR:ARB:CURR:UDEF:BOST:POIN"
+	@property
+	@GetProperty(int, STEPS_LENGTH_COMMAND)
+	def Steps(self, getMethodReturn) -> int:
+		return getMethodReturn
+	@Steps.setter
+	@SetProperty(int, STEPS_LENGTH_COMMAND)
+	def Steps(self, value:int) -> int:
+		self.__type__ = value
+
+	TRIGGERS_COMMAND:str = 'SOUR:ARB:CURR:UDEF:BOST'
+	@property
+	def Triggers(self) -> list[bool]:
+		return [bool(output) for output in self.Query(UserDefinedSignal.TRIGGERS_COMMAND).split(',')]
+	@Triggers.setter
+	def Triggers(self, value:list[bool]) -> list[bool]:
+		self.Write(UserDefinedSignal.TRIGGERS_COMMAND, ','.join([int(trigger) for trigger in value]))
+		if self.Triggers != value:
+			raise Exception("Error while setting triggers")
+		return value
+
+	DURATIONS_COMMAND:str = 'SOUR:ARB:CURR:UDEF:DWEL'
+	@property
+	def Durations(self) -> list[float]:
+		return [float(output) for output in self.Query(UserDefinedSignal.DURATIONS_COMMAND).split(',')]
+	@Durations.setter
+	def Durations(self, value:list[float]) -> list[float]:
+		self.Write(UserDefinedSignal.DURATIONS_COMMAND, ','.join(value))
+		if self.Durations != value:
+			raise Exception("Error while setting durations")
+		return value
+
+	LEVELS_COMMAND:str = 'SOUR:ARB:CURR:UDEF:LEV'
+	@property
+	def Levels(self) -> list[float]:
+		return [float(output) for output in self.Query(UserDefinedSignal.LEVELS_COMMAND).split(',')]
+	@Levels.setter
+	def Levels(self, value:list[float]) -> list[float]:
+		self.Write(UserDefinedSignal.LEVELS_COMMAND, ','.join(value))
+		if self.Levels != value:
+			raise Exception("Error while setting levels")
+		return value
 
 NAMES = dict([(subclass.DEFAULT_NAME, subclass) for subclass in RECURSIVE_SUBCLASSES(Signal)])

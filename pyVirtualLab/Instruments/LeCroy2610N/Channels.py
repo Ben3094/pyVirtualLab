@@ -59,8 +59,8 @@ class Channel(Source):
 	@IsEnabled.setter
 	def IsEnabled(self, value: bool) -> bool:
 		value = bool(value)
-		self.__parent__.Write(f"{self.__commandAddress__}:{self.ENABLE_COMMAND}", value)
-		if self.Scale != value:
+		self.__parent__.Write(f"{self.__commandAddress__}:{self.ENABLE_COMMAND}", 'ON' if value else 'OFF')
+		if self.IsEnabled != value:
 			raise Exception("Error while dis-/en-abling channel")
 		return value
 
@@ -173,11 +173,11 @@ class Coupling(Enum):
 class AnalogChannel(VerticalMeasurePossibleChannel):
 	@property
 	def Configuration(self) -> Coupling:
-		return Coupling(self.__parent__.Query(f"{self.__commandAddress__}:INP"))
+		return Coupling(self.__parent__.Query(f"{self.__commandAddress__}:CPL"))
 	@Configuration.setter
 	def Configuration(self, value:Coupling) -> Coupling:
 		value = Coupling(value)
-		self.__parent__.Write(f"{self.__commandAddress__}:INP {value.value}")
+		self.__parent__.Write(f"{self.__commandAddress__}:CPL {value.value}")
 		if self.Configuration != value:
 			raise Exception(f"Error while setting channel {self.Address} configuration")
 		return value

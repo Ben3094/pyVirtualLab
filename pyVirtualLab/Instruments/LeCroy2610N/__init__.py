@@ -2,7 +2,7 @@ from pyVirtualLab.VISAInstrument import Instrument, InterfaceType, ETHERNET_HOST
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from aenum import Enum
 from .Channels import Channel, AnalogChannel, WaveformMemoryChannel
-from .Functions import Function, FUNCTIONS_NAMES
+from .Functions import Function, FUNCTIONS_EQUATIONS
 from .Measurements import Measurement, MeasurementType, StatisticMode, MeasurementState
 import re
 
@@ -103,15 +103,19 @@ class LeCroy2610N(Instrument):
 				self.__waveformMemoryChannels__[address] = WaveformMemoryChannel(self, address)
 		return self.__waveformMemoryChannels__
 
-	FUNCTIONS = 16
+	FUNCTIONS = 8
+	def GetFunctionEquation(self, functionAddress) -> str:
+		return self.Query(f"{Function.TYPE_COMMAND_HEADER}{functionAddress}:DEF")
+	def GetFunctionType(self, functionAddress) -> type:
+		response = self.GetFunctionEquation(functionAddress).lstrip(':').split(',')
+		params = response[1].strip('\"')
+		for equation in FUNCTIONS_EQUATIONS:
+			if re.match(equation, params) != None:
+				return FUNCTIONS_EQUATIONS[equation]
 	@property
 	def Functions(self) -> dict[int, Function]:
 		for address in range(1, self.FUNCTIONS+1):
-			query = f"{Function.TYPE_COMMAND_HEADER}{address}"
-			response = self.Query(query).lstrip(':').split()
-			params = response[1].split(',')
-			channelsInvolved = [channelInvolved for channelInvolved in params if channelInvolved.startswith(AnalogChannel.TYPE_COMMAND_HEADER) or channelInvolved.startswith(DigitalChannel.TYPE_COMMAND_HEADER) or channelInvolved.startswith(Function.TYPE_COMMAND_HEADER)]
-			self.__functions__[address] = FUNCTIONS_NAMES[response[0]](self, address, channelsInvolved)
+			self.__functions__[address] = self.GetFunctionType(address)(self, address)
 		return self.__functions__
 
 	def GetMeasurementType(self, index:int) -> tuple[MeasurementType, Channel]:

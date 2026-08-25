@@ -34,6 +34,24 @@ class KeysightN6705C(Source):
 				except VisaIOError:
 					pass
 		return self.__outputs__
+
+	
+
+	COUPLED_OUTPUT_STATE_COMMAND:str = 'OUTP:STAT:COUP:CHAN'
+	COUPLED_CHANNEL_SEPARATOR:str = ','
+	@property
+	def CoupledOutputAddresses(self) -> list[int]:
+		return sorted([int(output) for output in self.Query(KeysightN6705C.COUPLED_OUTPUT_STATE_COMMAND).split(KeysightN6705C.COUPLED_CHANNEL_SEPARATOR)])
+	@property
+	def CoupledOutputs(self) -> list[Output]:
+		return [self.Outputs[output] for output in self.CoupledOutputAddresses]
+	@CoupledOutputs.setter
+	def CoupledOutputs(self, value:list[Output]) -> list[Output]:
+		value = sorted([output.Address for output in value])
+		self.Write(KeysightN6705C.COUPLED_OUTPUT_STATE_COMMAND, KeysightN6705C.COUPLED_CHANNEL_SEPARATOR.join(value))
+		if self.CoupledOutputAddresses != value:
+			raise Exception("Error while setting coupled outputs")
+		return self.CoupledOutputs
 	
 	def SetOutputsState(self, outputs:list[Output], enabled:bool):
 		self.Write('OUTP:STAT', f"{str(int(enabled))}, (@{','.join([output.Address for output in outputs])})")
