@@ -4,6 +4,7 @@ from .Triggers import NAMES as TRIGGERS_NAMES
 from .Signals import Signal, UserDefinedSignal
 from .Signals import NAMES as SIGNALS_NAMES
 from re import match, Match
+from pyVirtualLab.Helpers import GetProperty, SetProperty
 
 @unique
 class Condition(Flag):
@@ -43,6 +44,19 @@ class MeasureType(Enum):
 	Maximum = 'MAX'
 	Minimum = 'MIN'
 
+@unique
+class TriggerTargets(Enum):
+	Fixed = 'FIX'
+	Step = 'STEP'
+	List = 'LIST'
+	Signal = 'ARB'
+
+PRIMARY_MODE_COMMAND:str = 'SOUR:FUNC'
+@unique
+class PrimaryModes(Enum):
+	Voltage = 'VOLT'
+	Current = 'CURR'
+
 class Output():
 	def __init__(self, parentKeysightN6705C, address):
 		self.__parent__ = parentKeysightN6705C
@@ -50,6 +64,13 @@ class Output():
 		self.__model__ = str(self.__parent__.Query("SYST:CHAN:MOD", f"(@{self.Address})"))
 		self.__options__ = str(self.__parent__.Query("SYST:CHAN:OPT", f"(@{self.Address})"))
 		self.__serialNumber__ = str(self.__parent__.Query("SYST:CHAN:SER", f"(@{self.Address})"))
+
+	def Read(self) -> str:
+		return self.__parent__.Read()
+	def Write(self, command:str, arguments:str='') -> str:
+		return self.__parent__.Write(command, f"{arguments+',' if arguments != '' else ""}(@{self.Address})")
+	def Query(self, command:str, arguments:str='') -> str:
+		return self.__parent__.Query(command, f"{arguments+',' if arguments != '' else ""}(@{self.Address})")
 
 	@property
 	def Address(self) -> int:
@@ -70,6 +91,10 @@ class Output():
 	@property
 	def Conditions(self) -> Condition:
 		return Condition(int(self.__parent__.Query("STAT:QUES:COND", f"(@{self.Address})")))
+	
+	@property
+	def PrimaryMode(self) -> PrimaryModes:
+		return PrimaryModes.Voltage
 	
 	def ClearProtection(self):
 		self.__parent__.Write(f"OUTP:PROT:CLE (@{self.Address})")
@@ -226,6 +251,17 @@ class Output():
 			self.__trigger__ = value
 			return currentTrigger
 
+	TRIGGER_MODE_COMMAND_FORMAT:str = "SOUR:{0}:MODE"
+	@property
+	def TriggerTarget(self) -> TriggerTargets:
+		return TriggerTargets(self.Query(Output.TRIGGER_MODE_COMMAND_FORMAT.format(self.PrimaryMode.value)))
+	@TriggerTarget.setter
+	def TriggerTarget(self, value:TriggerTargets):
+		self.Write(Output.TRIGGER_MODE_COMMAND_FORMAT.format(self.PrimaryMode.value), value.value)
+		if self.TriggerTarget != value:
+			raise Exception(f"Error while setting channel {self.Address} trigger target")
+		return value
+
 	def __getMeasuredValues__(self, header, measureType:MeasureType, whenTriggered:bool, onlyLast:bool) -> list[float]:
 		savedASCIIFormat = self.__parent__.__isDataASCII__
 		self.__parent__.__isDataASCII__ = True
@@ -314,12 +350,19 @@ class N678XA(Output):
 		self.__parent__.Write(f"SOUR:{N678XA.CURRENT_HEADER if self.IsVoltagePrimary else N678XA.VOLTAGE_HEADER}:LIM:COUP", f"{int(value)}, (@{self.Address})")
 		if value != self.IsLimitsCoupled:
 			raise Exception(f"Error while {'' if value else 'de'}coupling limits")
-		
-	VOLTAGE_PRIMARY = 'VOLT'
-	CURRENT_PRIMARY = 'CURR'
+
+	@property
+	@GetProperty(PrimaryModes, PRIMARY_MODE_COMMAND)
+	def PrimaryMode(self, getMethodReturn) -> PrimaryModes:
+		return getMethodReturn
+	@PrimaryMode.setter
+	@SetProperty(PrimaryModes, PRIMARY_MODE_COMMAND)
+	def PrimaryMode(self, value:PrimaryModes) -> PrimaryModes:
+		pass
+
 	@property
 	def IsVoltagePrimary(self) -> bool:
-		return bool(True if self.__parent__.Query('SOUR:FUNC', f"(@{self.Address})") == N678XA.VOLTAGE_PRIMARY else False)
+		return bool(True if self.PrimaryMode == PrimaryModes.Voltage else False)
 	@IsVoltagePrimary.setter
 	def IsVoltagePrimary(self, value:bool) -> bool:
 		def retainCoupledLimitsState(func):
@@ -331,7 +374,7 @@ class N678XA(Output):
 			return wrapper
 		
 		def setVoltagePrimary():
-			self.__parent__.Write('SOUR:FUNC', f"{N678XA.VOLTAGE_PRIMARY if value else N678XA.CURRENT_PRIMARY}, (@{self.Address})")
+			self.__parent__.Write('SOUR:FUNC', f"{PrimaryModes.Voltage.value if value else PrimaryModes.Current.value}, (@{self.Address})")
 
 		value = bool(value)
 		if not self.EmulatedSource in N678XA.ALLOWED_EMULATION_IN_PRIORITY_MODE:
