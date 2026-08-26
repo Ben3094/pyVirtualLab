@@ -68,23 +68,23 @@ class PulseSignal(Signal):
 	def __init__(self, parentOutput) -> None:
 		super().__init__(parentOutput)
 
-	LOW_VOLTAGE_COMMAND:str = "SOUR:ARB:VOLT:PULS:STAR:LEV"
+	LOW_LEVEL_COMMAND:str = "SOUR:ARB:VOLT:PULS:STAR:LEV"
 	@property
-	@GetProperty(float, LOW_VOLTAGE_COMMAND)
-	def LowVoltage(self, getMethodReturn) -> float:
+	@GetProperty(float, LOW_LEVEL_COMMAND)
+	def LowLevel(self, getMethodReturn) -> float:
 		return getMethodReturn
-	@LowVoltage.setter
-	@SetProperty(float, LOW_VOLTAGE_COMMAND)
-	def LowVoltage(self, value:float) -> float:
+	@LowLevel.setter
+	@SetProperty(float, LOW_LEVEL_COMMAND)
+	def LowLevel(self, value:float) -> float:
 		pass
-	HIGH_VOLTAGE_COMMAND:str = "SOUR:ARB:VOLT:PULS:TOP:LEV"
+	HIGH_LEVEL_COMMAND:str = "SOUR:ARB:VOLT:PULS:TOP:LEV"
 	@property
-	@GetProperty(float, HIGH_VOLTAGE_COMMAND)
-	def HighVoltage(self, getMethodReturn) -> float:
+	@GetProperty(float, HIGH_LEVEL_COMMAND)
+	def HighLevel(self, getMethodReturn) -> float:
 		return getMethodReturn
-	@HighVoltage.setter
-	@SetProperty(float, HIGH_VOLTAGE_COMMAND)
-	def HighVoltage(self, value:float) -> float:
+	@HighLevel.setter
+	@SetProperty(float, HIGH_LEVEL_COMMAND)
+	def HighLevel(self, value:float) -> float:
 		pass
 
 	WAITING_TIME_COMMAND:str = "SOUR:ARB:VOLT:PULS:STAR:TIM"

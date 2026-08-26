@@ -9,6 +9,8 @@ from threading import Thread
 from queue import Queue
 from logging import error
 
+INSTRUMENT_REGISTRY:dict[type,str] = dict()
+
 class VirtualResource(Resource):
 	__resource__:Resource=None
 
@@ -373,7 +375,7 @@ class Instrument:
 	def __setHeader__(self, value:bool) -> bool:
 		return value
 		
-	def Connect(self) -> bool:
+	def Connect(self, registrySearch:bool=True) -> bool:
 		try:
 			if not issubclass(type(self.__resource__), VirtualResource):
 				self.__resource__ = DEFAULT_RESOURCE_MANAGER.open_resource(self.Address, timeout=self.__timeout__)
@@ -383,6 +385,11 @@ class Instrument:
 			self.Model, self.Firmware = PARSE_MODEL_AND_FIRMWARE(self.Id, self.Vendor.values[0] if issubclass(type(self.Vendor), VendorAbbreviation) else self.Vendor)
 		except Exception as e:
 			raise e
+
+		if registrySearch:
+			instrumentType = next(instrumentType for intrumentType in INSTRUMENT_REGISTRY if match(INSTRUMENT_REGISTRY[intrumentType], self.Id))
+			instrument = instrumentType() # TODO: Add registeredInstrument type definition to include transfer function to replace init.
+		
 		return self.IsConnected
 
 	def Disconnect(self) -> bool:

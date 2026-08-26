@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Source
+from pyVirtualLab.VISAInstrument import Source, INSTRUMENT_REGISTRY
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .Outputs import *
 from pyvisa import VisaIOError
@@ -102,3 +102,6 @@ class KeysightN6705C(Source):
 	@SetProperty(SignalTrigger, TRIGGER_COMMAND)
 	def ArbSignalTrigger(self, value:SignalTrigger) -> SignalTrigger:
 		pass
+
+INSTRUMENT_ID_REGEX:str = 'KT,N6705C,'
+INSTRUMENT_REGISTRY[KeysightN6705C] = INSTRUMENT_ID_REGEX
