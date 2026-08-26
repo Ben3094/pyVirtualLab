@@ -114,7 +114,7 @@ class Channel(Source):
 	@Average.setter
 	def Average(self, value:int) -> int:
 		value = int(value)
-		self.__parent__.Write(Channel.VBS_COMMAND, Channel.AVERAGE_VBS_PROPERTY_FORMAT.format(self.__commandAddress__))
+		self.__parent__.Write(Channel.VBS_COMMAND, f"{Channel.AVERAGE_VBS_PROPERTY_FORMAT.format(self.__commandAddress__)} = {value}")
 		if self.Average != value:
 			raise Exception(f"Error while setting channel {self.Address} average")
 		return value
