@@ -118,6 +118,17 @@ class Channel(Source):
 		if self.Average != value:
 			raise Exception(f"Error while setting channel {self.Address} average")
 		return value
+	INVERT_VBS_PROPERTY_FORMAT:str = "app.Acquisition.{0}.Invert"
+	@property
+	def IsInverted(self) -> bool:
+		return bool(int(self.__parent__.Query(Channel.VBS_COMMAND, Channel.VBS_RETURN_PROPERTY_FORMAT.format(Channel.INVERT_VBS_PROPERTY_FORMAT.format(self.__commandAddress__)))))
+	@IsInverted.setter
+	def IsInverted(self, value:bool) -> bool:
+		value = bool(value)
+		self.__parent__.Write(Channel.VBS_COMMAND, f"{Channel.INVERT_VBS_PROPERTY_FORMAT.format(self.__commandAddress__)} = {str(int(value))}")
+		if self.Average != value:
+			raise Exception(f"Error while setting channel {self.Address} inverted")
+		return value
 	
 	SET_MEASUREMENT_COMMAND:str = 'PACU'
 	CUSTOM_MEASUREMENT_PREFIX:str = 'CUST'
@@ -209,13 +220,6 @@ class AnalogChannel(VerticalMeasurePossibleChannel):
 		if self.Label != value:
 			raise Exception("Error while setting label")
 		return value
-
-	@property
-	def IsInverted(self) -> bool:
-		return bool(self.__parent__.Query(f"{self.__commandAddress__}:INV"))
-	@IsInverted.setter
-	def IsInverted(self, value: bool):
-		return self.__parent__.Write(f"{self.__commandAddress__}:INV {int(bool(value))}")
 	
 	@property
 	def Unit(self) -> ChannelUnit:
