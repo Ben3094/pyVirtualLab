@@ -332,7 +332,7 @@ class N678XA(Output):
 			raise Exception(f"Setting voltage/current priority is not allowed in {self.EmulatedSource.value} emulation")
 		else:
 			value =  bool(value)
-			coupledLimitsStateRetaining = self.EmulatedSource == EmulatedSource.Unipolar|EmulatedSource.UnipolarWithLoad|EmulatedSource.BipolarWithLoad
+			coupledLimitsStateRetaining = (self.EmulatedSource == EmulatedSource.Unipolar) or (self.EmulatedSource == EmulatedSource.UnipolarWithLoad) or (self.EmulatedSource == EmulatedSource.BipolarWithLoad)
 			(retainCoupledLimitsState(setVoltagePrimary) if coupledLimitsStateRetaining else setVoltagePrimary)()
 			if self.IsVoltagePrimary != value:
 				raise Exception("Error while setting the voltage/current priority")
