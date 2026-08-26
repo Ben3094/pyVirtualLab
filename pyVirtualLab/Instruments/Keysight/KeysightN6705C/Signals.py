@@ -68,52 +68,62 @@ class PulseSignal(Signal):
 	def __init__(self, parentOutput) -> None:
 		super().__init__(parentOutput)
 
-	LOW_LEVEL_COMMAND:str = "SOUR:ARB:VOLT:PULS:STAR:LEV"
+	LOW_LEVEL_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:STAR:LEV"
 	@property
-	@GetProperty(float, LOW_LEVEL_COMMAND)
-	def LowLevel(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def LowLevel(self) -> float:
+		return self.Query(PulseSignal.LOW_LEVEL_COMMAND_FORMAT.format(self.Type.value))
 	@LowLevel.setter
-	@SetProperty(float, LOW_LEVEL_COMMAND)
 	def LowLevel(self, value:float) -> float:
-		pass
-	HIGH_LEVEL_COMMAND:str = "SOUR:ARB:VOLT:PULS:TOP:LEV"
+		value = float(value)
+		self.Write(PulseSignal.LOW_LEVEL_COMMAND_FORMAT.format(self.Type.value), str(value))
+		if self.LowLevel != value:
+			raise Exception("Error while setting low level")
+		return value
+	HIGH_LEVEL_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:TOP:LEV"
 	@property
-	@GetProperty(float, HIGH_LEVEL_COMMAND)
-	def HighLevel(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def HighLevel(self) -> float:
+		return self.Query(PulseSignal.HIGH_LEVEL_COMMAND_FORMAT.format(self.Type.value))
 	@HighLevel.setter
-	@SetProperty(float, HIGH_LEVEL_COMMAND)
 	def HighLevel(self, value:float) -> float:
-		pass
-
-	WAITING_TIME_COMMAND:str = "SOUR:ARB:VOLT:PULS:STAR:TIM"
+		value = float(value)
+		self.Write(PulseSignal.HIGH_LEVEL_COMMAND_FORMAT.format(self.Type.value), str(value))
+		if self.HighLevel != value:
+			raise Exception("Error while setting high level")
+		return value
+	
+	WAITING_TIME_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:STAR:TIM"
 	@property
-	@GetProperty(float, WAITING_TIME_COMMAND)
-	def WaitingTime(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def WaitingTime(self) -> float:
+		return self.Query(PulseSignal.WAITING_TIME_COMMAND_FORMAT.format(self.Type.value))
 	@WaitingTime.setter
-	@SetProperty(float, WAITING_TIME_COMMAND)
 	def WaitingTime(self, value:float) -> float:
-		pass
-	PULSE_TIME_COMMAND:str = "SOUR:ARB:VOLT:PULS:TOP:TIM"
+		value = float(value)
+		self.Write(PulseSignal.WAITING_TIME_COMMAND_FORMAT.format(self.Type.value), str(value))
+		if self.WaitingTime != value:
+			raise Exception("Error while setting waiting time")
+		return value
+	PULSE_TIME_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:TOP:TIM"
 	@property
-	@GetProperty(float, PULSE_TIME_COMMAND)
-	def PulseTime(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def PulseTime(self) -> float:
+		return self.Query(PulseSignal.PULSE_TIME_COMMAND_FORMAT.format(self.Type.value))
 	@PulseTime.setter
-	@SetProperty(float, PULSE_TIME_COMMAND)
 	def PulseTime(self, value:float) -> float:
-		pass
-	END_TIME_COMMAND:str = "SOUR:ARB:VOLT:PULS:END:TIM"
+		value = float(value)
+		self.Write(PulseSignal.PULSE_TIME_COMMAND_FORMAT.format(self.Type.value), str(value))
+		if self.PulseTime != value:
+			raise Exception("Error while setting pulse time")
+		return value
+	END_TIME_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:END:TIM"
 	@property
-	@GetProperty(float, END_TIME_COMMAND)
-	def EndTime(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def EndTime(self) -> float:
+		return self.Query(PulseSignal.END_TIME_COMMAND_FORMAT.format(self.Type.value))
 	@EndTime.setter
-	@SetProperty(float, END_TIME_COMMAND)
 	def EndTime(self, value:float) -> float:
-		pass
+		value = float(value)
+		self.Write(PulseSignal.END_TIME_COMMAND_FORMAT.format(self.Type.value), str(value))
+		if self.EndTime != value:
+			raise Exception("Error while setting end time")
+		return value
 	
 class TrapezoidSignal(Signal):
 	DEFAULT_NAME:str = 'TRAP'

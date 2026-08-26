@@ -49,7 +49,7 @@ class KeysightN6705C(Source):
 	def CoupledOutputs(self, value:list[Output]) -> list[Output]:
 		value = sorted([output.Address for output in value])
 		self.Write(KeysightN6705C.COUPLED_OUTPUT_STATE_COMMAND, KeysightN6705C.COUPLED_CHANNEL_SEPARATOR.join(value))
-		if self.CoupledOutputAddresses != value:
+		if self.CoupledOutputAddresses != value: #TODO: compare
 			raise Exception("Error while setting coupled outputs")
 		return self.CoupledOutputs
 	
