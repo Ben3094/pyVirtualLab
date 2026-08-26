@@ -44,6 +44,16 @@ class Signal(ABC):
 	def KeepLastValue(self, value:bool) -> bool:
 		pass
 
+	REPEAT_COUNT_COMMAND:str = "SOUR:ARB:COUN"
+	@property
+	@GetProperty(bool, REPEAT_COUNT_COMMAND)
+	def RepeatCount(self, getMethodReturn) -> int:
+		return getMethodReturn
+	@RepeatCount.setter
+	@SetProperty(bool, REPEAT_COUNT_COMMAND)
+	def RepeatCount(self, value:int) -> int:
+		pass
+
 class ConstantSignal(Signal):
 	def __init__(self, parentOutput) -> None:
 		super().__init__(parentOutput)
