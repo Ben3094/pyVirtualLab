@@ -46,7 +46,7 @@ class Signal(ABC):
 
 	REPEAT_COUNT_COMMAND:str = "SOUR:ARB:COUN"
 	@property
-	def RepeatCount(self, getMethodReturn) -> int:
+	def RepeatCount(self) -> int:
 		return int(float(self.Query(Signal.REPEAT_COUNT_COMMAND)))
 	@RepeatCount.setter
 	@SetProperty(int, REPEAT_COUNT_COMMAND)
