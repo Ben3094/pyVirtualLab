@@ -110,7 +110,7 @@ class Channel(Source):
 	AVERAGE_VBS_PROPERTY_FORMAT:str = "app.Acquisition.{0}.AverageSweeps"
 	@property
 	def Average(self) -> int:
-		return self.__parent__.Query(Channel.VBS_COMMAND, Channel.VBS_RETURN_PROPERTY_FORMAT.format(Channel.AVERAGE_VBS_PROPERTY_FORMAT.format(self.__commandAddress__)))
+		return int(self.__parent__.Query(Channel.VBS_COMMAND, Channel.VBS_RETURN_PROPERTY_FORMAT.format(Channel.AVERAGE_VBS_PROPERTY_FORMAT.format(self.__commandAddress__))))
 	@Average.setter
 	def Average(self, value:int) -> int:
 		value = int(value)
