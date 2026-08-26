@@ -1,7 +1,7 @@
 from aenum import Flag, unique, Enum
 from .Triggers import Trigger, SOURCE_PATTERN
 from .Triggers import NAMES as TRIGGERS_NAMES
-from .Signals import Signal
+from .Signals import Signal, UserDefinedSignal
 from .Signals import NAMES as SIGNALS_NAMES
 from re import match, Match
 
@@ -264,10 +264,15 @@ class Output():
 				self.__signal__.__parent__ = None # Unlink old signal object
 			self.__signal__ = SIGNALS_NAMES[reply[1]](self)
 		return self.__signal__
+	CONVERT_TO_USER_DEFINED_SIGNAL_COMMAND:str = 'SOUR:ARB:CURR:CONV'
 	SET_SIGNAL_COMMAND:str = 'SOUR:ARB:FUNC:SHAP'
 	@Signal.setter
 	def Signal(self, value:Signal) -> Signal:
-		self.__parent__.Write(Output.SET_SIGNAL_COMMAND, f"{value.__name__}, (@{self.Address})")
+		if type(value) == UserDefinedSignal:
+			self.__parent__.Write(Output.CONVERT_TO_USER_DEFINED_SIGNAL_COMMAND, f"(@{self.Address})")
+		else:
+			self.__parent__.Write(Output.SET_SIGNAL_COMMAND, f"{value.__name__}, (@{self.Address})")
+
 		self.__signal__ = value
 		return self.__signal__
 
