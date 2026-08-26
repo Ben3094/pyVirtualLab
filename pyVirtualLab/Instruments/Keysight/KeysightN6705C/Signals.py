@@ -193,10 +193,10 @@ class UserDefinedSignal(Signal):
 	TRIGGERS_COMMAND:str = 'SOUR:ARB:CURR:UDEF:BOST'
 	@property
 	def Triggers(self) -> list[bool]:
-		return [bool(output) for output in self.Query(UserDefinedSignal.TRIGGERS_COMMAND).split(',')]
+		return [bool(int(output)) for output in self.Query(UserDefinedSignal.TRIGGERS_COMMAND).split(',')]
 	@Triggers.setter
 	def Triggers(self, value:list[bool]) -> list[bool]:
-		self.Write(UserDefinedSignal.TRIGGERS_COMMAND, ','.join([int(trigger) for trigger in value]))
+		self.Write(UserDefinedSignal.TRIGGERS_COMMAND, ','.join([str(int(trigger)) for trigger in value]))
 		if self.Triggers != value:
 			raise Exception("Error while setting triggers")
 		return value

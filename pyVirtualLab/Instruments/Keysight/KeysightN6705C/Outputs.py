@@ -306,6 +306,7 @@ class N678XA(Output):
 	@IsLimitsCoupled.setter
 	def IsLimitsCoupled(self, value:bool) -> bool:
 		match self.EmulatedSource:
+			case EmulatedSource.Unipolar: pass
 			case EmulatedSource.UnipolarWithLoad: pass
 			case EmulatedSource.BipolarWithLoad: pass
 			case _: raise Exception(f"Negative limit cannot be set in {self.EmulatedSource}")

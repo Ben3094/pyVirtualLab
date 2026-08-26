@@ -104,6 +104,20 @@ class Channel(Source):
 		self.__parent__.Write(f"{self.__commandAddress__}:{self.OFFSET_COMMAND}", value)
 		if self.Offset != value:
 			raise Exception("Error while setting offset")
+
+	VBS_COMMAND:str = 'VBS'
+	VBS_RETURN_PROPERTY_FORMAT:str = "return = {0}"
+	AVERAGE_VBS_PROPERTY_FORMAT:str = "app.Acquisition.{0}.AverageSweeps"
+	@property
+	def Average(self) -> int:
+		return self.__parent__.Query(Channel.VBS_COMMAND, Channel.VBS_RETURN_PROPERTY_FORMAT.format(Channel.AVERAGE_VBS_PROPERTY_FORMAT.format(self.__commandAddress__)))
+	@Average.setter
+	def Average(self, value:int) -> int:
+		value = int(value)
+		self.__parent__.Write(Channel.VBS_COMMAND, Channel.AVERAGE_VBS_PROPERTY_FORMAT.format(self.__commandAddress__))
+		if self.Average != value:
+			raise Exception(f"Error while setting channel {self.Address} average")
+		return value
 	
 	SET_MEASUREMENT_COMMAND:str = 'PACU'
 	CUSTOM_MEASUREMENT_PREFIX:str = 'CUST'
