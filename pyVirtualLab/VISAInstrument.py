@@ -386,9 +386,9 @@ class Instrument:
 		except Exception as e:
 			raise e
 
-		if registrySearch:
-			instrumentType = next(instrumentType for intrumentType in INSTRUMENT_REGISTRY if match(INSTRUMENT_REGISTRY[intrumentType], self.Id))
-			instrument = instrumentType() # TODO: Add registeredInstrument type definition to include transfer function to replace init.
+		# if registrySearch:
+		# 	instrumentType = next(instrumentType for intrumentType in INSTRUMENT_REGISTRY if match(INSTRUMENT_REGISTRY[intrumentType], self.Id))
+		# 	instrument = instrumentType() # TODO: Add registeredInstrument type definition to include transfer function to replace init.
 		
 		return self.IsConnected
 
