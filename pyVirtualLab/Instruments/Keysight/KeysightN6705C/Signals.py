@@ -71,7 +71,7 @@ class PulseSignal(Signal):
 	LOW_LEVEL_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:STAR:LEV"
 	@property
 	def LowLevel(self) -> float:
-		return self.Query(PulseSignal.LOW_LEVEL_COMMAND_FORMAT.format(self.Type.value))
+		return float(self.Query(PulseSignal.LOW_LEVEL_COMMAND_FORMAT.format(self.Type.value)))
 	@LowLevel.setter
 	def LowLevel(self, value:float) -> float:
 		value = float(value)
@@ -82,7 +82,7 @@ class PulseSignal(Signal):
 	HIGH_LEVEL_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:TOP:LEV"
 	@property
 	def HighLevel(self) -> float:
-		return self.Query(PulseSignal.HIGH_LEVEL_COMMAND_FORMAT.format(self.Type.value))
+		return float(self.Query(PulseSignal.HIGH_LEVEL_COMMAND_FORMAT.format(self.Type.value)))
 	@HighLevel.setter
 	def HighLevel(self, value:float) -> float:
 		value = float(value)
@@ -94,7 +94,7 @@ class PulseSignal(Signal):
 	WAITING_TIME_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:STAR:TIM"
 	@property
 	def WaitingTime(self) -> float:
-		return self.Query(PulseSignal.WAITING_TIME_COMMAND_FORMAT.format(self.Type.value))
+		return float(self.Query(PulseSignal.WAITING_TIME_COMMAND_FORMAT.format(self.Type.value)))
 	@WaitingTime.setter
 	def WaitingTime(self, value:float) -> float:
 		value = float(value)
@@ -105,7 +105,7 @@ class PulseSignal(Signal):
 	PULSE_TIME_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:TOP:TIM"
 	@property
 	def PulseTime(self) -> float:
-		return self.Query(PulseSignal.PULSE_TIME_COMMAND_FORMAT.format(self.Type.value))
+		return float(self.Query(PulseSignal.PULSE_TIME_COMMAND_FORMAT.format(self.Type.value)))
 	@PulseTime.setter
 	def PulseTime(self, value:float) -> float:
 		value = float(value)
@@ -116,7 +116,7 @@ class PulseSignal(Signal):
 	END_TIME_COMMAND_FORMAT:str = "SOUR:ARB:{0}:PULS:END:TIM"
 	@property
 	def EndTime(self) -> float:
-		return self.Query(PulseSignal.END_TIME_COMMAND_FORMAT.format(self.Type.value))
+		return float(self.Query(PulseSignal.END_TIME_COMMAND_FORMAT.format(self.Type.value)))
 	@EndTime.setter
 	def EndTime(self, value:float) -> float:
 		value = float(value)
