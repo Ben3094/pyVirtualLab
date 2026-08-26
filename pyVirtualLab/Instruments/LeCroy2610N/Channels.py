@@ -126,7 +126,7 @@ class Channel(Source):
 	def IsInverted(self, value:bool) -> bool:
 		value = bool(value)
 		self.__parent__.Write(Channel.VBS_COMMAND, f"{Channel.INVERT_VBS_PROPERTY_FORMAT.format(self.__commandAddress__)} = {str(int(value))}")
-		if self.Average != value:
+		if self.IsInverted != value:
 			raise Exception(f"Error while setting channel {self.Address} inverted")
 		return value
 	
