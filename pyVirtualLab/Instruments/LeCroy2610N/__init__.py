@@ -77,6 +77,9 @@ class LeCroy2610N(Instrument):
 			self.Write(f"{self.CLEAR_PARAMETER_COMMAND} {i}")
 		return
 
+	def Clear(self):
+		self.Write('CLSW')
+
 	TRIGGER_MODE_COMMAND:str = "TRMD"
 	@property
 	@GetProperty(TriggerState, TRIGGER_MODE_COMMAND)
