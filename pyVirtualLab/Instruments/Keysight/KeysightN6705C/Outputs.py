@@ -261,6 +261,9 @@ class Output():
 		if self.TriggerTarget != value:
 			raise Exception(f"Error while setting channel {self.Address} trigger target")
 		return value
+	TRIG_COMMAND:str = 'INIT:IMM:TRAN'
+	def Trig(self):
+		self.Write(Output.TRIG_COMMAND)
 
 	def __getMeasuredValues__(self, header, measureType:MeasureType, whenTriggered:bool, onlyLast:bool) -> list[float]:
 		savedASCIIFormat = self.__parent__.__isDataASCII__
