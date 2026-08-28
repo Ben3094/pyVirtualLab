@@ -207,7 +207,7 @@ class UserDefinedSignal(Signal):
 		return [float(output) for output in self.Query(UserDefinedSignal.DURATIONS_COMMAND).split(',')]
 	@Durations.setter
 	def Durations(self, value:list[float]) -> list[float]:
-		self.Write(UserDefinedSignal.DURATIONS_COMMAND, ','.join(value))
+		self.Write(UserDefinedSignal.DURATIONS_COMMAND, ','.join([str(piece) for piece in value]))
 		if self.Durations != value:
 			raise Exception("Error while setting durations")
 		return value
@@ -218,7 +218,7 @@ class UserDefinedSignal(Signal):
 		return [float(output) for output in self.Query(UserDefinedSignal.LEVELS_COMMAND).split(',')]
 	@Levels.setter
 	def Levels(self, value:list[float]) -> list[float]:
-		self.Write(UserDefinedSignal.LEVELS_COMMAND, ','.join(value))
+		self.Write(UserDefinedSignal.LEVELS_COMMAND, ','.join([str(piece) for piece in value]))
 		if self.Levels != value:
 			raise Exception("Error while setting levels")
 		return value
