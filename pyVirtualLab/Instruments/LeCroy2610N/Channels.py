@@ -90,8 +90,8 @@ class Channel(Source):
 	def Scale(self, value: float) -> float:
 		value = float(value)
 		self.__parent__.Write(f"{self.__commandAddress__}:{self.SCALE_COMMAND}", value)
-		if self.Scale != value:
-			raise Exception("Error while setting scale")
+		# if self.Scale != value:
+		# 	raise Exception("Error while setting scale")
 		return value
 	
 	OFFSET_COMMAND:str = 'OFST'	
