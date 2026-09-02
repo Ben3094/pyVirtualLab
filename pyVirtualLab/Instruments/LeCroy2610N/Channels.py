@@ -129,12 +129,15 @@ class Channel(Source):
 		if self.IsInverted != value:
 			raise Exception(f"Error while setting channel {self.Address} inverted")
 		return value
+	AUTOSCALE_VBS_PROPERTY_FORMAT:str = "app.Acquisition.{0}.FindScale"
+	def AutoScale(self):
+		self.__parent__.Write(Channel.VBS_COMMAND, f"{Channel.AUTOSCALE_VBS_PROPERTY_FORMAT.format(self.__commandAddress__)}")
 	
 	SET_MEASUREMENT_COMMAND:str = 'PACU'
 	CUSTOM_MEASUREMENT_PREFIX:str = 'CUST'
 	# Measurements	
 	def __queryMeasurement__(self, measurementType:MeasurementType, index:int=-1, args:str='', forceDuplication:bool=False) -> Measurement:
-		self.__parent__.Write(self.SET_MEASUREMENT_COMMAND, f"1,{measurementType.value},{args}")
+		self.Write(self.SET_MEASUREMENT_COMMAND, f"1,{measurementType.value},{args}")
 		if index == -1:
 			index = next(measurement[0] for measurement in self.__parent__.Measurements if measurement[1] == (measurementType, self))
 		return self.__parent__.GetMeasurement(index) #TODO: Support adding statistic
