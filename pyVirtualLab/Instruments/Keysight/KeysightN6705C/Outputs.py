@@ -68,9 +68,9 @@ class Output():
 	def Read(self) -> str:
 		return self.__parent__.Read()
 	def Write(self, command:str, arguments:str='') -> str:
-		return self.__parent__.Write(command, f"{arguments+',' if arguments != '' else ""}(@{self.Address})")
+		return self.__parent__.Write(command, f"""{arguments+',' if arguments != '' else ""}(@{self.Address})""")
 	def Query(self, command:str, arguments:str='') -> str:
-		return self.__parent__.Query(command, f"{arguments+',' if arguments != '' else ""}(@{self.Address})")
+		return self.__parent__.Query(command, f"""{arguments+',' if arguments != '' else ""}(@{self.Address})""")
 
 	@property
 	def Address(self) -> int:
