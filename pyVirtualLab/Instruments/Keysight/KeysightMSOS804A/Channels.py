@@ -41,6 +41,13 @@ class Channel(Source):
 	def Address(self) -> float:
 		return self.__address__
 
+	def Read(self) -> str:
+		return self.__parent__.Read()
+	def Write(self, command:str, arguments:str='') -> str:
+		return self.__parent__.Write(f"{self.__commandAddress__}:{command}", arguments)
+	def Query(self, command:str, arguments:str='') -> str:
+		return self.__parent__.Query(f"{self.__commandAddress__}:{command}", arguments)
+
 	@property
 	def IsEnabled(self) -> bool:
 		return bool(int(self.__parent__.Query(f"{self.__commandAddress__}:DISP")))

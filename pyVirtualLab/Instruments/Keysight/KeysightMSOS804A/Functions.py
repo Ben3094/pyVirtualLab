@@ -2,6 +2,7 @@ from .Channels import Channel, VerticalMeasurePossibleChannel, MeasurementState
 from pyVirtualLab.Helpers import RECURSIVE_SUBCLASSES
 from aenum import Enum
 import re
+from pyVirtualLab.Helpers import GetProperty, SetProperty, roundScientificNumber
 
 class Function(VerticalMeasurePossibleChannel):
 	TYPE_COMMAND_HEADER = 'FUNC'
@@ -279,45 +280,39 @@ class FFTMagnitudeFunction(Function):
 		if self.Resolution != value:
 			raise Exception("Error while setting frequency resolution")
 		return self.Resolution
-		
+
+	FREQUENCY_SPAN_COMMAND:str = "FFT:SPAN"
 	@property
-	def Span(self) -> float:
-		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:SPAN"))
+	@GetProperty(float, FREQUENCY_SPAN_COMMAND)
+	def Span(self, getMethodReturn) -> float:
+		return getMethodReturn
 	@Span.setter
+	@SetProperty(float, FREQUENCY_SPAN_COMMAND, rounding=lambda x : roundScientificNumber(x, 5))
 	def Span(self, value: float) -> float:
 		"""Set span will change start and stop frequency"""
-		value = float(value)
-		value = round(value/10)*10
-		self.__parent__.Write(f"{self.__commandAddress__}:FFT:SPAN", str(value))
-		if self.Span != value:
-			raise Exception("Error while setting frequency span")
-		return self.Span
-		
+		pass
+
+	CENTER_FREQUENCY_COMMAND:str = "FFT:FREQ"
 	@property
-	def CenterFrequency(self) -> float:
-		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:FREQ"))
+	@GetProperty(float, CENTER_FREQUENCY_COMMAND)
+	def CenterFrequency(self, getMethodReturn) -> float:
+		return getMethodReturn
 	@CenterFrequency.setter
+	@SetProperty(float, CENTER_FREQUENCY_COMMAND, rounding=lambda x : roundScientificNumber(x, 5))
 	def CenterFrequency(self, value: float) -> float:
 		"""Set center frequency will change start and stop frequency"""
-		value = float(value)
-		value = round(value/10)*10
-		self.__parent__.Write(f"{self.__commandAddress__}:FFT:FREQ", str(value))
-		if self.CenterFrequency != value:
-			raise Exception("Error while setting center frequency")
-		return self.CenterFrequency
-		
+		pass
+
+	STOP_FREQUENCY_COMMAND:str = "FFT:STOP"
 	@property
-	def StopFrequency(self) -> float:
-		return float(self.__parent__.Query(f"{self.__commandAddress__}:FFT:STOP"))
+	@GetProperty(float, STOP_FREQUENCY_COMMAND)
+	def StopFrequency(self, getMethodReturn) -> float:
+		return getMethodReturn
 	@StopFrequency.setter
+	@SetProperty(float, STOP_FREQUENCY_COMMAND, rounding=lambda x : roundScientificNumber(x, 5))
 	def StopFrequency(self, value: float) -> float:
 		"""Set stop frequency will change span and center frequency"""
-		value = float(value)
-		value = round(value/10)*10
-		self.__parent__.Write(f"{self.__commandAddress__}:FFT:STOP", str(value))
-		if self.StopFrequency != value:
-			raise Exception("Error while setting stop frequency")
-		return self.StopFrequency
+		pass
 		
 	@property
 	def StartFrequency(self) -> float:
