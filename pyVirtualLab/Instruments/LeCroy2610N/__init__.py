@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Instrument, InterfaceType, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME, ETHERNET_DEVICE_NAME_ENTRY_NAME
+from pyVirtualLab import Instrument, InterfaceType, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME, ETHERNET_DEVICE_NAME_ENTRY_NAME
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from aenum import Enum
 from .Channels import Channel, AnalogChannel, WaveformMemoryChannel

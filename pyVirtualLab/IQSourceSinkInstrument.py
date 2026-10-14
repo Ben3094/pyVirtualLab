@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab import Instrument
 
 class IQSinkInstrument(Instrument):
     def InitIQSink(self, sampleRate:float):

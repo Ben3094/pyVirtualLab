@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .AnalysingWindows import AnalysingWindow, ANALYSING_WINDOWS_NAMES
 from .AnalysingWindows.SpectrumAnalyse import SpectrumAnalyse

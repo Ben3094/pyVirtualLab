@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Source, INSTRUMENT_REGISTRY
+from pyVirtualLab import Source, INSTRUMENT_REGISTRY
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .Outputs import *
 from pyvisa import VisaIOError

@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from aenum import Enum
 from statistics import mean

@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Source
+from pyVirtualLab import Source
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .Output import Output
 

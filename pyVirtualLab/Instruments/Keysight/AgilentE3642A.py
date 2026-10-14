@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Source
+from pyVirtualLab import Source
 import re as regex
 
 class AgilentE3642A(Source):

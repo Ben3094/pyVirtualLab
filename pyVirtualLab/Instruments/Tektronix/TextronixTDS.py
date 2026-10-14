@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab import Instrument
 
 class TektronixTDS(Instrument):
 	def __init__(self, address):

@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import VirtualInstrument, Source
+from pyVirtualLab import VirtualInstrument, Source
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from collections import namedtuple
 

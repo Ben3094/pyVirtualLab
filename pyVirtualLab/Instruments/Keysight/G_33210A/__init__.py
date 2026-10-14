@@ -1,6 +1,6 @@
 from aenum import Enum
 
-from pyVirtualLab.VISAInstrument import Instrument, Source
+from pyVirtualLab import Instrument, Source
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from . import Functions
 from . import Modulations

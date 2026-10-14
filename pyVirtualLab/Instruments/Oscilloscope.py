@@ -1,4 +1,4 @@
-from pyVirtualLab.VISAInstrument import Instrument
+from pyVirtualLab import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty, roundScientificNumber
 from aenum import Enum
 

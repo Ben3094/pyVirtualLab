@@ -1,13 +1,13 @@
-from pyVirtualLab.VISAInstrument import Source
+from pyVirtualLab import Source
 from .Outputs import *
 
 OUTPUTS_NUMBER:int = 3
 OUTPUTS_START_INDEX:int = 1
 OUTPUTS_INDEXES:range = range(OUTPUTS_START_INDEX, OUTPUTS_START_INDEX + OUTPUTS_NUMBER)
 
-class KeysightE363XXX(Source):
+class KeysightE363xxx(Source):
 	def __init__(self, address):
-		super(KeysightE363XXX, self).__init__(address)
+		super(KeysightE363xxx, self).__init__(address)
 		self.__outputs__:dict[int, Output] = None
 	
 	@property
