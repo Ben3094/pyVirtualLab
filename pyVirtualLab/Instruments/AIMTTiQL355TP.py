@@ -34,10 +34,9 @@ class Output(VirtualInstrument):
 			raise Exception("Error while setting voltage")
 		return value
 
-	GET_VOLTAGE_MEASURED_COMMAND_FORMAT:str = "V{0}O"
-	@property
-	def GetVoltageMeasured(self) -> float:
-		return float(match(r"(\d+\.\d+)V", self.Query(self.GET_VOLTAGE_MEASURED_COMMAND_FORMAT.format(self.__outputAddress__))).group(1))
+	GET_MEASURED_VOLTAGE_COMMAND_FORMAT:str = "V{0}O"
+	def GetMeasuredVoltage(self) -> float:
+		return float(match(r"(\d+\.\d+)V", self.Query(self.GET_MEASURED_VOLTAGE_COMMAND_FORMAT.format(self.__outputAddress__))).group(1))
 
 	@property
 	@GetProperty(float, 'OVP{__outputAddress__}')
@@ -61,10 +60,9 @@ class Output(VirtualInstrument):
 			raise Exception("Error while setting current")
 		return value
 
-	GET_CURRENT_MEASURED_COMMAND_FORMAT:str = "V{0}O"
-	@property
-	def GetCurrentMeasured(self) -> float:
-		return float(match(r"(\d+\.\d+)A", self.Query(self.GET_CURRENT_MEASURED_COMMAND_FORMAT.format(self.__outputAddress__))).group(1))
+	GET_MEASURED_CURRENT_COMMAND_FORMAT:str = "V{0}O"
+	def GetMeasuredCurrent(self) -> float:
+		return float(match(r"(\d+\.\d+)A", self.Query(self.GET_MEASURED_CURRENT_COMMAND_FORMAT.format(self.__outputAddress__))).group(1))
 
 	@property
 	@GetProperty(float, 'OCP{__outputAddress__}')
@@ -116,7 +114,7 @@ class Output(VirtualInstrument):
 	def IsEnabled(self, getMethodReturn) -> bool:
 		return getMethodReturn
 	@IsEnabled.setter
-	@SetProperty(bool, 'OP{__outputAddress__}')
+	@SetProperty(bool, 'OP{__outputAddress__}', wait=0.1)
 	def IsEnabled(self, value: bool):
 		pass
 	

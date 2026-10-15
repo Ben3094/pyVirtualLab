@@ -9,6 +9,7 @@ from enum import Enum
 from aenum import MultiValueEnum
 from collections import namedtuple
 from typing import Callable
+from time import sleep
 
 Converter = namedtuple("Converter", ['Get', 'Set'])
 ConvertersRegistry:dict[type, Converter] = {
@@ -36,7 +37,7 @@ def GetProperty(dataType:type, visaGetCommand:str, converter:Converter=None, boo
 		return wrapper
 	return decorator
 
-def SetProperty(dataType:type, visaSetCommand:str, check:bool=True, converter:Converter=None, rounding:Callable=lambda x: x, booleanStatePropertyName:str=None, offStateValue=None):
+def SetProperty(dataType:type, visaSetCommand:str, check:bool=True, converter:Converter=None, rounding:Callable=lambda x: x, booleanStatePropertyName:str=None, offStateValue=None, wait:float=0.1):
 	if converter == None:
 		if dataType in ConvertersRegistry:
 			converter = ConvertersRegistry[dataType].Set
@@ -60,6 +61,7 @@ def SetProperty(dataType:type, visaSetCommand:str, check:bool=True, converter:Co
 				command = visaSetCommand.format(**args[0].__dict__)
 				args[0].Write(command, converter(value))
 			if check:
+				sleep(wait)
 				if getattr(args[0], func.__name__) != value:
 					raise Exception(f"Error while setting \"{func.__name__}\"")
 			return func(*args, **kwargs)
