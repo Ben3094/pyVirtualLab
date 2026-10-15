@@ -1,6 +1,7 @@
 from pyVirtualLab import VirtualInstrument, Source
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from collections import namedtuple
+from re import match
 
 Range = namedtuple("Range", "Index MaxVoltage MaxCurrent")
 RANGES:dict[int, namedtuple] = {
@@ -33,6 +34,11 @@ class Output(VirtualInstrument):
 			raise Exception("Error while setting voltage")
 		return value
 
+	GET_VOLTAGE_MEASURED_COMMAND_FORMAT:str = "V{0}O"
+	@property
+	def GetVoltageMeasured(self) -> float:
+		return float(match(r"(\d+\.\d+)V", self.Query(self.GET_VOLTAGE_MEASURED_COMMAND_FORMAT.format(self.__outputAddress__))).group(1))
+
 	@property
 	@GetProperty(float, 'OVP{__outputAddress__}')
 	def OverVoltageProtection(self, getMethodReturn) -> float:
@@ -54,6 +60,11 @@ class Output(VirtualInstrument):
 		if self.Current != value:
 			raise Exception("Error while setting current")
 		return value
+
+	GET_CURRENT_MEASURED_COMMAND_FORMAT:str = "V{0}O"
+	@property
+	def GetCurrentMeasured(self) -> float:
+		return float(match(r"(\d+\.\d+)A", self.Query(self.GET_CURRENT_MEASURED_COMMAND_FORMAT.format(self.__outputAddress__))).group(1))
 
 	@property
 	@GetProperty(float, 'OCP{__outputAddress__}')
