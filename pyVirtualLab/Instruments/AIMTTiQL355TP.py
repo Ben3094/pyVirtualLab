@@ -60,7 +60,7 @@ class Output(VirtualInstrument):
 			raise Exception("Error while setting current")
 		return value
 
-	GET_MEASURED_CURRENT_COMMAND_FORMAT:str = "V{0}O"
+	GET_MEASURED_CURRENT_COMMAND_FORMAT:str = "I{0}O"
 	def GetMeasuredCurrent(self) -> float:
 		return float(match(r"(\d+\.\d+)A", self.Query(self.GET_MEASURED_CURRENT_COMMAND_FORMAT.format(self.__outputAddress__))).group(1))
 
