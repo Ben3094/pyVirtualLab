@@ -59,13 +59,14 @@ class CommunicationSerialPatternTrigger(SourcedTrigger):
 		return value
 
 class LeveledSourceTrigger(SourcedTrigger):
+	LEVEL_COMMAND:str = 'TRIG:LEV'
 	@property
 	def Level(self) -> float:
-		return float(self.__parent__.Query('TRIG:LEV', f"{self.Source.__commandAddress__}"))
+		return float(self.__parent__.Query(self.LEVEL_COMMAND))
 	@Level.setter
 	def Level(self, value:float) -> float:
 		value = float(value)
-		self.__parent__.Write('TRIG:LEV', f"{self.Source.__commandAddress__}, {value}")
+		self.__parent__.Write(self.LEVEL_COMMAND, f"{value}")
 		if self.Level != value:
 			raise Exception("Error while setting the trigger level")
 		return value

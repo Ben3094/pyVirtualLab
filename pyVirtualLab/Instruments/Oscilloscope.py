@@ -1,12 +1,10 @@
 from pyVirtualLab import Instrument
 from pyVirtualLab.Helpers import GetProperty, SetProperty, roundScientificNumber
 from aenum import Enum
+from abc import ABC
 
-class Channel:
+class Channel(ABC):
 	TYPE_COMMAND_HEADER:str = 'CHAN'
-	__address__:int = None
-	__commandAddress__:str = None
-	__parent__ = None
 
 	def __init__(self, parent, address:int):
 		self.__address__ = int(address)
@@ -22,43 +20,58 @@ class Channel:
 
 	STATE_COMMAND:str = 'STAT'
 	@property
-	@GetProperty(bool, STATE_COMMAND)
-	def IsEnabled(self, getMethodReturn) -> bool:
-		return getMethodReturn
+	def IsEnabled(self) -> bool:
+		return bool(int(self.Query(self.STATE_COMMAND)))
 	@IsEnabled.setter
-	@SetProperty(bool, STATE_COMMAND)
 	def IsEnabled(self, value:bool) -> bool:
-		pass
+		value = bool(value)
+		self.Write(self.STATE_COMMAND, str(int(value)))
+		if self.IsEnabled != value:
+			raise Exception(f"Failed to set channel {self.__commandAddress__} state to {value}. Current state: {self.IsEnabled}")
+		return value
 
 	SCALE_COMMAND:str = 'SCAL'
 	@property
-	@GetProperty(float, SCALE_COMMAND)
-	def IsEnabled(self, getMethodReturn) -> float:
-		return getMethodReturn
-	@IsEnabled.setter
-	@SetProperty(float, SCALE_COMMAND)
-	def IsEnabled(self, value:float) -> float:
-		pass
+	def Scale(self) -> float:
+		return float(self.Query(self.SCALE_COMMAND))
+	@Scale.setter
+	def Scale(self, value:float) -> float:
+		value = float(value)
+		self.Write(self.SCALE_COMMAND, str(value))
+		if self.Scale != value:
+			raise Exception(f"Failed to set channel {self.__commandAddress__} scale to {value}. Current scale: {self.Scale}")
+		return value
 
 	OFFSET_COMMAND:str = 'OFFS'
 	@property
-	@GetProperty(float, OFFSET_COMMAND)
-	def Offset(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def Offset(self) -> float:
+		return float(self.Query(self.OFFSET_COMMAND))
 	@Offset.setter
-	@SetProperty(float, OFFSET_COMMAND)
 	def Offset(self, value:float) -> float:
-		pass
+		value = float(value)
+		self.Write(self.OFFSET_COMMAND, str(value))
+		if self.Offset != value:
+			raise Exception(f"Failed to set channel {self.__commandAddress__} offset to {value}. Current offset: {self.Offset}")
+		return value
+
+	@property
+	def Range(self) -> float:
+		return 8 * self.Scale
+	@property
+	def MinValue(self) -> float:
+		return -(4 * self.Scale) - self.Offset
+	@property
+	def MaxValue(self) -> float:
+		return +(4 * self.Scale) - self.Offset
 
 class State(Enum):
 	Continuous = 'RUN'
 	Single = 'SING'
 	Stop = 'STOP'
 
-class Oscilloscope(Instrument):
+class Oscilloscope(Instrument, ABC):
 	def __init__(self, address = None, timeout = Instrument.DEFAULT_VISA_TIMEOUT):
 		super().__init__(address, timeout)
-		self.__updateChannels__()
 
 	def AutoScale(self):
 		self.Write("AUT")
@@ -72,40 +85,58 @@ class Oscilloscope(Instrument):
 
 	TIMESCALE_COMMAND:str = 'TIM:SCAL'
 	@property
-	@GetProperty(float, TIMESCALE_COMMAND)
-	def TimeScale(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def TimeScale(self) -> float:
+		return float(self.Query(self.TIMESCALE_COMMAND))
 	@TimeScale.setter
-	@SetProperty(float, TIMESCALE_COMMAND, rounding=lambda x : roundScientificNumber(x, 2))
 	def TimeScale(self, value: float) -> float:
-		pass
+		value = float(value)
+		self.Write(self.TIMESCALE_COMMAND, str(value))
+		if self.TimeScale != value:
+			raise Exception(f"Failed to set time scale to {value}. Current time scale: {self.TimeScale}")
+		return value
+
+	DELAY_COMMAND:str = 'TIM:POS'
+	@property
+	def Delay(self) -> float:
+		return float(self.Query(self.DELAY_COMMAND))
+	@Delay.setter
+	def Delay(self, value: float) -> float:
+		value = float(value)
+		self.Write(self.DELAY_COMMAND, str(value))
+		if self.Delay != value:
+			raise Exception(f"Failed to set delay to {value}. Current delay: {self.Delay}")
+		return value
 
 	@property
-	@GetProperty(float, 'TIM:POS')
-	def Delay(self, getMethodReturn) -> float:
-		return getMethodReturn
-	@Delay.setter
-	@SetProperty(float, 'TIM:POS', rounding=lambda x : roundScientificNumber(x, 2))
-	def Delay(self, value: float) -> float:
-		pass
+	def TimeRange(self) -> float:
+		return 10 * self.TimeScale
+	@property
+	def MinTimeValue(self) -> float:
+		return self.Delay - 5 * self.TimeScale
+	@property
+	def MaxTimeValue(self) -> float:
+		return self.Delay + 5 * self.TimeScale
 
 	#endregion
 
 
 	# region CHANNEL
-
+	CHANNEL_TYPE:Type = None
 	__channels__:dict[int, Channel] = {}
 	def __updateChannels__(self):
 		index = 0
 		try:
 			while True:
 				index = index + 1
-				channel = Channel(self, index)
+				channel = self.CHANNEL_TYPE(self, index)
 				channel.IsEnabled # Will fail at the channel limit
 				self.__channels__[index] = channel
 		except:
 			return
+	@property
 	def Channels(self) -> dict[int, Channel]:
+		if len(self.__channels__) == 0:
+			self.__updateChannels__()
 		return self.__channels__
 
 	# endregion
