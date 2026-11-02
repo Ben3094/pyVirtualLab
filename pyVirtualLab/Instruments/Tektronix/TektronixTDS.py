@@ -1,8 +1,4 @@
 import pyVirtualLab.Instruments.Oscilloscope as base
-from matplotlib.pyplot import figure, savefig
-from io import BytesIO
-from numpy import arange
-from math import log10, floor
 
 class Channel(base.Channel):
 	TYPE_COMMAND_HEADER:str = 'CH'
@@ -51,6 +47,10 @@ class Channel(base.Channel):
 		data = dict(zip(abscissae, data))
 		return data
 
+from matplotlib.pyplot import figure, savefig
+from matplotlib.patches import Arrow
+from io import BytesIO
+from numpy import arange
 class TektronixTDS(base.Oscilloscope):
 	DELAY_COMMAND:str = 'HOR:POS'
 	TIMESCALE_COMMAND:str = 'HOR:SCA'
@@ -59,27 +59,42 @@ class TektronixTDS(base.Oscilloscope):
 		super(TektronixTDS, self).__init__(address)
 
 	def GetScreenshot(self) -> BytesIO:
-		channels = oscilloscope.Channels
 		fig = figure()
 		mainAxis = fig.add_subplot(111)
-		mainAxis.set_xlim(xmin=oscilloscope.MinTimeValue, xmax=oscilloscope.MaxTimeValue)
+
+		minTimeValue = self.MinTimeValue
+		maxTimeValue = self.MaxTimeValue
+		mainAxis.set_xlim(xmin=minTimeValue, xmax=maxTimeValue)
 		mainAxis.set_ylim(ymin=-1, ymax=+1)
 		mainAxis.set_yticks(arange(-1, +1, 1/4))
 		mainAxis.grid(visible=True, axis='both', color='lightgray', linestyle='--', linewidth=0.5)
-		mainAxis.set_xticks(arange(oscilloscope.MinTimeValue, oscilloscope.MaxTimeValue, oscilloscope.TimeRange/10))
+		mainAxis.set_xticks(arange(minTimeValue, maxTimeValue, self.TimeRange/10))
 		mainAxis.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelleft=False, labelright=False)
-		mainAxis.scatter(x=[], y=[], label=f"{oscilloscope.TimeScale} s/div.")
-		for channel in channels.values():
+		mainAxis.scatter(x=[], y=[], label=f"{self.TimeScale} s/div.")
+		mainAxis.add_patch(Arrow(x=0, dx=0, y=+1, dy=-1/16, width=(maxTimeValue-minTimeValue)/20, color='black'))
+
+		for channel in self.Channels.values():
 			if channel.IsEnabled:
 				ax = mainAxis.twinx()
 				waveform = channel.GetWaveform()
-				ax.set_ylim(ymin=channel.MinValue, ymax=channel.MaxValue)
+				x = waveform.keys()
+				xmax = max(x)
+				xmin = min(x)
+				y = waveform.values()
+				ymax = max(y)
+				ymin = min(y)
+				ax.set_ylim(ymin=ymin, ymax=ymax)
 				ax.scatter(x=waveform.keys(), y=waveform.values(),
 						label=f"{channel.__commandAddress__} {channel.Scale} {channel.Unit}/div.")
+				
+				ax.add_patch(Arrow(x=xmin, dx=(xmax-xmin)/40, y=0, dy=0, width=(ymax-ymin)/20, edgecolor='black'))
 				ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelleft=False, labelright=False)
-		fig.legend(loc='lower center', ncols=4)
+		
+		legends = fig.legend(loc='lower center', ncols=5)
+		legends.legend_handles[0].set_alpha(0)
 		imageBytes = BytesIO()
 		savefig(imageBytes)
+		return imageBytes
 
 	TIMESCALE_COMMAND:str = 'HOR:MAI:SCA'
 	DELAY_COMMAND:str = 'HOR:MAI:POS'
