@@ -4,6 +4,7 @@ from numpy import log10, linspace, logspace
 from pyVirtualLab import Instrument, Source, InterfaceType, ETHERNET_HOST_ADDRESS_ENTRY_NAME, ETHERNET_PORT_ENTRY_NAME, ETHERNET_DEVICE_NAME_ENTRY_NAME
 from pyVirtualLab.Helpers import GetProperty, SetProperty
 from .ExternalPowerMeter import ExternalPowerMeter
+from pandas import DataFrame
 
 class OutSignal(Enum):
 	Sweep = 'SWE'
@@ -39,6 +40,7 @@ class PulseType(Enum):
 	Doublet = 'DOUB'
 	Gated = 'GATE'
 	External = 'EXT'
+	PulseTrain = 'PTR'
 
 class AgilentN5183B(Source):
 	def __init__(self, address: str):
@@ -348,8 +350,6 @@ class AgilentN5183B(Source):
 	@PulseWidth.setter
 	def PulseWidth(self, value: float) -> float:
 		value = round(float(value), 8)
-		if value >= self.PulsePeriod:
-			raise Exception("Pulse width must be inferior to pulse period")
 		self.Write('SOUR:PULM:INT:PWID', str(value))
 		if self.PulseWidth != value:
 			raise Exception("Error while setting the pulse width")
@@ -383,6 +383,44 @@ class AgilentN5183B(Source):
 			if not savedIsPulseEnabled:
 				self.IsPulseEnabled = savedIsPulseEnabled
 			if e: raise e
+
+	RESET_PULSE_TRAIN_COMMAND:str = 'PULM:INT:TRA:LIST:PRES'
+	def ResetPulseTrain(self):
+		self.Write(AgilentN5183B.RESET_PULSE_TRAIN_COMMAND)
+
+	ON_TIME_HEADER:str = "On time"
+	PULSE_TRAIN_ON_TIMES_COMMAND:str = 'PULM:INT:TRA:ONT'
+	OFF_TIME_HEADER:str = "Off time"
+	PULSE_TRAIN_OFF_TIMES_COMMAND:str = 'PULM:INT:TRA:OFFT'
+	REPETITION_HEADER:str = "Repeat"
+	PULSE_TRAIN_REPETITIONS_COMMAND:str = 'PULM:INT:TRA:REP'
+	def CAST_PULSE_TRAIN_DATAFRAME(value:DataFrame) -> DataFrame:
+		value[AgilentN5183B.ON_TIME_HEADER] = value[AgilentN5183B.ON_TIME_HEADER].astype(float)
+		value[AgilentN5183B.OFF_TIME_HEADER] = value[AgilentN5183B.OFF_TIME_HEADER].astype(float)
+		value[AgilentN5183B.REPETITION_HEADER] = value[AgilentN5183B.REPETITION_HEADER].astype(int)
+		return value[[AgilentN5183B.ON_TIME_HEADER, AgilentN5183B.OFF_TIME_HEADER, AgilentN5183B.REPETITION_HEADER]]
+	@property
+	def PulseTrain(self) -> DataFrame:
+		onTimes = self.Query(AgilentN5183B.PULSE_TRAIN_ON_TIMES_COMMAND).split(',')
+		offTimes = self.Query(AgilentN5183B.PULSE_TRAIN_OFF_TIMES_COMMAND).split(',')
+		repetitions = self.Query(AgilentN5183B.PULSE_TRAIN_REPETITIONS_COMMAND).split(',')
+		value = DataFrame({
+			AgilentN5183B.ON_TIME_HEADER: onTimes,
+			AgilentN5183B.OFF_TIME_HEADER: offTimes,
+			AgilentN5183B.REPETITION_HEADER: repetitions,
+		})
+		value = AgilentN5183B.CAST_PULSE_TRAIN_DATAFRAME(value)
+		return value
+	@PulseTrain.setter
+	def PulseTrain(self, value:DataFrame) -> DataFrame:
+		value = AgilentN5183B.CAST_PULSE_TRAIN_DATAFRAME(value)
+		self.Write(AgilentN5183B.PULSE_TRAIN_ON_TIMES_COMMAND, ','.join(value[AgilentN5183B.ON_TIME_HEADER].astype(str)))
+		self.Write(AgilentN5183B.PULSE_TRAIN_OFF_TIMES_COMMAND, ','.join(value[AgilentN5183B.OFF_TIME_HEADER].astype(str)))
+		self.Write(AgilentN5183B.PULSE_TRAIN_REPETITIONS_COMMAND, ','.join(value[AgilentN5183B.REPETITION_HEADER].astype(str)))
+		setValue = self.PulseTrain
+		# if len(setValue.compare(value)) > 0:
+		# 	raise Exception("Error while setting the pulse train")
+		return setValue
 
 	SWEEP_ON_MODE = 'LIST'
 	SWEEP_OFF_MODE = 'FIX'
