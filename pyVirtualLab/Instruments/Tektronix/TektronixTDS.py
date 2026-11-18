@@ -61,37 +61,27 @@ class TektronixTDS(base.Oscilloscope):
 	def GetScreenshot(self) -> BytesIO:
 		fig = figure()
 		mainAxis = fig.add_subplot(111)
-
-		minTimeValue = self.MinTimeValue
-		maxTimeValue = self.MaxTimeValue
-		mainAxis.set_xlim(xmin=minTimeValue, xmax=maxTimeValue)
+		mainAxis.set_xlim(xmin=self.MinTimeValue, xmax=self.MaxTimeValue)
 		mainAxis.set_ylim(ymin=-1, ymax=+1)
 		mainAxis.set_yticks(arange(-1, +1, 1/4))
 		mainAxis.grid(visible=True, axis='both', color='lightgray', linestyle='--', linewidth=0.5)
-		mainAxis.set_xticks(arange(minTimeValue, maxTimeValue, self.TimeRange/10))
+		mainAxis.set_xticks(arange(self.MinTimeValue, self.MaxTimeValue, self.TimeRange/10))
 		mainAxis.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelleft=False, labelright=False)
 		mainAxis.scatter(x=[], y=[], label=f"{self.TimeScale} s/div.")
-		mainAxis.add_patch(Arrow(x=0, dx=0, y=+1, dy=-1/16, width=(maxTimeValue-minTimeValue)/20, color='black'))
-
+		arrowSize = (self.MaxTimeValue-self.MinTimeValue)/30
+		mainAxis.add_patch(Arrow(x=0, dx=0, y=+1, dy=-1/16, width=arrowSize/2, color='black'))
 		for channel in self.Channels.values():
+			# TODO: Add colors
 			if channel.IsEnabled:
 				ax = mainAxis.twinx()
 				waveform = channel.GetWaveform()
-				x = waveform.keys()
-				xmax = max(x)
-				xmin = min(x)
-				y = waveform.values()
-				ymax = max(y)
-				ymin = min(y)
-				ax.set_ylim(ymin=ymin, ymax=ymax)
+				ax.set_ylim(ymin=channel.MinValue, ymax=channel.MaxValue)
 				ax.scatter(x=waveform.keys(), y=waveform.values(),
 						label=f"{channel.__commandAddress__} {channel.Scale} {channel.Unit}/div.")
-				
-				ax.add_patch(Arrow(x=xmin, dx=(xmax-xmin)/40, y=0, dy=0, width=(ymax-ymin)/20, edgecolor='black'))
 				ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelleft=False, labelright=False)
-		
-		legends = fig.legend(loc='lower center', ncols=5)
-		legends.legend_handles[0].set_alpha(0)
+				ax.add_patch(Arrow(x=min(waveform.keys()), dx=arrowSize, y=0, dy=0, width=(channel.MaxValue-channel.MinValue)/30, edgecolor='black'))
+		legend = fig.legend(loc='lower center', ncols=4)
+		legend.legend_handles[0].set_alpha(0)
 		imageBytes = BytesIO()
 		savefig(imageBytes)
 		return imageBytes
