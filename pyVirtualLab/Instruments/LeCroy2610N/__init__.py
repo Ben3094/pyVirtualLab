@@ -51,12 +51,16 @@ class LeCroy2610N(Instrument):
 	DELAY_PARAMETER:str = 'TRDL'
 	@property
 	@GetProperty(float, DELAY_PARAMETER)
-	def Delay(self, getMethodReturn) -> float:
-		return getMethodReturn
+	def Delay(self) -> float:
+		return -float(self.Query(LeCroy2610N.DELAY_PARAMETER))
 	@Delay.setter
 	@SetProperty(float, DELAY_PARAMETER, check=False)
 	def Delay(self, value:float) -> float:
-		pass
+		value = -float(value)
+		self.Write(LeCroy2610N.DELAY_PARAMETER, str(value))
+		if value != self.Delay:
+			raise Exception(f"Error while setting {self.Id} delay to {value}")
+		return value
 	
 	CLEAR_ALL_PARAMETERS_COMMAND:str = 'PACL'
 	CLEAR_PARAMETER_COMMAND:str = 'PADL'
@@ -79,6 +83,17 @@ class LeCroy2610N(Instrument):
 
 	def Clear(self):
 		self.Write('CLSW')
+
+	@property
+	def Average(self) -> int:
+		averageToBe = self.AnalogChannels[1].Average
+		if (any([channel.Average == averageToBe for channel in dict(list(self.AnalogChannels.items())[1:])])):
+			return averageToBe
+		else: return -1
+	@Average.setter
+	def Average(self, count: int):
+		for channel in self.AnalogChannels:
+			channel.Average = count
 
 	TRIGGER_MODE_COMMAND:str = "TRMD"
 	@property

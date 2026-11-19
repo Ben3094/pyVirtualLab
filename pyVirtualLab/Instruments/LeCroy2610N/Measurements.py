@@ -129,7 +129,7 @@ class MeasurementState(Enum):
 	Lower = 'LT'
 	NoPulse = 'NP'
 	Overflow = 'OF'
-	OK = 'OK'
+	Correct = 'OK'
 	PartialOverflow = 'OU'
 	Truncated = 'PT'
 	PartiallyUnderflow = 'UF'

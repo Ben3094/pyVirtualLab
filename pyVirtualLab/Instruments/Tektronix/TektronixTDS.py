@@ -79,7 +79,6 @@ class TektronixTDS(base.Oscilloscope):
 		else:
 			mainAxis.add_patch(Arrow(x=0, dx=0, y=+1, dy=-1/16, width=arrowSize/2, color='black'))
 		for channel in self.Channels.values():
-			# TODO: Add colors
 			if channel.IsEnabled:
 				ax = mainAxis.twinx()
 				waveform = channel.GetWaveform()

@@ -13,7 +13,7 @@ class MeasurementState(Enum):
 	VoltageNotFound = 9
 	TopEqualsBase = 10
 	TooSmall = 11
-	LowerNotFoung = 12
+	LowerNotFound = 12
 	UpperNotFound = 13
 	UpperCloseToLower = 14
 	TopNotFound = 15
