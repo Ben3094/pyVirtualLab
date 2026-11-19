@@ -49,6 +49,7 @@ class Channel(base.Channel):
 
 from matplotlib.pyplot import figure, savefig
 from matplotlib.patches import Arrow
+from matplotlib.colors import LinearSegmentedColormap
 from io import BytesIO
 from numpy import arange
 class TektronixTDS(base.Oscilloscope):
@@ -57,6 +58,8 @@ class TektronixTDS(base.Oscilloscope):
 	
 	def __init__(self, address):
 		super(TektronixTDS, self).__init__(address)
+
+	CHANNELS_COLORMAP:LinearSegmentedColormap = LinearSegmentedColormap.from_list('Channels color map', ['#FDA32B', '#1CBAC4', '#B11CB6', '#24BC34'], N=4, bad='#000000', under='#000000', over='#AAAAAA')
 
 	def GetScreenshot(self) -> BytesIO:
 		fig = figure()
@@ -69,7 +72,12 @@ class TektronixTDS(base.Oscilloscope):
 		mainAxis.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelleft=False, labelright=False)
 		mainAxis.scatter(x=[], y=[], label=f"{self.TimeScale} s/div.")
 		arrowSize = (self.MaxTimeValue-self.MinTimeValue)/30
-		mainAxis.add_patch(Arrow(x=0, dx=0, y=+1, dy=-1/16, width=arrowSize/2, color='black'))
+		if self.MinTimeValue > 0:
+			mainAxis.add_patch(Arrow(x=self.MinTimeValue, dx=+1, y=+1, dy=1-1/16, width=arrowSize/2, color='black'))
+		elif self.MaxTimeValue < 0:
+			mainAxis.add_patch(Arrow(x=self.MaxTimeValue, dx=-1, y=+1, dy=-1/16, width=arrowSize/2, color='black'))
+		else:
+			mainAxis.add_patch(Arrow(x=0, dx=0, y=+1, dy=-1/16, width=arrowSize/2, color='black'))
 		for channel in self.Channels.values():
 			# TODO: Add colors
 			if channel.IsEnabled:
@@ -77,10 +85,12 @@ class TektronixTDS(base.Oscilloscope):
 				waveform = channel.GetWaveform()
 				ax.set_ylim(ymin=channel.MinValue, ymax=channel.MaxValue)
 				ax.scatter(x=waveform.keys(), y=waveform.values(),
-						label=f"{channel.__commandAddress__} {channel.Scale} {channel.Unit}/div.")
+						label=f"{channel.__commandAddress__} {channel.Scale} {channel.Unit}/div.",
+						color=TektronixTDS.CHANNELS_COLORMAP(channel.__address__ - 1),
+            			s=1)
 				ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labeltop=False, labelleft=False, labelright=False)
-				ax.add_patch(Arrow(x=min(waveform.keys()), dx=arrowSize, y=0, dy=0, width=(channel.MaxValue-channel.MinValue)/30, edgecolor='black'))
-		legend = fig.legend(loc='lower center', ncols=4)
+				ax.add_patch(Arrow(x=min(waveform.keys()), dx=arrowSize, y=0, dy=0, width=(channel.MaxValue-channel.MinValue)/30, edgecolor='black', facecolor=TektronixTDS.CHANNELS_COLORMAP(channel.__address__ - 1)))
+		legend = fig.legend(loc='lower center', ncols=4, markerscale=5)
 		legend.legend_handles[0].set_alpha(0)
 		imageBytes = BytesIO()
 		savefig(imageBytes)
