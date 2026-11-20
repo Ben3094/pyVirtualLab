@@ -51,16 +51,19 @@ class LeCroy2610N(Instrument):
 	DELAY_PARAMETER:str = 'TRDL'
 	@property
 	@GetProperty(float, DELAY_PARAMETER)
-	def Delay(self) -> float:
-		return -float(self.Query(LeCroy2610N.DELAY_PARAMETER))
+	def Delay(self, getMethodReturn) -> float:
+		return getMethodReturn
 	@Delay.setter
 	@SetProperty(float, DELAY_PARAMETER, check=False)
 	def Delay(self, value:float) -> float:
-		value = -float(value)
-		self.Write(LeCroy2610N.DELAY_PARAMETER, str(value))
-		if value != self.Delay:
-			raise Exception(f"Error while setting {self.Id} delay to {value}")
-		return value
+		pass
+	@property
+	def HorizontalPosition(self) -> float:
+		return -self.Delay
+	@HorizontalPosition.setter
+	def HorizontalPosition(self, value:float) -> float:
+		self.Delay = -value
+		return -self.Delay
 	
 	CLEAR_ALL_PARAMETERS_COMMAND:str = 'PACL'
 	CLEAR_PARAMETER_COMMAND:str = 'PADL'

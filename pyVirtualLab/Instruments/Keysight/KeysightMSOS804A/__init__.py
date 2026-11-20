@@ -141,12 +141,19 @@ class KeysightMSOS804A(Instrument):
 
 	@property
 	@GetProperty(float, 'TIM:POS')
-	def Delay(self, getMethodReturn) -> float:
+	def HorizontalPosition(self, getMethodReturn) -> float:
 		return getMethodReturn
-	@Delay.setter
+	@HorizontalPosition.setter
 	@SetProperty(float, 'TIM:POS', rounding=lambda x : roundScientificNumber(x, 2))
-	def Delay(self, value: float) -> float:
+	def HorizontalPosition(self, value: float) -> float:
 		pass
+	@property
+	def Delay(self) -> float:
+		return -self.HorizontalPosition
+	@Delay.setter
+	def Delay(self, value:float) -> float:
+		self.HorizontalPosition = -value
+		return -self.HorizontalPosition
 
 	@property
 	@GetProperty(bool, 'MEAS:SEND')

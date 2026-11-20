@@ -95,16 +95,37 @@ class Oscilloscope(Instrument, ABC):
 			raise Exception(f"Failed to set time scale to {value}. Current time scale: {self.TimeScale}")
 		return value
 
-	DELAY_COMMAND:str = 'TIM:POS'
+	DELAY_COMMAND:str = None
 	@property
 	def Delay(self) -> float:
+		if self.DELAY_COMMAND == None:
+			return -self.HorizontalPosition
 		return float(self.Query(self.DELAY_COMMAND))
 	@Delay.setter
 	def Delay(self, value: float) -> float:
+		if self.DELAY_COMMAND == None:
+			self.HorizontalPosition = -value
+			return -self.HorizontalPosition
 		value = float(value)
 		self.Write(self.DELAY_COMMAND, str(value))
 		if self.Delay != value:
 			raise Exception(f"Failed to set delay to {value}. Current delay: {self.Delay}")
+		return value
+	HORIZONTAL_POSITION_COMMAND:str = None
+	@property
+	def HorizontalPosition(self) -> float:
+		if self.HORIZONTAL_POSITION_COMMAND == None:
+			return -self.Delay
+		return float(self.Query(self.HORIZONTAL_POSITION_COMMAND))
+	@HorizontalPosition.setter
+	def HorizontalPosition(self, value: float) -> float:
+		if self.HORIZONTAL_POSITION_COMMAND == None:
+			self.Delay = -value
+			return -self.Delay
+		value = float(value)
+		self.Write(self.HORIZONTAL_POSITION_COMMAND, str(value))
+		if self.HorizontalPosition != value:
+			raise Exception(f"Failed to set delay to {value}. Current delay: {self.HorizontalPosition}")
 		return value
 
 	@property
