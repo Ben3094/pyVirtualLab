@@ -98,6 +98,9 @@ class Oscilloscope(Instrument, ABC):
 	DELAY_COMMAND:str = None
 	@property
 	def Delay(self) -> float:
+		"""
+		Time equal to time zero position and center of the screen.
+		"""
 		if self.DELAY_COMMAND == None:
 			return -self.HorizontalPosition
 		return float(self.Query(self.DELAY_COMMAND))
@@ -114,6 +117,9 @@ class Oscilloscope(Instrument, ABC):
 	HORIZONTAL_POSITION_COMMAND:str = None
 	@property
 	def HorizontalPosition(self) -> float:
+		"""
+		Time equal to center of the screen and time zero position.
+		"""
 		if self.HORIZONTAL_POSITION_COMMAND == None:
 			return -self.Delay
 		return float(self.Query(self.HORIZONTAL_POSITION_COMMAND))
